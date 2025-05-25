@@ -335,9 +335,13 @@ export const runOptions: AgentRunNonStreamingOptions = {
 async function main() {
   await agent.initialize();
 
-  const answer = await agent.run(runOptions);
-
-  console.log(answer);
+  const response = await agent.run({
+    ...runOptions,
+    stream: true,
+  });
+  for await (const chunk of response) {
+    console.log('CHUNK', JSON.stringify(chunk));
+  }
 }
 
 if (require.main === module) {

@@ -17,6 +17,7 @@ import {
   ChatCompletionContentPart,
   UserMessageEvent,
   EnvironmentInputEvent,
+  PlanUpdateEvent,
 } from '@multimodal/agent-interface';
 import { convertToMultimodalToolCallResult } from '../utils/multimodal';
 import { getLogger } from '../utils/logger';
@@ -91,9 +92,6 @@ export class MessageHistory {
     return messages;
   }
 
-  /**
-   * Process all events in a single unified path with optional image limiting
-   */
   private processEvents(
     events: Event[],
     messages: ChatCompletionMessageParam[],
@@ -119,7 +117,14 @@ export class MessageHistory {
           toolCallEngine,
         );
       } else if (event.type === EventType.ENVIRONMENT_INPUT) {
-        this.processEnvironmentInput(event as EnvironmentInputEvent, eventIndex, imagesToOmit, messages);
+        this.processEnvironmentInput(
+          event as EnvironmentInputEvent,
+          eventIndex,
+          imagesToOmit,
+          messages,
+        );
+      } else if (event.type === EventType.PLAN_UPDATE) {
+        this.processPlanUpdate(event as PlanUpdateEvent, messages);
       }
     }
 
@@ -135,14 +140,67 @@ export class MessageHistory {
   }
 
   /**
+   * Process plan update event
+   * Adds plan information to the message history as a system message
+   */
+  private processPlanUpdate(event: PlanUpdateEvent, messages: ChatCompletionMessageParam[]): void {
+    const { plan } = event;
+
+    // Format plan steps into a readable text format
+    const stepsText = plan.steps
+      .map((step) => {
+        const statusEmoji = this.getPlanStepStatusEmoji(step.status);
+        const subStepsText = step.subSteps
+          ? step.subSteps
+              .map((subStep) => {
+                const subStatusEmoji = this.getPlanStepStatusEmoji(subStep.status);
+                return `    - ${subStatusEmoji} ${subStep.title}: ${subStep.description}`;
+              })
+              .join('\n')
+          : '';
+
+        return `- ${statusEmoji} ${step.title}: ${step.description}\n${subStepsText}`;
+      })
+      .join('\n');
+
+    // Create a system message with the plan information
+    const planMessage: ChatCompletionMessageParam = {
+      role: 'assistant',
+      content: `Current Research Plan: ${plan.title}\n${plan.description}\n\nSteps:\n${stepsText}`,
+    };
+
+    messages.push(planMessage);
+  }
+
+  /**
+   * Get emoji for plan step status for better visualization
+   */
+  private getPlanStepStatusEmoji(status: string): string {
+    switch (status) {
+      case 'pending':
+        return '⏳';
+      case 'in_progress':
+        return '🔄';
+      case 'completed':
+        return '✅';
+      case 'skipped':
+        return '⏭️';
+      case 'failed':
+        return '❌';
+      default:
+        return '•';
+    }
+  }
+
+  /**
    * Count all images in all events
    */
   private countAllImagesInEvents(events: Event[]): number {
     return events.reduce((total, event) => {
       if (
-        (event.type === EventType.USER_MESSAGE || 
-         event.type === EventType.TOOL_RESULT ||
-         event.type === EventType.ENVIRONMENT_INPUT) &&
+        (event.type === EventType.USER_MESSAGE ||
+          event.type === EventType.TOOL_RESULT ||
+          event.type === EventType.ENVIRONMENT_INPUT) &&
         Array.isArray(event.content)
       ) {
         return total + this.countImagesInContent(event.content);
@@ -191,9 +249,9 @@ export class MessageHistory {
       const event = events[eventIndex];
 
       if (
-        (event.type === EventType.USER_MESSAGE || 
-         event.type === EventType.TOOL_RESULT ||
-         event.type === EventType.ENVIRONMENT_INPUT) &&
+        (event.type === EventType.USER_MESSAGE ||
+          event.type === EventType.TOOL_RESULT ||
+          event.type === EventType.ENVIRONMENT_INPUT) &&
         Array.isArray(event.content)
       ) {
         // Find images in this event's content
@@ -433,7 +491,7 @@ Current time: ${new Date().toLocaleString()}`;
   ): void {
     const content = event.content;
     const description = event.description || 'Environment Input';
-    
+
     if (typeof content === 'string') {
       messages.push({
         role: 'user',
@@ -444,11 +502,11 @@ Current time: ${new Date().toLocaleString()}`;
 
     // Process the content, potentially omitting images
     const processedContent = this.processContent(content, eventIndex, imagesToOmit);
-    
+
     // For multimodal content, add a text part with the description if not already present
-    const hasTextPart = processedContent.some(part => part.type === 'text');
-    
-    let finalContent = [...processedContent];
+    const hasTextPart = processedContent.some((part) => part.type === 'text');
+
+    const finalContent = [...processedContent];
     if (!hasTextPart && event.description) {
       finalContent.unshift({
         type: 'text',
@@ -456,12 +514,12 @@ Current time: ${new Date().toLocaleString()}`;
       });
     } else if (hasTextPart && event.description) {
       // If there's already text, prefix the first text part
-      const firstTextIndex = finalContent.findIndex(part => part.type === 'text');
+      const firstTextIndex = finalContent.findIndex((part) => part.type === 'text');
       if (firstTextIndex >= 0) {
-        const textPart = finalContent[firstTextIndex] as { type: 'text', text: string };
+        const textPart = finalContent[firstTextIndex] as { type: 'text'; text: string };
         finalContent[firstTextIndex] = {
           ...textPart,
-          text: `[Environment: ${description}] ${textPart.text}`
+          text: `[Environment: ${description}] ${textPart.text}`,
         };
       }
     }

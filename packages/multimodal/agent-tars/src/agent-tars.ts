@@ -14,6 +14,7 @@ import {
   LLMRequestHookPayload,
   LLMResponseHookPayload,
   ConsoleLogger,
+  EventType,
 } from '@multimodal/mcp-agent';
 import {
   InMemoryMCPModule,
@@ -26,6 +27,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { GUIAgent } from './gui-agent';
 import { LocalBrowser } from '@agent-infra/browser';
+import { DeepResearchPlanner } from './deep-research-planner';
 
 /**
  * A Agent TARS that uses in-memory MCP tool call
@@ -40,6 +42,11 @@ export class AgentTARS extends MCPAgent {
   private browser: LocalBrowser;
   // FIXME: move the `@agent-infra/browser`.
   private browserLaunched = false;
+
+  private deepResearchPlanner?: DeepResearchPlanner;
+  private deepResearchEnabled = false;
+  private deepResearchModel = '';
+  private isFirstIteration = true;
 
   // Message history storage for experimental dump feature
   private traces: Array<{
@@ -74,6 +81,7 @@ export class AgentTARS extends MCPAgent {
       mcpServers: {},
       maxIterations: 100,
       maxTokens: 10000, // Set default maxTokens to 10000 for AgentTARS
+      enableDeepResearch: true,
       ...options,
     };
 
@@ -138,6 +146,10 @@ Current Working Directory: ${workingDirectory}
     if (options.experimental?.dumpMessageHistory) {
       this.logger.info('📝 Message history dump enabled');
     }
+
+    // Set deep research options
+    this.deepResearchEnabled = !!tarsOptions.enableDeepResearch;
+    this.deepResearchModel = tarsOptions.deepResearchModel || '';
   }
 
   /**
@@ -168,6 +180,13 @@ Current Working Directory: ${workingDirectory}
         initPromises.push(this.initializeInMemoryMCPForBuiltInMCPServers());
       }
 
+      /**
+       * Initialize Deep Research Planner if enabled
+       */
+      if (this.deepResearchEnabled) {
+        await this.initializeDeepResearchPlanner();
+      }
+
       await Promise.all(initPromises);
       this.logger.info('✅ AgentTARS initialization complete');
       // Log all registered tools in a beautiful format
@@ -177,6 +196,132 @@ Current Working Directory: ${workingDirectory}
       await this.cleanup();
       throw error;
     }
+  }
+
+  /**
+   * Initialize the Deep Research Planner if enabled
+   */
+  private async initializeDeepResearchPlanner(): Promise<void> {
+    try {
+      this.logger.info('🔍 Initializing Deep Research Planner...');
+
+      // // Get LLM client
+      // const llmClient = this.getLLMClient();
+      // if (!llmClient) {
+      //   throw new Error('LLM client not available for Deep Research Planner');
+      // }
+
+      // Create the planner
+      this.deepResearchPlanner = new DeepResearchPlanner({
+        logger: this.logger,
+        eventStream: this.eventStream,
+        // @ts-expect-error
+        getLLMClient: this.getLLMClient.bind(this),
+        model: this.deepResearchModel,
+      });
+
+      this.logger.success('✅ Deep Research Planner initialized successfully');
+    } catch (error) {
+      this.logger.error(`❌ Failed to initialize Deep Research Planner: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Override onEachAgentLoopStart to support plan generation and updates
+   * This method is called at the beginning of each agent loop iteration
+   */
+  override async onEachAgentLoopStart(sessionId: string): Promise<void> {
+    // First call parent method to handle base functionality
+    await super.onEachAgentLoopStart(sessionId);
+
+    // Handle GUI Agent if enabled
+    if (
+      this.tarsOptions.browser?.controlSolution === 'gui-agent' &&
+      this.guiAgent &&
+      this.browserLaunched
+    ) {
+      await this.guiAgent?.onEachAgentLoopStart(this.eventStream, this.isReplaySnapshot);
+    }
+
+    // Handle Deep Research planning if enabled
+    if (this.deepResearchEnabled && this.deepResearchPlanner && !this.isReplaySnapshot) {
+      const events = this.eventStream.getEvents();
+
+      if (this.isFirstIteration) {
+        // Initialize planning on first iteration
+        this.deepResearchPlanner.initializePlanning(sessionId);
+
+        // Get user message content for task description
+        const userMessages = this.eventStream.getEventsByType([EventType.USER_MESSAGE]);
+        if (userMessages.length > 0) {
+          const userMessage = userMessages[userMessages.length - 1];
+          const messageContent =
+            // @ts-expect-error
+            typeof userMessage.content === 'string' ? userMessage.content : 'Research task';
+
+          // Generate initial plan
+          await this.deepResearchPlanner.generatePlan({
+            task: messageContent,
+            sessionId,
+          });
+        }
+
+        this.isFirstIteration = false;
+      } else {
+        // Update plan on subsequent iterations if we have a current plan
+        const planEvents = this.eventStream.getEventsByType([EventType.PLAN_UPDATE]);
+
+        if (planEvents.length > 0) {
+          const latestPlanEvent = planEvents[planEvents.length - 1] as any;
+
+          if (latestPlanEvent.plan) {
+            // Update the plan with latest events
+            await this.deepResearchPlanner.updatePlan({
+              events,
+              currentPlan: latestPlanEvent.plan,
+              sessionId,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Override onAgentLoopEnd to support final report generation
+   */
+  override async onAgentLoopEnd(id: string): Promise<void> {
+    // Generate research report if deep research is enabled and planning is complete
+    if (this.deepResearchEnabled && this.deepResearchPlanner && !this.isReplaySnapshot) {
+      const planFinishEvents = this.eventStream.getEventsByType([EventType.PLAN_FINISH]);
+
+      if (planFinishEvents.length > 0) {
+        this.logger.info('Generating comprehensive research report...');
+
+        try {
+          // Get all events for report generation
+          const events = this.eventStream.getEvents();
+
+          // Generate the research report
+          const report = await this.deepResearchPlanner.generateResearchReport(id, events);
+
+          // Send the report as an assistant message
+          const reportEvent = this.eventStream.createEvent(EventType.ASSISTANT_MESSAGE, {
+            content: `# Deep Research Report\n\n${report}`,
+            finishReason: 'stop',
+          });
+
+          this.eventStream.sendEvent(reportEvent);
+          this.logger.success('✅ Deep Research Report generated and sent');
+        } catch (error) {
+          this.logger.error(`❌ Failed to generate research report: ${error}`);
+        }
+      }
+    }
+
+    // Call the parent method
+    await super.onAgentLoopEnd(id);
   }
 
   /**
@@ -463,25 +608,6 @@ Current Working Directory: ${workingDirectory}
   }
 
   /**
-   * Override the onEachAgentLoopStart method to handle GUI Agent initialization
-   * This is called at the start of each agent iteration
-   */
-  override async onEachAgentLoopStart(sessionId: string): Promise<void> {
-    // If GUI Agent is enabled, and the browser is launche,
-    // take a screenshot and send it to the event stream
-    if (
-      this.tarsOptions.browser?.controlSolution === 'gui-agent' &&
-      this.guiAgent &&
-      this.browserLaunched
-    ) {
-      await this.guiAgent?.onEachAgentLoopStart(this.eventStream, this.isReplaySnapshot);
-    }
-
-    // Call any super implementation if it exists
-    await super.onEachAgentLoopStart(sessionId);
-  }
-
-  /**
    * Clean up resources when done
    */
   async cleanup(): Promise<void> {
@@ -553,7 +679,8 @@ Current Working Directory: ${workingDirectory}
   }
 
   /**
-   * Override onLLMRequest hook to capture requests for message history dump
+
+   * Override onBeforeToolCall hook to capture requests for message history dump
    */
   override onLLMRequest(id: string, payload: LLMRequestHookPayload): void {
     // Add to message history if feature is enabled

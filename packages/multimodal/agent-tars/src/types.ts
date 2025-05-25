@@ -183,4 +183,20 @@ export type AgentTARSOptions = Partial<MCPAgentOptions> & {
    * Experimental features configuration
    */
   experimental?: AgentTARSExperimentalOptions;
+  
+  /**
+   * Enable deep research mode with advanced planning capabilities
+   * When enabled, the agent will create and maintain a research plan,
+   * providing more structured and thorough exploration of complex topics.
+   * 
+   * @defaultValue false
+   */
+  enableDeepResearch?: boolean;
+  
+  /**
+   * Model to use for deep research planning and reporting
+   * 
+   * @defaultValue Uses the same model as the agent if not specified
+   */
+  deepResearchModel?: string;
 };

@@ -426,7 +426,13 @@ Provide concise and accurate responses.`;
     };
 
     // Prepare messages array with system message followed by conversation messages
-    const messages: ChatCompletionMessageParam[] = [systemMessage, ...request.messages];
+    const messages: ChatCompletionMessageParam[] = [
+      systemMessage,
+      {
+        role: 'user',
+        content: JSON.stringify(request.messages),
+      },
+    ];
 
     try {
       // Call the LLM with the prepared messages
@@ -435,7 +441,6 @@ Provide concise and accurate responses.`;
           model: resolvedModel.model,
           messages,
           temperature: 0.3, // Lower temperature for more focused summaries
-
           max_tokens: 25, // Short responses for titles
           response_format: { type: 'json_object' }, // Enable JSON mode
         },
