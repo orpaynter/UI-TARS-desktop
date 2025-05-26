@@ -1,14 +1,4 @@
-FROM node:22@sha256:e558507eb799e3a76fcdaaee5e48dce1a00aebc85892128a9fca59f63bd49511 AS builder
-
-WORKDIR /app
-RUN npm i -g pnpm@9
-
-COPY . .
-
-RUN pnpm install
-RUN pnpm --filter=@agent-infra/mcp-server-browser --prod deploy /prod/@agent-infra/mcp-server-browser
-
-FROM builder AS runtime
+FROM node:22@sha256:e558507eb799e3a76fcdaaee5e48dce1a00aebc85892128a9fca59f63bd49511 AS base
 
 ENV \
     # Configure default locale (important for chrome-headless-shell).
@@ -53,9 +43,8 @@ USER $PPTRUSER_UID
 # Generate THIRD_PARTY_NOTICES using chrome --credits.
 
 WORKDIR /app
-COPY --from=builder /prod/@agent-infra/mcp-server-browser ./
-RUN cat ./package.json
+RUN npm i @agent-infra/mcp-server-browser@latest -g
 
 ENV NODE_ENV=production
 
-ENTRYPOINT ["node", "./dist/index.cjs"]
+ENTRYPOINT ["mcp-server-browser"]
