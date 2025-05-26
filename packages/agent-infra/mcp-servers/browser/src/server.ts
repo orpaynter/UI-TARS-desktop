@@ -16,6 +16,7 @@ import {
   ImageContent,
   TextContent,
 } from '@modelcontextprotocol/sdk/types.js';
+import { toMarkdown } from '@agent-infra/shared';
 import { Logger, ConsoleLogger } from '@agent-infra/logger';
 import { z } from 'zod';
 import {
@@ -38,9 +39,6 @@ import {
   locateElement,
   scrollIntoViewIfNeeded,
 } from '@agent-infra/browser-use';
-import TurndownService from 'turndown';
-// @ts-ignore
-import { gfm } from 'turndown-plugin-gfm';
 import merge from 'lodash.merge';
 import { parseProxyUrl } from './utils.js';
 import { ElementHandle } from 'puppeteer-core';
@@ -1002,17 +1000,8 @@ const handleToolCall = async ({
     },
     browser_get_markdown: async (args) => {
       try {
-        const turndownService = new TurndownService();
-        turndownService.addRule('filter_tags', {
-          filter: ['script', 'style'],
-          replacement: (content) => {
-            return '';
-          },
-        });
-        turndownService.use(gfm);
-
         const html = await page.content();
-        const markdown = turndownService.turndown(html);
+        const markdown = toMarkdown(html);
         return {
           content: [{ type: 'text', text: markdown }],
           isError: false,
