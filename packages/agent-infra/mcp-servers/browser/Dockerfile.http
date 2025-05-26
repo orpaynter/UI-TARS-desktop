@@ -3,7 +3,7 @@ FROM node:22@sha256:e558507eb799e3a76fcdaaee5e48dce1a00aebc85892128a9fca59f63bd4
 WORKDIR /app
 RUN npm i -g pnpm@9
 
-COPY ../../.. .
+COPY ../../../.. .
 
 RUN pnpm install
 RUN pnpm --filter=@agent-infra/mcp-server-browser --prod deploy /prod/@agent-infra/mcp-server-browser
