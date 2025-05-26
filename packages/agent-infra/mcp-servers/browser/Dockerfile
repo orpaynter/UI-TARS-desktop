@@ -31,7 +31,7 @@ ENV DBUS_SESSION_BUS_ADDRESS autolaunch:
 
 # Install @puppeteer/browsers, puppeteer and puppeteer-core into /home/pptruser/node_modules.
 RUN npm install puppeteer puppeteer-core @puppeteer/browsers
-
+RUN npm i @agent-infra/mcp-server-browser@latest -g
 # Install system dependencies as root.
 USER root
 # Overriding the cache directory to install the deps for the Chrome
@@ -43,7 +43,6 @@ USER $PPTRUSER_UID
 # Generate THIRD_PARTY_NOTICES using chrome --credits.
 
 WORKDIR /app
-RUN npm i @agent-infra/mcp-server-browser@latest -g
 
 ENV NODE_ENV=production
 
