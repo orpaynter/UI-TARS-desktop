@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { IncomingHttpHeaders } from 'node:http';
 
@@ -23,7 +24,7 @@ interface StartSseAndStreamableHttpMcpServerParams {
   stateless?: boolean;
   createMcpServer: (params?: {
     headers: IncomingHttpHeaders;
-  }) => Promise<McpServer>;
+  }) => Promise<McpServer | Server>;
 }
 
 export async function startSseAndStreamableHttpMcpServer(
