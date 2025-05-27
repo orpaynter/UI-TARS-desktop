@@ -2,9 +2,13 @@
  * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
  * SPDX-License-Identifier: Apache-2.0
  */
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import {
+  ErrorCode,
+  isInitializeRequest,
+  type JSONRPCError,
+} from '@modelcontextprotocol/sdk/types.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -38,6 +42,21 @@ export async function startSseAndStreamableHttpMcpServer(
 
   const app = express();
   app.use(express.json());
+
+  app.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
+    if (
+      err instanceof SyntaxError &&
+      (err as any)?.status === 400 &&
+      'body' in err
+    ) {
+      res.status(400).send({
+        jsonrpc: '2.0',
+        error: { code: ErrorCode.ParseError, message: err.message },
+      } as JSONRPCError); // Bad request
+      return;
+    }
+    next();
+  });
 
   app.get('/sse', async (req, res) => {
     const mcpServer = await createMcpServer({
@@ -109,7 +128,7 @@ export async function startSseAndStreamableHttpMcpServer(
         res.status(400).json({
           jsonrpc: '2.0',
           error: {
-            code: -32000,
+            code: ErrorCode.ConnectionClosed,
             message: 'Bad Request: No valid session ID provided',
           },
           id: null,
@@ -130,7 +149,7 @@ export async function startSseAndStreamableHttpMcpServer(
         res.status(500).json({
           jsonrpc: '2.0',
           error: {
-            code: -32603,
+            code: ErrorCode.InternalError,
             message: 'Internal server error',
           },
           id: null,
@@ -145,7 +164,7 @@ export async function startSseAndStreamableHttpMcpServer(
       JSON.stringify({
         jsonrpc: '2.0',
         error: {
-          code: -32000,
+          code: ErrorCode.ConnectionClosed,
           message: 'Method not allowed.',
         },
         id: null,
@@ -159,7 +178,7 @@ export async function startSseAndStreamableHttpMcpServer(
       JSON.stringify({
         jsonrpc: '2.0',
         error: {
-          code: -32000,
+          code: ErrorCode.ConnectionClosed,
           message: 'Method not allowed.',
         },
         id: null,

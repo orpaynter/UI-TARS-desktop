@@ -10,6 +10,8 @@
 import { startSseAndStreamableHttpMcpServer } from 'mcp-http-server';
 import { program } from 'commander';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { createServer, getBrowser } from './server.js';
 
 declare global {
@@ -175,7 +177,10 @@ program
         await startSseAndStreamableHttpMcpServer({
           host: options.host,
           port: options.port,
-          createMcpServer: async () => createMcpServer() as any,
+          createMcpServer: async (params) => {
+            const server = await createMcpServer();
+            return server as unknown as Server;
+          },
         });
       } else {
         const server = await createMcpServer();
