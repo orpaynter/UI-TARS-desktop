@@ -1,5 +1,11 @@
 # @agent-infra/mcp-shared
 
+## 1.1.4
+
+### Patch Changes
+
+- chore: start server
+
 ## 1.1.3
 
 ### Patch Changes
