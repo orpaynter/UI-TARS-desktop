@@ -13,7 +13,6 @@ import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { IncomingHttpHeaders } from 'node:http';
 
 interface McpServerEndpoint {
   url: string;
@@ -26,9 +25,9 @@ interface StartSseAndStreamableHttpMcpServerParams {
   host?: string;
   /** Enable stateless mode for streamable http transports. Default is True */
   stateless?: boolean;
-  createMcpServer: (params?: {
-    headers: IncomingHttpHeaders;
-  }) => Promise<McpServer | Server>;
+  createMcpServer: (
+    req: Pick<Request, 'headers'>,
+  ) => Promise<McpServer | Server>;
 }
 
 export async function startSseAndStreamableHttpMcpServer(
