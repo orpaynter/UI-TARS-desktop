@@ -1,5 +1,11 @@
 # @agent-infra/mcp-shared
 
+## 1.1.3
+
+### Patch Changes
+
+- feat(mcp-http-server): support request headers params
+
 ## 1.1.2
 
 ### Patch Changes

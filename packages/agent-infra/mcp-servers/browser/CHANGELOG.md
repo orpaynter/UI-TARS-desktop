@@ -1,5 +1,12 @@
 # @agent-infra/mcp-server-browser
 
+## 1.1.3
+
+### Patch Changes
+
+- Updated dependencies
+  - mcp-http-server@1.1.3
+
 ## 1.1.2
 
 ### Patch Changes
