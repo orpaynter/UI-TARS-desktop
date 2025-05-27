@@ -40,7 +40,7 @@ export async function startSseAndStreamableHttpMcpServer(
   app.use(express.json());
 
   app.get('/sse', async (req, res) => {
-    const mcpServer: McpServer = await createMcpServer({
+    const mcpServer = await createMcpServer({
       headers: req.headers,
     });
     console.info(`New SSE connection from ${req.ip}`);
@@ -74,7 +74,7 @@ export async function startSseAndStreamableHttpMcpServer(
   });
 
   app.post('/mcp', async (req: Request, res: Response) => {
-    const mcpServer: McpServer = await createMcpServer({
+    const mcpServer = await createMcpServer({
       headers: req.headers,
     });
 
@@ -182,12 +182,8 @@ export async function startSseAndStreamableHttpMcpServer(
         port: PORT,
         close: () => appServer.close(),
       };
-      console.log(
-        `Browser Streamable HTTP MCP Server listening at ${endpoint.url}`,
-      );
-      console.log(
-        `Browser Streamable SSE MCP Server listening at http://${HOST}:${PORT}/sse`,
-      );
+      console.log(`Streamable HTTP MCP Server listening at ${endpoint.url}`);
+      console.log(`SSE MCP Server listening at http://${HOST}:${PORT}/sse`);
       resolve(endpoint);
     });
 
