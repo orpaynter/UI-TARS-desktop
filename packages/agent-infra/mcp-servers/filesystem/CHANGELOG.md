@@ -1,5 +1,12 @@
 # @agent-infra/mcp-server-filesystem
 
+## 1.1.5
+
+### Patch Changes
+
+- Updated dependencies
+  - mcp-http-server@1.1.5
+
 ## 1.1.4
 
 ### Patch Changes
