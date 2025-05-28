@@ -255,7 +255,8 @@ export const toolsMap = {
   },
   browser_click: {
     name: 'browser_click',
-    description: 'Click an element on the page',
+    description:
+      'Click an element on the page, before using the tool, use browser_get_clickable_elements to get the index of the element',
     inputSchema: z.object({
       // selector: z
       //   .string()
