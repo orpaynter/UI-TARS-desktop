@@ -35,6 +35,7 @@
   },
   "scripts": {
     "dev": "rsbuild dev",
+    "prepublishOnly": "npm run build",
     "build": "rsbuild build",
     "preview": "rsbuild preview"
   }
