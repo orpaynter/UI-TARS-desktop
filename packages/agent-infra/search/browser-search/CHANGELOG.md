@@ -1,5 +1,12 @@
 # @agent-infra/browser-search
 
+## 0.0.3-beta.1
+
+### Patch Changes
+
+- release agent tars beta
+  - @agent-infra/shared@0.0.1
+
 ## 0.0.3-beta.0
 
 ### Patch Changes

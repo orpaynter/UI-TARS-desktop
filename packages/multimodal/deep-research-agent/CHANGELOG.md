@@ -1,5 +1,14 @@
 # @multimodal/deep-research-agent
 
+## 0.1.1-beta.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @agent-infra/browser-search@0.0.3-beta.1
+  - @multimodal/agent@0.1.1-beta.2
+  - @agent-infra/shared@0.0.1
+
 ## 0.1.1-beta.1
 
 ### Patch Changes

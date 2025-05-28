@@ -1,5 +1,13 @@
 # @multimodal/agent
 
+## 0.1.1-beta.2
+
+### Patch Changes
+
+- release agent tars beta
+  - @multimodal/agent-interface@0.1.1-beta.2
+  - @multimodal/llm-client@0.1.1-beta.2
+
 ## 0.1.1-beta.1
 
 ### Patch Changes

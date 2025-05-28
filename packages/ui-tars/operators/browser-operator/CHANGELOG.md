@@ -1,5 +1,12 @@
 # @ui-tars/operator-browser
 
+## 1.2.2-beta.1
+
+### Patch Changes
+
+- release agent tars beta
+  - @ui-tars/sdk@1.2.2-beta.1
+
 ## 1.2.2-beta.0
 
 ### Patch Changes

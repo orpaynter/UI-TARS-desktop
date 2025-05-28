@@ -1,5 +1,11 @@
 # @agent-tars/server
 
+## 0.0.1-beta.3
+
+### Patch Changes
+
+- @agent-tars/core@0.0.1-beta.3
+
 ## 0.0.1-beta.2
 
 ### Patch Changes
