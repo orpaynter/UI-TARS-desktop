@@ -8,9 +8,51 @@ import cac from 'cac';
 import { loadConfig } from '@multimodal/config-loader';
 import { AgentTARSOptions, LogLevel } from '@agent-tars/core';
 import { startInteractiveWebUI } from './interactive-ui';
-
 import { processRequestCommand } from './request-command';
 import { mergeCommandLineOptions } from './utils';
+import chalk from 'chalk';
+
+// 显示ASCII art LOGO
+function printWelcomeLogo(): void {
+  console.log();
+
+  // ASCII art logo with enhanced TARS visibility
+  const asciiLogo = [
+    '    ___    _____ ______ _   __ ______',
+    '   /   |  / ___//_  __// | / //_  __/',
+    '  / /| | / __ \\  / /  /  |/ /  / /   ',
+    ' / ___ |/ /_/ / / /  / /|  /  / /    ',
+    '/_/  |_|\\____/ /_/  /_/ |_/  /_/     ',
+    '                                     ',
+    ' ████████╗ █████╗ ██████╗ ███████╗   ',
+    ' ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝   ',
+    '    ██║   ███████║██████╔╝███████╗   ',
+    '    ██║   ██╔══██║██╔══██╗╚════██║   ',
+    '    ██║   ██║  ██║██║  ██║███████║   ',
+    '    ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ',
+  ];
+
+  // 使用清晰明确的颜色方案 - 蓝色AGENT和橙色TARS
+  const agentColor = '#4d9de0';
+  const tarsColor = '#ff7b25';
+
+  asciiLogo.forEach((line, index) => {
+    if (index < 6) {
+      // AGENT部分 - 蓝色
+      console.log(chalk.hex(agentColor)(line));
+    } else {
+      // TARS部分 - 橙色，使用方块字符更加醒目
+      console.log(chalk.hex(tarsColor)(line));
+    }
+  });
+
+  console.log();
+  console.log(chalk.dim(`Agent TARS CLI v${__VERSION__ || '0.0.0'}`));
+  console.log();
+}
+
+// 在程序入口立即显示LOGO
+printWelcomeLogo();
 
 // List of config files to search for automatically
 const CONFIG_FILES = [
