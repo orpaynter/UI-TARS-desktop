@@ -1,5 +1,13 @@
 # @multimodal/agent-interface
 
+## 0.1.1-beta.3
+
+### Patch Changes
+
+- chore: publish
+- Updated dependencies
+  - @multimodal/llm-client@0.1.1-beta.3
+
 ## 0.1.1-beta.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @multimodal/ui
 
+## 0.1.1-beta.3
+
+### Patch Changes
+
+- chore: publish
+
 ## 0.1.1-beta.2
 
 ## 0.1.1-beta.1

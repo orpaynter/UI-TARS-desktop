@@ -1,5 +1,13 @@
 # @multimodal/codeact-agent
 
+## 0.1.1-beta.3
+
+### Patch Changes
+
+- chore: publish
+- Updated dependencies
+  - @multimodal/agent@0.1.1-beta.3
+
 ## 0.1.1-beta.2
 
 ### Patch Changes

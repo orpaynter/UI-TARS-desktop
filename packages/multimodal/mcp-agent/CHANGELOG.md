@@ -1,5 +1,14 @@
 # @multimodal/mcp-agent
 
+## 0.1.1-beta.3
+
+### Patch Changes
+
+- chore: publish
+- Updated dependencies
+  - @agent-infra/mcp-client@1.1.6-beta.2
+  - @multimodal/agent@0.1.1-beta.3
+
 ## 0.1.1-beta.2
 
 ### Patch Changes

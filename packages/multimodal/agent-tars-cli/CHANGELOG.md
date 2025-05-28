@@ -1,5 +1,16 @@
 # @agent-tars/cli
 
+## 0.0.1-beta.4
+
+### Patch Changes
+
+- chore: publish
+- Updated dependencies
+  - @agent-tars/server@0.0.1-beta.4
+  - @agent-tars/web-ui@0.0.1-beta.4
+  - @multimodal/config-loader@0.1.1-beta.3
+  - @agent-tars/core@0.0.1-beta.4
+
 ## 0.0.1-beta.3
 
 ### Patch Changes
