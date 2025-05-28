@@ -1,5 +1,5 @@
 {
-  "mode": "exit",
+  "mode": "pre",
   "tag": "beta",
   "initialVersions": {
     "agent-tars-app": "1.0.0-alpha.8",
@@ -24,21 +24,21 @@
     "@agent-infra/shared": "0.0.1",
     "@common/configs": "0.0.1",
     "@common/electron-build": "1.0.0",
-    "@multimodal/agent": "0.0.0",
-    "@multimodal/agent-interface": "0.0.0",
-    "@multimodal/agent-snapshot": "0.0.0",
-    "@agent-tars/core": "0.0.1-beta.0",
-    "@agent-tars/cli": "0.0.1-beta.0",
-    "@agent-tars/server": "0.0.1-beta.0",
-    "@agent-tars/test-workspace": "0.0.1-beta.0",
-    "@agent-tars/web-ui": "0.0.1-beta.0",
-    "@multimodal/codeact-agent": "0.0.0",
-    "@multimodal/config-loader": "0.0.0",
-    "@multimodal/deep-research-agent": "0.0.0",
-    "@multimodal/llm": "0.0.0",
-    "@multimodal/llm-client": "0.1.0",
-    "@multimodal/mcp-agent": "0.0.0",
-    "@multimodal/ui": "0.0.0",
+    "@multimodal/agent": "0.1.1-beta.0",
+    "@multimodal/agent-interface": "0.1.1-beta.0",
+    "@multimodal/agent-snapshot": "0.1.1-beta.0",
+    "@agent-tars/core": "0.0.1-beta.1",
+    "@agent-tars/cli": "0.0.1-beta.1",
+    "@agent-tars/server": "0.0.1-beta.1",
+    "@agent-tars/test-workspace": "0.0.1-beta.1",
+    "@agent-tars/web-ui": "0.0.1-beta.1",
+    "@multimodal/codeact-agent": "0.1.1-beta.0",
+    "@multimodal/config-loader": "0.1.1-beta.0",
+    "@multimodal/deep-research-agent": "0.1.1-beta.0",
+    "@multimodal/llm": "0.1.1-beta.0",
+    "@multimodal/llm-client": "0.1.1-beta.0",
+    "@multimodal/mcp-agent": "0.1.1-beta.0",
+    "@multimodal/ui": "0.1.1-beta.0",
     "@ui-tars/action-parser": "1.2.1",
     "@ui-tars/cli": "1.2.1",
     "@ui-tars/electron-ipc": "1.2.1",
@@ -52,6 +52,7 @@
   },
   "changesets": [
     "blue-sloths-wink",
-    "sour-rocks-sip"
+    "sour-rocks-sip",
+    "spicy-kids-allow"
   ]
 }
