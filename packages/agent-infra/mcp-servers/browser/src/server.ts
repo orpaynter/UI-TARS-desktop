@@ -1228,7 +1228,7 @@ const handleToolCall = async ({
     },
     browser_press_key: async (args) => {
       try {
-        await page.keyboard.press(args.key);
+        await page.keyboard.press(args.key as KeyInput);
         return {
           content: [{ type: 'text', text: `Pressed key: ${args.key}` }],
           isError: false,
