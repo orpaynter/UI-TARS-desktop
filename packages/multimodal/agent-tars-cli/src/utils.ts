@@ -34,10 +34,10 @@ export function resolveValue(value: string | undefined, label = 'value'): string
   if (/^[A-Z][A-Z0-9_]*$/.test(value)) {
     const envValue = process.env[value];
     if (envValue) {
-      console.log(`Using ${label} from environment variable: ${value}`);
+      logger.log(`Using ${label} from environment variable: ${value}`);
       return envValue;
     } else {
-      console.warn(`Environment variable "${value}" not found, using as literal value`);
+      logger.warn(`Environment variable "${value}" not found, using as literal value`);
     }
   }
 
