@@ -672,6 +672,7 @@ const handleToolCall = async ({
 
       try {
         const { clickableElements } = (await buildDomTree(page)) || {};
+        await removeHighlights(page);
         if (clickableElements) {
           return {
             content: [
