@@ -16,6 +16,7 @@
     "prepare": "husky install",
     "release": "ptk release --push-tag --tag-prefix '@agent-tars@'",
     "release:ai": "ptk release --push-tag --tag-prefix '@agent-tars@' --use-ai --provider=azure-openai --model=aws_sdk_claude37_sonnet --baseURL=AWS_CLAUDE_API_BASE_URL",
+    "release:ai:dryrun": "ptk release --push-tag --tag-prefix '@agent-tars@' --use-ai --provider=azure-openai --model=aws_sdk_claude37_sonnet --baseURL=AWS_CLAUDE_API_BASE_URL --dry-run",
     "patch": "ptk patch",
     "changelog": "ptk changelog"
   },
