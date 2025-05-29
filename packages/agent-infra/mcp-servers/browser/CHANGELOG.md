@@ -1,5 +1,11 @@
 # @agent-infra/mcp-server-browser
 
+## 1.1.6-beta.0
+
+### Patch Changes
+
+- feat: add fullPage
+
 ## 1.1.5
 
 ### Patch Changes
