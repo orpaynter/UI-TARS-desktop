@@ -132,6 +132,8 @@ function processChangelog(content: string, cwd: string, options: ChangelogOption
  * Changelog command implementation
  */
 export async function changelog(options: ChangelogOptions = {}): Promise<void> {
+  console.log('options', options);
+
   const {
     cwd = process.cwd(),
     beautify = false,
@@ -139,7 +141,7 @@ export async function changelog(options: ChangelogOptions = {}): Promise<void> {
     gitPush: shouldPush = false,
     attachAuthor = false,
     authorNameType = 'name',
-    useAI = false,
+    useAi = false,
     model,
     apiKey,
     baseURL,
@@ -165,7 +167,7 @@ export async function changelog(options: ChangelogOptions = {}): Promise<void> {
   let changelogContent = '';
 
   // Choose between AI-powered or conventional changelog generation
-  if (useAI) {
+  if (useAi) {
     // Generate changelog using AI
     logger.info(`Generating changelog for ${version} using AI...`);
 

@@ -106,6 +106,9 @@ export function bootstrapCli() {
     .option('--version <version>', 'Version', {
       // There is no default value here, because the default is read from package.json
     })
+    .option('--tag-prefix <prefix>', 'Prefix for git tags', {
+      default: 'v',
+    })
     .option('--beautify', 'Beautify changelog or not', {
       default: false,
     })

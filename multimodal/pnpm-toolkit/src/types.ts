@@ -60,7 +60,7 @@ export interface ReleaseOptions extends CommandOptions {
   build?: boolean | string;
   pushTag?: boolean;
   tagPrefix?: string;
-  useAI?: boolean;
+  useAi?: boolean;
   model?: string;
   apiKey?: string;
   baseURL?: string;
@@ -83,7 +83,7 @@ export interface ChangelogOptions extends CommandOptions {
   gitPush?: boolean;
   attachAuthor?: boolean;
   authorNameType?: 'name' | 'email';
-  useAI?: boolean;
+  useAi?: boolean;
   model?: string;
   apiKey?: string;
   baseURL?: string;

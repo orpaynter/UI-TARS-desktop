@@ -197,7 +197,7 @@ export async function release(options: ReleaseOptions = {}): Promise<void> {
     build = false,
     pushTag = false,
     tagPrefix = 'v',
-    useAI = false,
+    useAi = false,
   } = options;
 
   if (dryRun) {
@@ -384,22 +384,22 @@ export async function release(options: ReleaseOptions = {}): Promise<void> {
         gitPush: !dryRun, // 不在 dry-run 模式下推送
         attachAuthor: false,
         authorNameType: 'name' as const,
-        useAI: options.useAI,
+        useAi: options.useAi,
         model: options.model,
         apiKey: options.apiKey,
         baseURL: options.baseURL,
         provider: options.provider,
         tagPrefix: tagPrefix,
-        dryRun: dryRun && !useAI, // 只有在非 AI 模式下才考虑 dryRun 标志
+        dryRun: dryRun && !useAi, // 只有在非 AI 模式下才考虑 dryRun 标志
       };
 
-      if (dryRun && !useAI) {
+      if (dryRun && !useAi) {
         logger.info(
           `[dry-run] Would generate changelog with options: ${JSON.stringify(changelogOptions)}`,
         );
       } else {
-        // 在 dry-run + useAI 模式下，真实运行 changelog 生成
-        if (dryRun && useAI) {
+        // 在 dry-run + useAi 模式下，真实运行 changelog 生成
+        if (dryRun && useAi) {
           logger.info(`Running AI changelog generation even in dry-run mode for testing purposes`);
         }
         await changelog(changelogOptions);
