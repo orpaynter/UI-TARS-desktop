@@ -3,10 +3,7 @@ import {
   TextContent,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import UITarsActionParser from '@ui-tars/action-parser';
 import { ToolContext } from '../typings.js';
-
-const { actionParser } = UITarsActionParser;
 
 type ToolNames = keyof typeof visionToolsMap;
 type ToolInputMap = {
@@ -74,6 +71,8 @@ export const getVisionTools = (ctx: ToolContext) => {
         let y = args.y;
 
         if (args.factors) {
+          const { actionParser } = await import('@ui-tars/action-parser');
+
           const viewport = page.viewport();
           const { parsed } = actionParser({
             prediction: `Action: click(start_box='(${args.x},${args.y})')`,
