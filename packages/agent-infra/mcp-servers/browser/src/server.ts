@@ -273,6 +273,10 @@ export const toolsMap = {
           .number()
           .optional()
           .describe('Height in pixels (default: viewport height)'),
+        fullPage: z
+          .boolean()
+          .optional()
+          .describe('Full page screenshot (default: false)'),
         highlight: z
           .boolean()
           .optional()
@@ -659,7 +663,10 @@ const handleToolCall = async ({
       // if screenshot is still undefined, take a screenshot of the whole page
       screenshot =
         screenshot ||
-        (await page.screenshot({ encoding: 'base64', fullPage: false }));
+        (await page.screenshot({
+          encoding: 'base64',
+          fullPage: args.fullPage ?? false,
+        }));
 
       // if screenshot is still undefined, return an error
       if (!screenshot) {
