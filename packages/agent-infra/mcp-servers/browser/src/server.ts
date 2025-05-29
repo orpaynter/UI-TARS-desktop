@@ -513,7 +513,7 @@ const handleToolCall = async ({
     };
   }
 
-  const ctx: ToolContext = { page, browser };
+  const ctx: ToolContext = { page, browser, logger };
 
   const handlers: {
     [K in ToolNames]: (args: ToolInputMap[K]) => Promise<CallToolResult>;

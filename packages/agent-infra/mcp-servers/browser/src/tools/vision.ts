@@ -1,6 +1,12 @@
-import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import {
+  CallToolResult,
+  TextContent,
+} from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
+import UITarsActionParser from '@ui-tars/action-parser';
 import { ToolContext } from '../typings.js';
+
+const { actionParser } = UITarsActionParser;
 
 type ToolNames = keyof typeof visionToolsMap;
 type ToolInputMap = {
@@ -14,9 +20,17 @@ type ToolInputMap = {
 };
 
 export const visionToolsMap = {
+  browser_vision_screen_capture: {
+    description: 'Take a screenshot of the current page for vision mode',
+  },
   browser_vision_screen_click: {
-    description: 'Click left mouse button on the page with vision and snapshot',
+    description:
+      'Click left mouse button on the page with vision and snapshot, before calling this tool, you should call `browser_vision_screen_capture` first only once, fallback to `browser_click` if failed',
     inputSchema: z.object({
+      factors: z
+        .array(z.number())
+        .optional()
+        .describe('Vision Model scaling factors, [width_scale, height_scale]'),
       x: z.number().describe('X coordinate'),
       y: z.number().describe('Y coordinate'),
     }),
@@ -24,14 +38,60 @@ export const visionToolsMap = {
 };
 
 export const getVisionTools = (ctx: ToolContext) => {
-  const { page } = ctx;
+  const { page, logger } = ctx;
 
   const visionTools: {
     [K in ToolNames]: (args: ToolInputMap[K]) => Promise<CallToolResult>;
   } = {
+    browser_vision_screen_capture: async () => {
+      const viewport = page.viewport();
+
+      const screenshot = await page.screenshot({
+        type: 'jpeg' as const,
+        quality: 50,
+        fullPage: false,
+        omitBackground: false,
+        encoding: 'base64',
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Screenshot taken at ${viewport?.width}x${viewport?.height}`,
+          } as TextContent,
+          {
+            type: 'image' as const,
+            data: screenshot,
+            mimeType: 'image/jpeg',
+          },
+        ],
+      };
+    },
     browser_vision_screen_click: async (args) => {
       try {
-        await page.mouse.move(args.x, args.y);
+        let x = args.x;
+        let y = args.y;
+
+        if (args.factors) {
+          const viewport = page.viewport();
+          const { parsed } = actionParser({
+            prediction: `Action: click(start_box='(${args.x},${args.y})')`,
+            factor: args.factors as [number, number],
+            screenContext: {
+              width: viewport?.width ?? 0,
+              height: viewport?.height ?? 0,
+            },
+          });
+
+          const { start_coords } = parsed?.[0]?.action_inputs ?? {};
+          logger.info('[vision] start_coords', start_coords);
+
+          x = start_coords?.[0] ?? x;
+          y = start_coords?.[1] ?? y;
+        }
+
+        await page.mouse.move(x, y);
         await page.mouse.down();
         await page.mouse.up();
 
