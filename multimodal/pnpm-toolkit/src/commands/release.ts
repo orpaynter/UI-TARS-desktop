@@ -105,7 +105,7 @@ async function updatePackageVersions(
     const packageJsonPath = join(pkg.dir, 'package.json');
     const packageJson = readJsonSync(packageJsonPath);
 
-    // Create backup
+    // Create backup - store the entire original content to ensure exact restore
     backups.push({
       packagePath: packageJsonPath,
       dependencies: packageJson.dependencies ? { ...packageJson.dependencies } : undefined,
@@ -128,12 +128,13 @@ async function updatePackageVersions(
       if (!deps) return;
 
       Object.keys(deps).forEach((dep) => {
-        // Check if this is a workspace dependency
+        // Check if this is a workspace dependency (any form of workspace: prefix)
         if (deps[dep] && deps[dep].startsWith('workspace:')) {
           // Find the package in workspace
           const depPkg = packages.find((p) => p.name === dep);
           if (depPkg) {
             // Replace workspace reference with actual version
+            logger.info(`Replacing ${pkg.name}'s dependency ${dep}: ${deps[dep]} → ${version}`);
             deps[dep] = version;
           }
         }
@@ -187,6 +188,8 @@ async function restoreDependencies(backups: DependencyBackup[], dryRun = false):
       );
     }
   }
+
+  logger.success('Successfully restored all workspace dependencies');
 }
 
 /**
@@ -297,6 +300,53 @@ export async function release(options: ReleaseOptions = {}): Promise<void> {
       writeJsonSync(rootPackageJsonPath, rootPackageJson, { spaces: 2 });
     }
 
+    // Verify workspace dependencies were properly replaced
+    if (!dryRun) {
+      logger.info('Verifying workspace dependencies replacement...');
+      let hasWorkspaceDeps = false;
+
+      for (const pkg of packages) {
+        const packageJsonPath = join(pkg.dir, 'package.json');
+        const packageJson = readJsonSync(packageJsonPath);
+
+        const checkDeps = (deps?: Record<string, string>, type = 'dependencies') => {
+          if (!deps) return;
+
+          Object.entries(deps).forEach(([dep, depVersion]) => {
+            if (depVersion.startsWith('workspace:')) {
+              hasWorkspaceDeps = true;
+              logger.warn(
+                `Found unreplaced workspace dependency in ${pkg.name} ${type}: ${dep}: ${depVersion}`,
+              );
+            }
+          });
+        };
+
+        checkDeps(packageJson.dependencies);
+        checkDeps(packageJson.devDependencies, 'devDependencies');
+        checkDeps(packageJson.peerDependencies, 'peerDependencies');
+      }
+
+      if (hasWorkspaceDeps) {
+        const { continuePublish } = await inquirer.prompt([
+          {
+            name: 'continuePublish',
+            message: 'Unreplaced workspace dependencies found. Continue with publishing?',
+            type: 'list',
+            choices: ['No', 'Yes'],
+          },
+        ]);
+
+        if (continuePublish === 'No') {
+          await restoreDependencies(backups, dryRun);
+          logger.info('Publishing cancelled, dependencies restored');
+          return;
+        }
+      } else {
+        logger.success('All workspace dependencies properly replaced');
+      }
+    }
+
     // Publish packages
     try {
       if (runInBand) {
@@ -312,8 +362,12 @@ export async function release(options: ReleaseOptions = {}): Promise<void> {
           }),
         );
       }
+    } catch (error) {
+      logger.error(`Error during publish: ${(error as Error).message}`);
+      logger.info('Will restore dependencies before exiting');
+      throw error;
     } finally {
-      // Always restore dependencies
+      // Always restore dependencies, even if publishing fails
       await restoreDependencies(backups, dryRun);
     }
 
