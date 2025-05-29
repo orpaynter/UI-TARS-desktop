@@ -14,7 +14,7 @@
     "test:coverage": "vitest run --coverage",
     "format": "pnpm prettier --write .",
     "prepare": "husky install",
-    "release": "ptk release --tag-prefix '@agent-tars@'",
+    "release": "ptk release --push-tag --tag-prefix '@agent-tars@'",
     "patch": "ptk patch",
     "changelog": "ptk changelog"
   },

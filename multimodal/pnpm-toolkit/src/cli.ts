@@ -35,52 +35,85 @@ export function bootstrapCli() {
   const pkg = require('../package.json');
 
   // Global options
-  cli.option('--cwd <cwd>', 'Current working directory');
+  cli.option('--cwd <cwd>', 'Current working directory', {
+    default: process.cwd(),
+  });
 
   // Dev command
   cli
     .command('d', 'Quickly launch on-demand development build for monorepo')
     .alias('dev')
+    .option('--exclude <packages>', 'Comma-separated list of packages to exclude', {
+      default: '',
+    })
     .action((opts) => wrapCommand(dev, opts));
 
   // Release command
   cli
     .command('r', 'Release your monorepo')
-    .option('--changelog', 'Whether to generate changelog')
-    .option('--dry-run', 'Preview execution')
-    .option('--run-in-band', 'Whether to publish package in series')
-    .option('--build [build]', 'Execute custom build script before release')
-    .option('--ignore-scripts', 'Ignore npm scripts under release and patch process')
-    .option('--push-tag', 'Automatically push git tag to remote')
-    .option('--tag-prefix <prefix>', 'Prefix for git tags (default: "v")')
+    .option('--changelog', 'Whether to generate changelog', {
+      default: true,
+    })
+    .option('--push-tag', 'Automatically push git tag to remote', {
+      default: false,
+    })
+    .option('--build [build]', 'Execute custom build script before release', {
+      default: false,
+    })
+    .option('--dry-run', 'Preview execution without making changes', {
+      default: false,
+    })
+    .option('--run-in-band', 'Whether to publish package in series', {
+      default: false,
+    })
+    .option('--ignore-scripts', 'Ignore npm scripts during release and patch process', {
+      default: false,
+    })
+    .option('--tag-prefix <prefix>', 'Prefix for git tags', {
+      default: 'v',
+    })
     .alias('release')
     .action((opts) => {
-      opts = {
-        changelog: true,
-        ...opts,
-      };
       return wrapCommand(release, opts);
     });
 
   // Patch command
   cli
     .command('p', 'Patch the failure of release process')
-    .option('--version <version>', 'Version (e.g. 1.0.0, 2.0.0-alpha.9)')
+    .option('--version <version>', 'Version (e.g. 1.0.0, 2.0.0-alpha.9)', {
+      // There is no default value here, because the default is read from package.json
+    })
     .option('--tag <tag>', 'Tag (e.g. latest, next, beta)')
-    .option('--run-in-band', 'Whether to publish package in series')
-    .option('--ignore-scripts', 'Ignore npm scripts under patch process')
+    .option('--run-in-band', 'Whether to publish package in series', {
+      default: false,
+    })
+    .option('--ignore-scripts', 'Ignore npm scripts under patch process', {
+      default: false,
+    })
     .alias('patch')
     .action((opts) => wrapCommand(patch, opts));
 
   // Changelog command
   cli
     .command('changelog', 'Create changelog')
-    .option('--version <version>', 'Version, defaults to version in package.json')
-    .option('--beautify', 'Beautify changelog or not, defaults to false')
-    .option('--commit', 'Create git commit or not, defaults to false')
-    .option('--git-push', 'Execute git push or not, defaults to false')
-    .option('--attach-author', 'Add author or not, defaults to false')
-    .option('--author-name-type <type>', 'Type of author name: name or email, defaults to name')
+    .option('--version <version>', 'Version', {
+      // There is no default value here, because the default is read from package.json
+    })
+    .option('--beautify', 'Beautify changelog or not', {
+      default: false,
+    })
+    .option('--commit', 'Create git commit or not', {
+      default: false,
+    })
+    .option('--git-push', 'Execute git push or not', {
+      default: false,
+    })
+    .option('--attach-author', 'Add author or not', {
+      default: false,
+    })
+    .option('--author-name-type <type>', 'Type of author name: name or email', {
+      default: 'name',
+    })
     .action((opts) => wrapCommand(changelog, opts));
 
   cli.version(pkg.version);
