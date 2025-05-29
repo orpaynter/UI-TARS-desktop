@@ -1,7 +1,7 @@
 {
-  "name": "@multimodal/agent-interface",
-  "version": "0.1.1-beta.4",
-  "description": "Standard protocol, types, event stream and other specifications for `@multimodal/agent`",
+  "name": "@multimodal/model-provider",
+  "version": "0.1.0",
+  "description": "A high-level TypeScript SDK to configure multiple OpenAI-compatible providers and select one to run",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -18,18 +18,18 @@
   "scripts": {
     "dev": "rslib build --watch",
     "build": "rslib build",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "@types/json-schema": "^7.0.15",
-    "@agent-infra/logger": "0.0.2-beta.2",
-    "@multimodal/llm-client": "workspace:*",
-    "@multimodal/model-provider": "workspace:*"
+    "openai": "4.93.0",
+    "zod": "3.25.36",
+    "@multimodal/llm-client": "workspace:*"
   },
   "devDependencies": {
     "@rslib/core": "0.5.4",
     "@types/node": "^20.10.4",
-    "tsx": "^4.19.2",
     "typescript": "^5.5.3",
     "vitest": "^3.0.8"
   }
