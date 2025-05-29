@@ -128,9 +128,14 @@ async function updatePackageVersions(
       if (!deps) return;
 
       Object.keys(deps).forEach((dep) => {
-        const depPkg = packages.find((p) => p.name === dep);
-        if (depPkg) {
-          deps[dep] = version;
+        // Check if this is a workspace dependency
+        if (deps[dep] && deps[dep].startsWith('workspace:')) {
+          // Find the package in workspace
+          const depPkg = packages.find((p) => p.name === dep);
+          if (depPkg) {
+            // Replace workspace reference with actual version
+            deps[dep] = version;
+          }
         }
       });
     };
