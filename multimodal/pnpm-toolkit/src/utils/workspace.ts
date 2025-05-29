@@ -7,11 +7,25 @@
  * Workspace utilities for PTK
  * Provides functions to interact with pnpm workspaces
  */
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, promises as fsPromises } from 'fs';
 import { join } from 'path';
-import globby from 'globby';
+
+import fastGlob from 'fast-glob';
 import yaml from 'js-yaml';
 import type { PackageJson, WorkspacePackage, WorkspaceConfig } from '../types';
+
+/**
+ * Reads package.json from a given directory (async version)
+ */
+export async function readPackageJsonAsync(dir: string): Promise<PackageJson> {
+  try {
+    const filePath = join(dir, 'package.json');
+    const content = await fsPromises.readFile(filePath, 'utf-8');
+    return JSON.parse(content);
+  } catch (err) {
+    return { name: '', version: '' } as PackageJson;
+  }
+}
 
 /**
  * Reads package.json from a given directory
@@ -71,25 +85,36 @@ export function resolveWorkspaceConfig(cwd = process.cwd()): WorkspaceConfig {
 export async function loadWorkspacePackages(cwd = process.cwd()): Promise<WorkspacePackage[]> {
   const config = resolveWorkspaceConfig(cwd);
 
-  // Glob patterns for package.json files, excluding node_modules
-  const packageJsonPaths = await globby(
-    [
-      ...config.patterns.map((pattern) => join(pattern, 'package.json')),
-      '!**/node_modules/**/package.json',
-    ],
-    { cwd, absolute: false },
+  console.time('glob-search');
+
+  // Use fast-glob with optimized configuration
+  const packageJsonPaths = await fastGlob(
+    config.patterns.map((pattern) => join(pattern, 'package.json')),
+    {
+      cwd,
+      onlyFiles: true,
+      followSymbolicLinks: false,
+      ignore: ['**/node_modules/**'],
+      absolute: false,
+    },
+  );
+  console.timeEnd('glob-search');
+
+  // Load all package information in parallel
+  const packages = await Promise.all(
+    packageJsonPaths.map(async (relativePath) => {
+      const dir = join(cwd, relativePath.replace(/\/package\.json$/, ''));
+      const packageJson = await readPackageJsonAsync(dir);
+
+      return {
+        name: packageJson.name,
+        version: packageJson.version,
+        dir,
+        packageJson,
+        isPrivate: !!packageJson.private,
+      };
+    }),
   );
 
-  return packageJsonPaths.map((relativePath) => {
-    const dir = join(cwd, relativePath.replace(/\/package\.json$/, ''));
-    const packageJson = readPackageJson(dir);
-
-    return {
-      name: packageJson.name,
-      version: packageJson.version,
-      dir,
-      packageJson,
-      isPrivate: !!packageJson.private,
-    };
-  });
+  return packages;
 }
