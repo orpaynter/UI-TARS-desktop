@@ -311,12 +311,18 @@ export async function release(options: ReleaseOptions = {}): Promise<void> {
       await restoreDependencies(backups, dryRun);
     }
 
-    // Create git tag
-    if (!dryRun) {
+    // Git tag related operations
+    const tagName = `${tagPrefix}${version}`;
+    
+    if (dryRun) {
+      logger.info(`[dry-run] Would create git commit: chore(release): release ${version}`);
+      logger.info(`[dry-run] Would create git tag: ${tagName}`);
+      if (pushTag) {
+        logger.info(`[dry-run] Would push git tag ${tagName} to remote`);
+      }
+    } else {
       try {
         // Check if tag already exists
-
-        const tagName = `${tagPrefix}${version}`;
         const checkTag = await execa('git', ['tag', '-l', tagName], { cwd });
 
         if (checkTag.stdout.trim() === tagName) {
