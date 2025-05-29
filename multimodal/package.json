@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "agent-tars",
-  "version": "0.0.1-beta.6",
+  "version": "0.1.1",
   "description": "Agent TARS",
   "scripts": {
     "bootstrap": "pnpm install --prefer-offline",
@@ -14,9 +14,9 @@
     "test:coverage": "vitest run --coverage",
     "format": "pnpm prettier --write .",
     "prepare": "husky install",
-    "release": "ptk release --push-tag --tag-prefix '@agent-tars@'",
-    "release:ai": "ptk release --push-tag --tag-prefix '@agent-tars@' --use-ai --provider=azure-openai --model=aws_sdk_claude37_sonnet --baseURL=AWS_CLAUDE_API_BASE_URL",
-    "release:ai:dryrun": "ptk release --push-tag --tag-prefix '@agent-tars@' --use-ai --provider=azure-openai --model=aws_sdk_claude37_sonnet --baseURL=AWS_CLAUDE_API_BASE_URL --dry-run",
+    "release": "ptk release --push-tag --build --tag-prefix '@agent-tars@'",
+    "release:ai": "ptk release --push-tag --build --tag-prefix '@agent-tars@' --use-ai --provider=azure-openai --model=aws_sdk_claude37_sonnet --baseURL=AWS_CLAUDE_API_BASE_URL",
+    "release:ai:dryrun": "ptk release --push-tag --build --tag-prefix '@agent-tars@' --use-ai --provider=azure-openai --model=aws_sdk_claude37_sonnet --baseURL=AWS_CLAUDE_API_BASE_URL --dry-run",
     "changelog": "ptk changelog --tag-prefix '@agent-tars@' --use-ai --provider=azure-openai --model=aws_sdk_claude37_sonnet --baseURL=AWS_CLAUDE_API_BASE_URL",
     "patch": "ptk patch"
   },
