@@ -43,6 +43,8 @@ import merge from 'lodash.merge';
 import { parseProxyUrl } from './utils.js';
 import { ElementHandle, KeyInput } from 'puppeteer-core';
 import { keyInputValues } from './constants.js';
+import { getVisionTools, visionToolsMap } from './tools/vision.js';
+import { ToolContext } from './typings.js';
 
 const consoleLogs: string[] = [];
 
@@ -72,6 +74,11 @@ interface GlobalConfig {
    * @defaultValue true
    */
   enableAdBlocker?: boolean;
+  /**
+   * Whether to add vision tools
+   * @defaultValue false
+   */
+  vision?: boolean;
 }
 
 // Global state
@@ -81,6 +88,7 @@ let globalConfig: GlobalConfig = {
   },
   contextOptions: {},
   enableAdBlocker: true,
+  vision: false,
 };
 
 let globalBrowser: LocalBrowser['browser'] | undefined;
@@ -437,9 +445,11 @@ export const toolsMap = {
   },
 };
 
-type ToolNames = keyof typeof toolsMap;
+type ToolNames = keyof typeof toolsMap | keyof typeof visionToolsMap;
 type ToolInputMap = {
-  [K in ToolNames]: (typeof toolsMap)[K] extends { inputSchema: infer S }
+  [K in ToolNames]: (typeof toolsMap & typeof visionToolsMap)[K] extends {
+    inputSchema: infer S;
+  }
     ? S extends z.ZodType<any, any, any>
       ? z.infer<S>
       : unknown
@@ -503,9 +513,13 @@ const handleToolCall = async ({
     };
   }
 
+  const ctx: ToolContext = { page, browser };
+
   const handlers: {
     [K in ToolNames]: (args: ToolInputMap[K]) => Promise<CallToolResult>;
   } = {
+    // vision tools
+    ...getVisionTools(ctx),
     browser_go_back: async (args) => {
       try {
         await Promise.all([waitForPageAndFramesLoad(page), page.goBack()]);
@@ -1304,8 +1318,13 @@ function createServer(config: GlobalConfig = {}): McpServer {
     version: process.env.VERSION || '0.0.1',
   });
 
+  const mergedToolsMap = {
+    ...toolsMap,
+    ...(config.vision ? visionToolsMap : {}),
+  };
+
   // === Tools ===
-  Object.entries(toolsMap).forEach(([name, tool]) => {
+  Object.entries(mergedToolsMap).forEach(([name, tool]) => {
     // @ts-ignore
     if (tool?.inputSchema) {
       server.tool(
