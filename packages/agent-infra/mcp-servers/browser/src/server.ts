@@ -273,6 +273,10 @@ export const toolsMap = {
           .number()
           .optional()
           .describe('Height in pixels (default: viewport height)'),
+        fullPage: z
+          .boolean()
+          .optional()
+          .describe('Full page screenshot (default: false)'),
         highlight: z
           .boolean()
           .optional()
@@ -285,7 +289,8 @@ export const toolsMap = {
   },
   browser_click: {
     name: 'browser_click',
-    description: 'Click an element on the page',
+    description:
+      'Click an element on the page, before using the tool, use `browser_get_clickable_elements` to get the index of the element, but not call `browser_get_clickable_elements` multiple times',
     inputSchema: z.object({
       // selector: z
       //   .string()
@@ -658,7 +663,10 @@ const handleToolCall = async ({
       // if screenshot is still undefined, take a screenshot of the whole page
       screenshot =
         screenshot ||
-        (await page.screenshot({ encoding: 'base64', fullPage: false }));
+        (await page.screenshot({
+          encoding: 'base64',
+          fullPage: args.fullPage ?? false,
+        }));
 
       // if screenshot is still undefined, return an error
       if (!screenshot) {
@@ -702,6 +710,7 @@ const handleToolCall = async ({
 
       try {
         const { clickableElements } = (await buildDomTree(page)) || {};
+        await removeHighlights(page);
         if (clickableElements) {
           return {
             content: [
