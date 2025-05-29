@@ -85,7 +85,7 @@ export function resolveWorkspaceConfig(cwd = process.cwd()): WorkspaceConfig {
 export async function loadWorkspacePackages(cwd = process.cwd()): Promise<WorkspacePackage[]> {
   const config = resolveWorkspaceConfig(cwd);
 
-  console.time('glob-search');
+  // console.time('glob-search');
 
   // Use fast-glob with optimized configuration
   const packageJsonPaths = await fastGlob(
@@ -98,7 +98,8 @@ export async function loadWorkspacePackages(cwd = process.cwd()): Promise<Worksp
       absolute: false,
     },
   );
-  console.timeEnd('glob-search');
+
+  // console.timeEnd('glob-search');
 
   // Load all package information in parallel
   const packages = await Promise.all(
