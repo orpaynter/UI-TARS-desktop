@@ -13,6 +13,7 @@ import { logger } from './utils/logger';
 /**
  * Wraps a command execution with error handling
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 async function wrapCommand(command: Function, options: Record<string, unknown>) {
   options.cwd = options.cwd || process.cwd();
 

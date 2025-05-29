@@ -315,6 +315,7 @@ export async function release(options: ReleaseOptions = {}): Promise<void> {
     if (!dryRun) {
       try {
         // Check if tag already exists
+
         const tagName = `${tagPrefix}${version}`;
         const checkTag = await execa('git', ['tag', '-l', tagName], { cwd });
 

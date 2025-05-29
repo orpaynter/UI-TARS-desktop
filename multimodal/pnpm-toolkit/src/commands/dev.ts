@@ -75,7 +75,6 @@ function enableStdinFeature(packages: WorkspacePackage[], exclude: string[] = []
     return;
   }
 
-  process.stdin.setRawMode(true);
   process.stdin.resume();
   process.stdin.setEncoding('utf8');
 
