@@ -1,7 +1,6 @@
 import { join } from 'path';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { execa } from 'execa';
-import { createLLMClient, ModelResolver } from '@multimodal/model-provider';
 import { logger } from './logger';
 
 // Types for AI-generated changelog
@@ -163,6 +162,8 @@ export class AIChangelogGenerator {
         sections: [],
       };
     }
+
+    const { createLLMClient, ModelResolver } = await import('@multimodal/model-provider');
 
     // Set up LLM client
     const resolver = new ModelResolver({

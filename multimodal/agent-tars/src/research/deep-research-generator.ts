@@ -4,8 +4,8 @@ import {
   EventType,
   ChatCompletionContentPart,
   ResolvedModel,
+  OpenAI,
 } from '@multimodal/mcp-agent';
-import { OpenAI } from 'openai';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 

@@ -8,9 +8,9 @@ import {
   ToolDefinition,
   Tool,
   z,
+  OpenAI,
 } from '@multimodal/mcp-agent';
 import { AgentTARSPlannerOptions } from '../types';
-import { OpenAI } from 'openai';
 import type { AgentTARS } from '../agent-tars';
 import { DeepResearchGenerator } from '../research/deep-research-generator';
 
