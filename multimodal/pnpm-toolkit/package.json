@@ -21,7 +21,6 @@
     "build": "rslib build",
     "test": "vitest run --dir __tests__",
     "clean": "rm -rf dist coverage",
-    "prepare": "npm run build",
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {

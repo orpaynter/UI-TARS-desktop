@@ -22,7 +22,6 @@
   "scripts": {
     "dev": "rslib build --watch",
     "build": "rslib build",
-    "prepare": "npm run build",
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
