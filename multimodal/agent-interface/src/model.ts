@@ -10,9 +10,9 @@ import {
   ModelProviderServingConfig,
   ModelProvider,
   ModelDefaultSelection,
-} from '@multimodal/model-provider';
+} from '@multimodal/model-provider/types';
 
-export {
+export type {
   ModelProviderName,
   ActualModelProviderName,
   ModelProviderServingConfig,

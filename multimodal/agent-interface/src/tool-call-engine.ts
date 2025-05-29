@@ -12,7 +12,7 @@ import type {
   ChatCompletionMessageParam,
   ChatCompletionCreateParams,
   ChatCompletionMessageToolCall,
-} from '@multimodal/model-provider';
+} from '@multimodal/model-provider/types';
 import { ToolDefinition } from './tool';
 
 /**

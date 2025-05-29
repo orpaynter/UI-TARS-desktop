@@ -7,7 +7,7 @@
 import {
   ChatCompletionContentPart,
   ChatCompletionMessageToolCall,
-} from '@multimodal/model-provider';
+} from '@multimodal/model-provider/types';
 import { AgentSingleLoopReponse } from './agent';
 
 /**

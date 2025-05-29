@@ -6,6 +6,8 @@
 import { ChatCompletionMessageParam } from 'openai/resources';
 import type { models } from '@multimodal/llm-client';
 
+export * from './third-party';
+
 /**
  * The actual underlying model provider
  */

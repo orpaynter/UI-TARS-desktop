@@ -16,7 +16,7 @@ import {
   ChatCompletionChunk,
   LLMReasoningOptions,
   LLMRequest,
-} from '@multimodal/model-provider';
+} from '@multimodal/model-provider/types';
 import { EventStreamOptions } from './event-stream';
 import { LogLevel } from '@agent-infra/logger';
 
