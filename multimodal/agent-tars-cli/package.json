@@ -15,6 +15,10 @@
   "bin": {
     "tars": "dist/cli.js"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "files": [
     "dist",
     "static"

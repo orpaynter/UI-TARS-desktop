@@ -5,14 +5,14 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist",
-    "bin"
-  ],
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
+  "files": [
+    "dist",
+    "bin"
+  ],
   "bin": {
     "ptk": "bin/cli.js"
   },
