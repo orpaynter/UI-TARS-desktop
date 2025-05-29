@@ -59,6 +59,7 @@ export interface ReleaseOptions extends CommandOptions {
   ignoreScripts?: boolean;
   build?: boolean | string;
   pushTag?: boolean;
+  tagPrefix?: string;
 }
 
 // Patch command options

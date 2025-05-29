@@ -196,6 +196,7 @@ export async function release(options: ReleaseOptions = {}): Promise<void> {
     ignoreScripts = false,
     build = false,
     pushTag = false,
+    tagPrefix = 'v',
   } = options;
 
   if (dryRun) {
@@ -314,7 +315,7 @@ export async function release(options: ReleaseOptions = {}): Promise<void> {
     if (!dryRun) {
       try {
         // Check if tag already exists
-        const tagName = `v${version}`;
+        const tagName = `${tagPrefix}${version}`;
         const checkTag = await execa('git', ['tag', '-l', tagName], { cwd });
 
         if (checkTag.stdout.trim() === tagName) {

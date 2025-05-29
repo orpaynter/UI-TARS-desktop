@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@multimodal/pnpm-toolkit':
+        specifier: workspace:*
+        version: link:pnpm-toolkit
       '@types/node':
         specifier: 22.15.2
         version: 22.15.2

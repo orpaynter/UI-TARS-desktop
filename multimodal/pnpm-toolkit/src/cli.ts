@@ -51,6 +51,7 @@ export function bootstrapCli() {
     .option('--build [build]', 'Execute custom build script before release')
     .option('--ignore-scripts', 'Ignore npm scripts under release and patch process')
     .option('--push-tag', 'Automatically push git tag to remote')
+    .option('--tag-prefix <prefix>', 'Prefix for git tags (default: "v")')
     .alias('release')
     .action((opts) => {
       opts = {
