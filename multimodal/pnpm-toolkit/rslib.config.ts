@@ -4,7 +4,6 @@ export default defineConfig({
   source: {
     entry: {
       index: ['src/**/*.ts', '!src/**/*.{test,bench}.ts'],
-      cli: ['src/cli.ts'],
     },
   },
   lib: [
