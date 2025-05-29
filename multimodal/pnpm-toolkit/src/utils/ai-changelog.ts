@@ -64,12 +64,26 @@ export class AIChangelogGenerator {
    */
   private async getCommitsBetweenTags(fromTag?: string, toTag = 'HEAD'): Promise<CommitEntry[]> {
     try {
-      const range = fromTag ? `${fromTag}..${toTag}` : toTag;
-      const { stdout } = await execa(
-        'git',
-        ['log', range, '--pretty=format:%H|%an|%ad|%s|%b', '--date=short'],
-        { cwd: this.cwd },
-      );
+      let range = fromTag ? `${fromTag}..${toTag}` : toTag;
+      let gitArgs = ['log', range, '--pretty=format:%H|%an|%ad|%s|%b', '--date=short'];
+
+      try {
+        // 尝试执行 git 命令
+        await execa('git', ['rev-parse', fromTag || toTag], { cwd: this.cwd });
+      } catch (error) {
+        // 如果 tag 不存在，则获取最近 100 条与 tagPrefix 相关的提交
+        logger.warn(`Tag ${fromTag || toTag} not found. Falling back to recent commits.`);
+
+        // 修改为获取最近 100 条提交
+        gitArgs = ['log', '--max-count=100', '--pretty=format:%H|%an|%ad|%s|%b', '--date=short'];
+
+        // 如果有 tagPrefix，尝试过滤与前缀相关的提交
+        if (this.tagPrefix) {
+          logger.info(`Looking for commits related to tag prefix: ${this.tagPrefix}`);
+        }
+      }
+
+      const { stdout } = await execa('git', gitArgs, { cwd: this.cwd });
 
       if (!stdout.trim()) {
         return [];

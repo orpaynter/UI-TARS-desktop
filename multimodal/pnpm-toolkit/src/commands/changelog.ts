@@ -150,6 +150,8 @@ export async function changelog(options: ChangelogOptions = {}): Promise<void> {
     dryRun = false,
   } = options;
 
+  console.log('useAi', useAi);
+
   let { version } = options;
 
   // Try to get version from package.json if not provided
@@ -178,20 +180,40 @@ export async function changelog(options: ChangelogOptions = {}): Promise<void> {
       baseURL,
     });
 
-    // Generate and write changelog
-    const newContent = await generator.generate(version);
+    try {
+      // Generate and write changelog
+      const newContent = await generator.generate(version);
 
-    if (!dryRun) {
-      await generator.updateChangelogFile(version, newContent, changelogPath);
-    } else {
-      logger.info(`[dry-run] Would update changelog with AI-generated content`);
-      console.log('\n--- AI Generated Changelog Preview ---\n');
-      console.log(newContent);
-      console.log('\n--- End of Preview ---\n');
+      if (!dryRun) {
+        await generator.updateChangelogFile(version, newContent, changelogPath);
+      } else {
+        logger.info(`[dry-run] Would update changelog with AI-generated content`);
+        console.log('\n--- AI Generated Changelog Preview ---\n');
+        console.log(newContent);
+        console.log('\n--- End of Preview ---\n');
+      }
+
+      // Read the updated changelog
+      changelogContent = dryRun ? newContent : readFileSync(changelogPath, 'utf-8');
+    } catch (error) {
+      logger.error(`Error generating AI changelog: ${(error as Error).message}`);
+      logger.info('Falling back to conventional changelog generation...');
+
+      if (dryRun) {
+        logger.info(`[dry-run] Would generate fallback changelog using conventional-changelog`);
+        return;
+      }
+
+      // Fallback to conventional changelog
+      await generateChangelogWithConventional(cwd, isFirst);
+      changelogContent = readFileSync(changelogPath, 'utf-8');
+      changelogContent = processChangelog(changelogContent, cwd, {
+        beautify,
+        attachAuthor,
+        authorNameType,
+      });
+      writeFileSync(changelogPath, changelogContent, 'utf-8');
     }
-
-    // Read the updated changelog
-    changelogContent = dryRun ? newContent : readFileSync(changelogPath, 'utf-8');
   } else {
     if (dryRun) {
       logger.info(`[dry-run] Would generate changelog for ${version} using conventional-changelog`);
