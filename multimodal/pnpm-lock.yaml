@@ -159,17 +159,17 @@ importers:
         specifier: 0.0.3-beta.2
         version: 0.0.3-beta.2
       '@agent-infra/mcp-server-browser':
-        specifier: 1.1.6-beta.3
-        version: 1.1.6-beta.3
+        specifier: 1.1.6-beta.4
+        version: 1.1.6-beta.4
       '@agent-infra/mcp-server-commands':
-        specifier: 1.1.6-beta.3
-        version: 1.1.6-beta.3
+        specifier: 1.1.6-beta.4
+        version: 1.1.6-beta.4
       '@agent-infra/mcp-server-filesystem':
-        specifier: 1.1.6-beta.3
-        version: 1.1.6-beta.3
+        specifier: 1.1.6-beta.4
+        version: 1.1.6-beta.4
       '@agent-infra/mcp-server-search':
-        specifier: 1.1.6-beta.3
-        version: 1.1.6-beta.3
+        specifier: 1.1.6-beta.4
+        version: 1.1.6-beta.4
       '@agent-infra/search':
         specifier: 0.0.3-beta.2
         version: 0.0.3-beta.2
@@ -181,7 +181,7 @@ importers:
         version: link:../mcp-agent
       '@ui-tars/operator-browser':
         specifier: 1.2.2-beta.2
-        version: 1.2.2-beta.2(ws@8.18.2)(zod@3.24.2)
+        version: 1.2.2-beta.2(ws@8.18.2)(zod@3.25.36)
     devDependencies:
       '@multimodal/agent':
         specifier: workspace:*
@@ -757,8 +757,14 @@ packages:
   '@agent-infra/browser-search@0.0.3-beta.2':
     resolution: {integrity: sha512-189rbxc+Fa7L+zYl9QJasqz4plvgzfBdiFs4y7Ndnh17cqql9/NoB+3bF4AdXuNV9KXmKfEs+b8lgRmBX2ntlA==}
 
+  '@agent-infra/browser-search@0.0.3-beta.3':
+    resolution: {integrity: sha512-noUVcSw8Ca0dPg7oYBOh3R/WQMZ/FmeLmwIXDEeD0ydMSnLQR6zAz98W+nzzZIYDc6uvio56T1XFIriO3iyinQ==}
+
   '@agent-infra/browser@0.1.1-beta.1':
     resolution: {integrity: sha512-Eob9QkrFhfeM3ieh5NPorCEV//XDo41h48ko1glXgT4laphG4VG5p2/bWMVX4HRtFbOTgbypeEPtiAMKRHFbWg==}
+
+  '@agent-infra/browser@0.1.1-beta.2':
+    resolution: {integrity: sha512-i9gKX9HkuZroL8WUDMl0ETdVAEsxBIPY3uFiboVjYmgWmJcp6inMcYX/LYelYXmDlN07bfyMFAS4+EY7YlEJtw==}
 
   '@agent-infra/duckduckgo-search@0.0.1':
     resolution: {integrity: sha512-SAnv/CvzbLMOf1s7exqhKqodzlijdmd0OKi6RVIGsB6v4yn05ArfoqbuR245tSRppQB1vM/Yzj1qEWZGmNSHCA==}
@@ -775,20 +781,20 @@ packages:
   '@agent-infra/mcp-client@1.1.6-beta.3':
     resolution: {integrity: sha512-q3O908racp/KggrPE+hjHuRVASibQlQKDybkE/5UqTSmFNS7MqQmpSwR4BQRnzwHc8iY2b3U37u4cLlMBLBMQQ==}
 
-  '@agent-infra/mcp-server-browser@1.1.6-beta.3':
-    resolution: {integrity: sha512-G+fR5vhKm/exxudDBlKuV0swqYT5Eck3ZesLOEm5EysoyMvuMRODIEfXpmfXsUK4BeCSbIQW+WzuTexsfTYkZg==}
+  '@agent-infra/mcp-server-browser@1.1.6-beta.4':
+    resolution: {integrity: sha512-4tSgT1McJBJIarsVsOK4pGiTWHN9p1AO7Yijim9yq/sIFdgAbKtc+uNEvZVRG2RIvvt/8/oZMPSg8CkNxqCQMA==}
     hasBin: true
 
-  '@agent-infra/mcp-server-commands@1.1.6-beta.3':
-    resolution: {integrity: sha512-uamaufuLC/bEXcYVv8nV9ztubVm+HnoAv0U8HTFu9vmX4vM8i4Oi5C4VpJUKshu5xt2fXq3ro3vPLGH5y3Ixdw==}
+  '@agent-infra/mcp-server-commands@1.1.6-beta.4':
+    resolution: {integrity: sha512-7hGGWGz5HDAvHlNWm4j528jg5CT14je6Hm2KcBLgsBWCQdNdjb3NFDD9YTrLVKEFwplYOa4YvMOSMrfPPh7OJQ==}
     hasBin: true
 
-  '@agent-infra/mcp-server-filesystem@1.1.6-beta.3':
-    resolution: {integrity: sha512-WWlTnFwD68N2heI+8EPRaLE0Mojf8XiFbdpsJNQzVfWOjZDzowshr3uFfdd9WrAV5lrNDEsn88IcpiYlBvnrvg==}
+  '@agent-infra/mcp-server-filesystem@1.1.6-beta.4':
+    resolution: {integrity: sha512-B1uWg1Zo049KDxCpoxkIuJai6hcIwi4tTumU6EqcfA+P8nI72713DuHY73bhCPOnbzTI8SxhwCwk5byFjxqbIA==}
     hasBin: true
 
-  '@agent-infra/mcp-server-search@1.1.6-beta.3':
-    resolution: {integrity: sha512-ZxVrjQAZKfOj/wOwNAuMOjOsCG+ld33LRsNhmCKjKlOEoYCMMS5u6JNHt8GlH3M9wfDb3f1D0Y4I7dE10d5+Dg==}
+  '@agent-infra/mcp-server-search@1.1.6-beta.4':
+    resolution: {integrity: sha512-Y9mcMIT+ZIsjuFaOprjayliI8Ii3itSvmu3hrre5dvVViczX2nuHHWwQGANT+xWZwvzNadnzokGWjsFtMuxUgg==}
     hasBin: true
 
   '@agent-infra/mcp-shared@1.1.6-beta.3':
@@ -796,6 +802,9 @@ packages:
 
   '@agent-infra/search@0.0.3-beta.2':
     resolution: {integrity: sha512-/0khk8uPKZ7X5AdR/H2vqw2eMfo4AR2nQit1NdDEYsCqHunY3pDlij7D/yqQxxMMkUyTHJLZu+P51BMEkyqrIQ==}
+
+  '@agent-infra/search@0.0.3-beta.3':
+    resolution: {integrity: sha512-SsBNOT1AWt+vHlz9RzlUgW+683YWEu7npTB5zxbs7iVaOzWVLKeQrnOQRAfzk8vT1NmXysJtmSuOmeCzcoPyCQ==}
 
   '@agent-infra/shared@0.0.1':
     resolution: {integrity: sha512-rcpPXB3qpOhJSv4vWCWqWCf9BCBp18egxywPkJ9i4RTI87ZIZBsWXs2WnDuieWd7K5fZ2U5+c+6N9zMka+w9yw==}
@@ -2929,6 +2938,9 @@ packages:
   '@ui-tars/action-parser@1.2.2-beta.2':
     resolution: {integrity: sha512-cwj6FWwZelLjD1yGh1BL/qd4VFp3LMMbuQSGTW55nysuGv5s2ak8gm+WuMU+c6SUZr2O2EpW2KzLAsogTWhqNg==}
 
+  '@ui-tars/action-parser@1.2.2-beta.3':
+    resolution: {integrity: sha512-XqM2Yhk5tWpiw+LSTNwbr6AIXKQMpsySMlhPYAl6UdEKUoWbPGwI/polktIvSgmCpuUofO7kh7Ram1EiKjihVw==}
+
   '@ui-tars/operator-browser@1.2.2-beta.2':
     resolution: {integrity: sha512-jSSlRAnaQFTPIHmcdhPIEPWD7YGOr7XgSifcyqMTYh4+ICLgTRMwMxBfRcQ6oAvNbGRPSY7ZQgydW7zgIIC8YA==}
 
@@ -2937,6 +2949,9 @@ packages:
 
   '@ui-tars/shared@1.2.2-beta.2':
     resolution: {integrity: sha512-odp7IQdqHsKZhg6NAwTaQgHw9agxZO8PBCiDOEyMHxu3BLc9P8jwxhBtcKx33DymZpOXX5iVh0BA0xU8wX668Q==}
+
+  '@ui-tars/shared@1.2.2-beta.3':
+    resolution: {integrity: sha512-0a/qPUrbdAigaPZAySxxFNWgV6gSgRDK4egJd6e0jJ+oaWza75i2ewDulKeDtnUMUIQAXxlRd7r/DHfgOlK1nw==}
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
@@ -7668,10 +7683,34 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  '@agent-infra/browser-search@0.0.3-beta.3':
+    dependencies:
+      '@agent-infra/browser': 0.1.1-beta.2
+      '@agent-infra/logger': 0.0.1
+      '@agent-infra/shared': 0.0.2-beta.0
+    transitivePeerDependencies:
+      - bare-buffer
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   '@agent-infra/browser@0.1.1-beta.1':
     dependencies:
       '@agent-infra/logger': 0.0.1
       '@agent-infra/shared': 0.0.1
+      edge-paths: 3.0.5
+      puppeteer-core: 24.7.2
+      which: 5.0.0
+    transitivePeerDependencies:
+      - bare-buffer
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
+  '@agent-infra/browser@0.1.1-beta.2':
+    dependencies:
+      '@agent-infra/logger': 0.0.1
+      '@agent-infra/shared': 0.0.2-beta.0
       edge-paths: 3.0.5
       puppeteer-core: 24.7.2
       which: 5.0.0
@@ -7702,35 +7741,35 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@agent-infra/mcp-server-browser@1.1.6-beta.3':
+  '@agent-infra/mcp-server-browser@1.1.6-beta.4':
     dependencies:
       '@modelcontextprotocol/sdk': 1.12.1
-      '@ui-tars/action-parser': 1.2.2-beta.2
+      '@ui-tars/action-parser': 1.2.2-beta.3
       mcp-http-server: 1.1.5
     transitivePeerDependencies:
       - supports-color
 
-  '@agent-infra/mcp-server-commands@1.1.6-beta.3':
-    dependencies:
-      '@modelcontextprotocol/sdk': 1.12.1
-      mcp-http-server: 1.1.5
-    transitivePeerDependencies:
-      - supports-color
-
-  '@agent-infra/mcp-server-filesystem@1.1.6-beta.3':
+  '@agent-infra/mcp-server-commands@1.1.6-beta.4':
     dependencies:
       '@modelcontextprotocol/sdk': 1.12.1
       mcp-http-server: 1.1.5
     transitivePeerDependencies:
       - supports-color
 
-  '@agent-infra/mcp-server-search@1.1.6-beta.3':
+  '@agent-infra/mcp-server-filesystem@1.1.6-beta.4':
     dependencies:
-      '@agent-infra/search': 0.0.3-beta.2
+      '@modelcontextprotocol/sdk': 1.12.1
+      mcp-http-server: 1.1.5
+    transitivePeerDependencies:
+      - supports-color
+
+  '@agent-infra/mcp-server-search@1.1.6-beta.4':
+    dependencies:
+      '@agent-infra/search': 0.0.3-beta.3
       '@modelcontextprotocol/sdk': 1.12.1
       commander: 13.1.0
-      zod: 3.24.2
-      zod-to-json-schema: 3.24.3(zod@3.24.2)
+      zod: 3.25.36
+      zod-to-json-schema: 3.24.3(zod@3.25.36)
     transitivePeerDependencies:
       - bare-buffer
       - bufferutil
@@ -7752,6 +7791,21 @@ snapshots:
       '@agent-infra/duckduckgo-search': 0.0.1
       '@agent-infra/logger': 0.0.1
       '@agent-infra/shared': 0.0.1
+      '@tavily/core': 0.3.1
+    transitivePeerDependencies:
+      - bare-buffer
+      - bufferutil
+      - debug
+      - supports-color
+      - utf-8-validate
+
+  '@agent-infra/search@0.0.3-beta.3':
+    dependencies:
+      '@agent-infra/bing-search': 0.0.1
+      '@agent-infra/browser-search': 0.0.3-beta.3
+      '@agent-infra/duckduckgo-search': 0.0.1
+      '@agent-infra/logger': 0.0.1
+      '@agent-infra/shared': 0.0.2-beta.0
       '@tavily/core': 0.3.1
     transitivePeerDependencies:
       - bare-buffer
@@ -10826,19 +10880,10 @@ snapshots:
       '@ui-tars/shared': 1.2.2-beta.2
       lodash.isnumber: 3.0.3
 
-  '@ui-tars/operator-browser@1.2.2-beta.2(ws@8.18.2)(zod@3.24.2)':
+  '@ui-tars/action-parser@1.2.2-beta.3':
     dependencies:
-      '@agent-infra/browser': 0.1.1-beta.1
-      '@agent-infra/logger': 0.0.1
-      '@ui-tars/sdk': 1.2.2-beta.2(ws@8.18.2)(zod@3.24.2)
-    transitivePeerDependencies:
-      - bare-buffer
-      - bufferutil
-      - encoding
-      - supports-color
-      - utf-8-validate
-      - ws
-      - zod
+      '@ui-tars/shared': 1.2.2-beta.3
+      lodash.isnumber: 3.0.3
 
   '@ui-tars/operator-browser@1.2.2-beta.2(ws@8.18.2)(zod@3.25.36)':
     dependencies:
@@ -10851,18 +10896,6 @@ snapshots:
       - encoding
       - supports-color
       - utf-8-validate
-      - ws
-      - zod
-
-  '@ui-tars/sdk@1.2.2-beta.2(ws@8.18.2)(zod@3.24.2)':
-    dependencies:
-      '@ui-tars/action-parser': 1.2.2-beta.2
-      '@ui-tars/shared': 1.2.2-beta.2
-      async-retry: 1.3.3
-      jimp: 1.6.0
-      openai: 4.85.1(ws@8.18.2)(zod@3.24.2)
-    transitivePeerDependencies:
-      - encoding
       - ws
       - zod
 
@@ -10879,6 +10912,8 @@ snapshots:
       - zod
 
   '@ui-tars/shared@1.2.2-beta.2': {}
+
+  '@ui-tars/shared@1.2.2-beta.3': {}
 
   '@ungap/structured-clone@1.3.0': {}
 
@@ -14662,21 +14697,6 @@ snapshots:
       formdata-node: 4.4.1
       node-fetch: 2.7.0
       web-streams-polyfill: 3.3.3
-    transitivePeerDependencies:
-      - encoding
-
-  openai@4.85.1(ws@8.18.2)(zod@3.24.2):
-    dependencies:
-      '@types/node': 18.19.105
-      '@types/node-fetch': 2.6.12
-      abort-controller: 3.0.0
-      agentkeepalive: 4.6.0
-      form-data-encoder: 1.7.2
-      formdata-node: 4.4.1
-      node-fetch: 2.7.0
-    optionalDependencies:
-      ws: 8.18.2
-      zod: 3.24.2
     transitivePeerDependencies:
       - encoding
 
