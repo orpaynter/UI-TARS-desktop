@@ -197,6 +197,7 @@ export async function release(options: ReleaseOptions = {}): Promise<void> {
     build = false,
     pushTag = false,
     tagPrefix = 'v',
+    useAI = false,
   } = options;
 
   if (dryRun) {
@@ -313,7 +314,7 @@ export async function release(options: ReleaseOptions = {}): Promise<void> {
 
     // Git tag related operations
     const tagName = `${tagPrefix}${version}`;
-    
+
     if (dryRun) {
       logger.info(`[dry-run] Would create git commit: chore(release): release ${version}`);
       logger.info(`[dry-run] Would create git tag: ${tagName}`);
@@ -379,17 +380,28 @@ export async function release(options: ReleaseOptions = {}): Promise<void> {
         cwd,
         version,
         beautify: true,
-        commit: true,
-        gitPush: true,
+        commit: !dryRun, // 不在 dry-run 模式下创建提交
+        gitPush: !dryRun, // 不在 dry-run 模式下推送
         attachAuthor: false,
         authorNameType: 'name' as const,
+        useAI: options.useAI,
+        model: options.model,
+        apiKey: options.apiKey,
+        baseURL: options.baseURL,
+        provider: options.provider,
+        tagPrefix: tagPrefix,
+        dryRun: dryRun && !useAI, // 只有在非 AI 模式下才考虑 dryRun 标志
       };
 
-      if (dryRun) {
+      if (dryRun && !useAI) {
         logger.info(
           `[dry-run] Would generate changelog with options: ${JSON.stringify(changelogOptions)}`,
         );
       } else {
+        // 在 dry-run + useAI 模式下，真实运行 changelog 生成
+        if (dryRun && useAI) {
+          logger.info(`Running AI changelog generation even in dry-run mode for testing purposes`);
+        }
         await changelog(changelogOptions);
       }
     }

@@ -60,6 +60,11 @@ export interface ReleaseOptions extends CommandOptions {
   build?: boolean | string;
   pushTag?: boolean;
   tagPrefix?: string;
+  useAI?: boolean;
+  model?: string;
+  apiKey?: string;
+  baseURL?: string;
+  provider?: string;
 }
 
 // Patch command options
@@ -78,6 +83,13 @@ export interface ChangelogOptions extends CommandOptions {
   gitPush?: boolean;
   attachAuthor?: boolean;
   authorNameType?: 'name' | 'email';
+  useAI?: boolean;
+  model?: string;
+  apiKey?: string;
+  baseURL?: string;
+  tagPrefix?: string;
+  dryRun?: boolean;
+  provider?: string;
 }
 
 // Commit author information

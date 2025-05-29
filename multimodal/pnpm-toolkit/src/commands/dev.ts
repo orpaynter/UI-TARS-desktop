@@ -9,14 +9,14 @@
  * Watches for file changes and builds packages on demand
  */
 import chokidar from 'chokidar';
-import { execa } from 'execa';
+import * as execa from 'execa';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { loadWorkspacePackages } from '../utils/workspace';
 import type { DevOptions, WorkspacePackage } from '../types';
 
 // Manages running build processes
-const processes: Record<string, ReturnType<typeof execa>> = {};
+const processes: Record<string, ReturnType<execa.ExecaMethod>> = {};
 const pendingMessages: string[] = [];
 
 /**
@@ -34,14 +34,15 @@ function createBuildProcess(pkg: WorkspacePackage): void {
 
   console.log(chalk.bold(`[${pkg.name}] starting build process...`));
 
-  const process = execa('npm', ['run', 'dev'], {
+  const subProcess = execa.execa('npm', ['run', 'dev'], {
     cwd: pkg.dir,
     stdio: 'inherit',
   });
+  console.log('111');
 
-  processes[pkg.name] = process;
+  processes[pkg.name] = subProcess;
 
-  process.on('exit', (code) => {
+  subProcess.on('exit', (code) => {
     if (code !== 0) {
       console.log(chalk.yellow(`[${pkg.name}] build process exited with code ${code}`));
     }

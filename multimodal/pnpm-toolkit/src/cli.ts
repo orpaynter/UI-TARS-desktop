@@ -72,6 +72,13 @@ export function bootstrapCli() {
     .option('--tag-prefix <prefix>', 'Prefix for git tags', {
       default: 'v',
     })
+    .option('--use-ai', 'Use AI to generate changelog', {
+      default: false,
+    })
+    .option('--provider <provider>', 'LLM provider to use (default: openai)')
+    .option('--model <model>', 'LLM model to use (default: gpt-4o)')
+    .option('--apiKey, --api-key <apiKey>', 'Custom API key for LLM')
+    .option('--baseURL, --base-url <baseURL>', 'Custom base URL for LLM')
     .alias('release')
     .action((opts) => {
       return wrapCommand(release, opts);
@@ -114,6 +121,13 @@ export function bootstrapCli() {
     .option('--author-name-type <type>', 'Type of author name: name or email', {
       default: 'name',
     })
+    .option('--use-ai', 'Use AI to generate changelog', {
+      default: false,
+    })
+    .option('--provider <provider>', 'LLM provider to use (default: openai)')
+    .option('--model <model>', 'LLM model to use (default: gpt-4o)')
+    .option('--apiKey, --api-key <apiKey>', 'Custom API key for LLM')
+    .option('--baseURL, --base-url <baseURL>', 'Custom base URL for LLM')
     .action((opts) => wrapCommand(changelog, opts));
 
   cli.version(pkg.version);

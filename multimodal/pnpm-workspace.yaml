@@ -16,6 +16,7 @@ packages:
   - "agent-snapshot" 
   # infra
   - "config-loader"
+  - "model-provider"
   - "llm-client"
   - "llm"
   - "ui"

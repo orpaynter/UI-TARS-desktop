@@ -1,19 +1,17 @@
 {
   "include": [
     "src",
-    "src2"
   ],
   "compilerOptions": {
-    "module": "nodenext",
-    "target": "esnext",
-    "moduleResolution": "nodenext",
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "bundler",
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
     "noEmitOnError": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "types": [],
     "jsx": "react",
     "noEmit": false,
     "baseUrl": ".",

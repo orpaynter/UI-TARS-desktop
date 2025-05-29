@@ -15,6 +15,7 @@ import { execa } from 'execa';
 import { resolveWorkspaceConfig } from '../utils/workspace';
 import { gitCommit, gitPush, getCommitAuthorMap } from '../utils/git';
 import { logger } from '../utils/logger';
+import { AIChangelogGenerator } from '../utils/ai-changelog';
 
 import type { ChangelogOptions, CommitAuthor } from '../types';
 
@@ -24,20 +25,27 @@ const COMMIT_RE = /\(\[([a-z0-9]{7})\]\(([^()]*)\)\)([^\n()[]]*)?(\[@(.*)\]\(.*\
 /**
  * Generates a changelog using conventional-changelog-cli
  */
-async function generateChangelog(cwd: string, isFirst = false): Promise<void> {
-  // Find conventional-changelog-cli path
-  const conventionalChangelogPath = require.resolve('conventional-changelog-cli/cli.js', {
-    paths: [process.cwd(), ...module.paths],
-  });
+async function generateChangelogWithConventional(cwd: string, isFirst = false): Promise<void> {
+  try {
+    // Find conventional-changelog-cli path
+    const conventionalChangelogPath = require.resolve('conventional-changelog-cli/cli.js', {
+      paths: [process.cwd(), ...module.paths],
+    });
 
-  await execa(
-    conventionalChangelogPath,
-    ['-p', 'angular', '-i', 'CHANGELOG.md', '-s', '-r', isFirst ? '0' : '2'],
-    {
-      cwd,
-      stdio: 'inherit',
-    },
-  );
+    await execa(
+      conventionalChangelogPath,
+      ['-p', 'angular', '-i', 'CHANGELOG.md', '-s', '-r', isFirst ? '0' : '2'],
+      {
+        cwd,
+        stdio: 'inherit',
+      },
+    );
+  } catch (error) {
+    logger.error(
+      `Failed to generate changelog with conventional-changelog: ${(error as Error).message}`,
+    );
+    throw error;
+  }
 }
 
 /**
@@ -131,6 +139,13 @@ export async function changelog(options: ChangelogOptions = {}): Promise<void> {
     gitPush: shouldPush = false,
     attachAuthor = false,
     authorNameType = 'name',
+    useAI = false,
+    model,
+    apiKey,
+    baseURL,
+    provider,
+    tagPrefix = 'v',
+    dryRun = false,
   } = options;
 
   let { version } = options;
@@ -147,31 +162,72 @@ export async function changelog(options: ChangelogOptions = {}): Promise<void> {
 
   const changelogPath = join(cwd, 'CHANGELOG.md');
   const isFirst = !existsSync(changelogPath);
+  let changelogContent = '';
 
-  // Generate the changelog
-  await generateChangelog(cwd, isFirst);
+  // Choose between AI-powered or conventional changelog generation
+  if (useAI) {
+    // Generate changelog using AI
+    logger.info(`Generating changelog for ${version} using AI...`);
 
-  // Read the generated changelog
-  let changelogContent = readFileSync(changelogPath, 'utf-8');
+    const generator = new AIChangelogGenerator(cwd, tagPrefix, {
+      provider,
+      model,
+      apiKey,
+      baseURL,
+    });
 
-  // Process the changelog
-  changelogContent = processChangelog(changelogContent, cwd, {
-    beautify,
-    attachAuthor,
-    authorNameType,
-  });
+    // Generate and write changelog
+    const newContent = await generator.generate(version);
 
-  // Write back the processed changelog
-  writeFileSync(changelogPath, changelogContent, 'utf-8');
+    if (!dryRun) {
+      await generator.updateChangelogFile(version, newContent, changelogPath);
+    } else {
+      logger.info(`[dry-run] Would update changelog with AI-generated content`);
+      console.log('\n--- AI Generated Changelog Preview ---\n');
+      console.log(newContent);
+      console.log('\n--- End of Preview ---\n');
+    }
+
+    // Read the updated changelog
+    changelogContent = dryRun ? newContent : readFileSync(changelogPath, 'utf-8');
+  } else {
+    if (dryRun) {
+      logger.info(`[dry-run] Would generate changelog for ${version} using conventional-changelog`);
+      return;
+    }
+
+    // Use conventional-changelog
+    logger.info(`Generating changelog for ${version} using conventional-changelog...`);
+
+    // Generate the changelog
+    await generateChangelogWithConventional(cwd, isFirst);
+
+    // Read the generated changelog
+    changelogContent = readFileSync(changelogPath, 'utf-8');
+
+    // Process the changelog
+    changelogContent = processChangelog(changelogContent, cwd, {
+      beautify,
+      attachAuthor,
+      authorNameType,
+    });
+
+    // Write back the processed changelog
+    writeFileSync(changelogPath, changelogContent, 'utf-8');
+  }
 
   // Create a commit if requested
-  if (commit) {
+  if (commit && !dryRun) {
     await gitCommit(`chore(all): ${version} changelog`, cwd);
+  } else if (commit && dryRun) {
+    logger.info(`[dry-run] Would create commit: chore(all): ${version} changelog`);
   }
 
   // Push changes if requested
-  if (shouldPush) {
+  if (shouldPush && !dryRun) {
     await gitPush(cwd);
+  } else if (shouldPush && dryRun) {
+    logger.info(`[dry-run] Would push changes to remote`);
   }
 
   logger.success('Changelog generated successfully!');
