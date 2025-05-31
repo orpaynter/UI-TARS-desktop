@@ -1,15 +1,13 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
 import { Provider } from 'jotai';
 import { App } from './components/App';
-import { ReplayModeInitializer } from './components/Replay/ReplayModeInitializer';
 import { ReplayModeProvider } from './context/ReplayModeContext';
 
 /**
  * Agent TARS Web UI v2 - Entry Component
  *
  * Provides the Jotai atom provider and initializes theme based on user preference.
- * Includes ReplayModeInitializer and ReplayModeProvider for proper replay handling.
+ * Uses the enhanced ReplayModeProvider that now handles both context provision and initialization.
  */
 export const AgentTARSWebUI: React.FC = () => {
   // Initialize theme based on user preference
@@ -48,18 +46,9 @@ export const AgentTARSWebUI: React.FC = () => {
 
   return (
     <Provider>
-      <ReplayModeInitializer>
-        <ReplayModeProvider>
-          <App />
-        </ReplayModeProvider>
-      </ReplayModeInitializer>
+      <ReplayModeProvider>
+        <App />
+      </ReplayModeProvider>
     </Provider>
   );
 };
-
-// Render the new v2 architecture with router support
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <AgentTARSWebUI />
-  </React.StrictMode>,
-);
