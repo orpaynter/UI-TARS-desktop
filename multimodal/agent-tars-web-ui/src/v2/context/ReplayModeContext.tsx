@@ -83,7 +83,7 @@ export const ReplayModeProvider: React.FC<{ children: ReactNode }> = ({ children
 
         // Initialize empty messages state
         setMessages({
-          [sessionId]: [],
+          [sessionData.id]: [],
         });
 
         console.log('[ReplayMode] Replay mode initialized successfully');
