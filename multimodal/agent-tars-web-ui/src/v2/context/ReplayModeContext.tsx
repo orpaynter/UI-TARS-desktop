@@ -55,7 +55,12 @@ export const ReplayModeProvider: React.FC<{ children: ReactNode }> = ({ children
 
         // Set sessions data
         setSessions([sessionData]);
+
+        // When in replay mode, the session ID must be set immediately
         setActiveSessionId(sessionData.id);
+
+        // Add debug logging
+        console.log('[ReplayMode] Active session set to:', sessionData.id);
 
         // Initialize replay state
         setReplayState({
@@ -78,10 +83,12 @@ export const ReplayModeProvider: React.FC<{ children: ReactNode }> = ({ children
 
         // Initialize empty messages state
         setMessages({
-          [sessionData.id]: [],
+          [sessionId]: [],
         });
 
         console.log('[ReplayMode] Replay mode initialized successfully');
+      } else {
+        console.error('[ReplayMode] Missing session data or session ID');
       }
     }
   }, [setMessages, setSessions, setActiveSessionId, setReplayState, setConnectionStatus]);

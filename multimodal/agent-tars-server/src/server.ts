@@ -913,6 +913,20 @@ export class AgentTARSServer {
         window.AGENT_TARS_REPLAY_MODE = true;
         window.AGENT_TARS_SESSION_DATA = ${JSON.stringify(metadata)};
         window.AGENT_TARS_EVENT_STREAM = ${JSON.stringify(events)};
+      </script>
+      <script>
+        // Add a fallback mechanism for when routes don't match in shared HTML files
+        window.addEventListener('DOMContentLoaded', function() {
+          // Give React time to attempt normal routing
+          setTimeout(function() {
+            const root = document.getElementById('root');
+            if (root && (!root.children || root.children.length === 0)) {
+              console.log('[ReplayMode] No content rendered, applying fallback');
+              // Try to force the app to re-render if no content is displayed
+              window.dispatchEvent(new Event('resize'));
+            }
+          }, 1000);
+        });
       </script>`;
 
       // 插入脚本到 head 结束标签前

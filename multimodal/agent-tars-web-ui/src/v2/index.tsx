@@ -2,6 +2,7 @@ import React from 'react';
 import { Provider } from 'jotai';
 import { App } from './components/App';
 import { ReplayModeProvider } from './context/ReplayModeContext';
+import { HashRouter, BrowserRouter } from 'react-router-dom';
 
 /**
  * Agent TARS Web UI v2 - Entry Component
@@ -44,10 +45,17 @@ export const AgentTARSWebUI: React.FC = () => {
     };
   }, []);
 
+  // Use HashRouter for shared HTML files (replay mode) to prevent routing issues
+  const isReplayMode = window.AGENT_TARS_REPLAY_MODE === true;
+  console.log('isReplayMode', isReplayMode);
+  const Router = isReplayMode ? HashRouter : BrowserRouter;
+
   return (
     <Provider>
       <ReplayModeProvider>
-        <App />
+        <Router>
+          <App />
+        </Router>
       </ReplayModeProvider>
     </Provider>
   );
