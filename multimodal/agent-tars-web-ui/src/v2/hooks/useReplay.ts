@@ -90,6 +90,8 @@ export function useReplay() {
             : null,
         processedEvents: {}, // 初始化空的已处理事件映射
       });
+
+      setTimeout(() => startReplay(), 2000);
     },
     [activeSessionId, setMessages, setToolResults, setPlans, setReplayState],
   );
