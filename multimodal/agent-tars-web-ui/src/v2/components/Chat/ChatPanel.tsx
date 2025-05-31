@@ -21,6 +21,7 @@ import { StartReplayButton } from '../Replay/StartReplayButton';
 import { MessageGroup as MessageGroupType } from '../../types';
 import { usePro } from '../../hooks/usePro';
 import { ShareButton } from '../Share';
+import { useReplayMode } from '../../context/ReplayModeContext';
 
 import './ChatPanel.css';
 import { apiService } from '@/v2/services/apiService';
@@ -46,6 +47,7 @@ export const ChatPanel: React.FC = () => {
   const [offlineMode, setOfflineMode] = useAtom(offlineModeAtom);
 
   const [replayState] = useAtom(replayStateAtom);
+  const isReplayMode = useReplayMode();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -372,11 +374,10 @@ export const ChatPanel: React.FC = () => {
 
             {/* 按钮区域 */}
             <div className="flex justify-center gap-3 mb-3">
-              {/* 修改回放按钮显示逻辑 */}
-              {!replayState.isActive ||
-                (activeSessionId && isProMode && <StartReplayButton sessionId={activeSessionId} />)}
-              {/* 添加分享按钮 */}
-              {!replayState.isActive && !isProcessing && activeSessionId && <ShareButton />}
+              {/* 回放按钮相关代码 */}
+              {!isReplayMode && activeSessionId && isProMode && <StartReplayButton sessionId={activeSessionId} />}
+              {/* 分享按钮 */}
+              {!isReplayMode && !isProcessing && activeSessionId && <ShareButton />}
             </div>
 
             <MessageInput
@@ -384,7 +385,7 @@ export const ChatPanel: React.FC = () => {
                 !activeSessionId ||
                 isProcessing ||
                 !connectionStatus.connected ||
-                replayState.isActive
+                isReplayMode
               }
               onReconnect={checkServerStatus}
               connectionStatus={connectionStatus}

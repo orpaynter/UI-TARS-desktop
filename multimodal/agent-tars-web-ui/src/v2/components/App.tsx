@@ -5,6 +5,7 @@ import { useSession } from '../hooks/useSession';
 import HomePage from './Router/HomePage';
 import { useAtomValue } from 'jotai';
 import { replayStateAtom } from '../state/atoms/replay';
+import { useReplayMode } from '../context/ReplayModeContext';
 
 /**
  * Session Route Component - Handles session-specific routes
@@ -14,18 +15,21 @@ const SessionRoute: React.FC = () => {
   const { setActiveSession, connectionStatus, loadSessions } = useSession();
   const location = useLocation();
   const replayState = useAtomValue(replayStateAtom);
+  const isReplayMode = useReplayMode();
 
-  // Set active session based on route parameter - 但在回放模式下不执行
+  // Set active session based on route parameter - but not in replay mode
   useEffect(() => {
-    if (sessionId && connectionStatus.connected && !replayState.isActive) {
+    if (sessionId && connectionStatus.connected && !isReplayMode) {
       setActiveSession(sessionId).catch((error) => {
         console.error(`Failed to load session ${sessionId}:`, error);
       });
     }
-  }, [sessionId, connectionStatus.connected, setActiveSession, replayState.isActive]);
+  }, [sessionId, connectionStatus.connected, setActiveSession, isReplayMode]);
 
-  // Process query parameter if present
+  // Process query parameter if present - skip in replay mode
   useEffect(() => {
+    if (isReplayMode) return;
+    
     const searchParams = new URLSearchParams(location.search);
     const query = searchParams.get('q');
 
@@ -35,9 +39,9 @@ const SessionRoute: React.FC = () => {
       const navigate = useNavigate();
       navigate(`/${sessionId}`, { replace: true });
     }
-  }, [location, sessionId]);
+  }, [location, sessionId, isReplayMode]);
 
-  return <Layout isReplayMode={replayState.isActive} />;
+  return <Layout />;
 };
 
 /**
@@ -45,12 +49,13 @@ const SessionRoute: React.FC = () => {
  */
 export const App: React.FC = () => {
   const { initConnectionMonitoring, loadSessions, connectionStatus } = useSession();
-  const replayState = useAtomValue(replayStateAtom);
+  const isReplayMode = useReplayMode();
 
-  // Initialize connection monitoring and load sessions on mount - 但在回放模式下不执行
+  // Initialize connection monitoring and load sessions on mount - but not in replay mode
   useEffect(() => {
-    // 在回放模式下跳过连接监控和会话加载
-    if (replayState.isActive) {
+    // In replay mode, skip connection monitoring and session loading
+    if (isReplayMode) {
+      console.log('[ReplayMode] Skipping connection initialization in replay mode');
       return;
     }
 
@@ -76,7 +81,7 @@ export const App: React.FC = () => {
         }
       });
     };
-  }, [initConnectionMonitoring, loadSessions, connectionStatus.connected, replayState.isActive]);
+  }, [initConnectionMonitoring, loadSessions, connectionStatus.connected, isReplayMode]);
 
   return (
     <Routes>
