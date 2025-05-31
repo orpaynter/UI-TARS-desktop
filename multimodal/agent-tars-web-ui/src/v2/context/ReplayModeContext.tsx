@@ -4,6 +4,7 @@ import { replayStateAtom } from '../state/atoms/replay';
 import { activeSessionIdAtom, sessionsAtom } from '../state/atoms/session';
 import { messagesAtom } from '../state/atoms/message';
 import { connectionStatusAtom } from '../state/atoms/ui';
+import { processEventAction } from '../state/actions/eventProcessor'; // 新增引入
 
 /**
  * ReplayModeContext - Global context for sharing replay mode state
@@ -33,6 +34,7 @@ export const ReplayModeProvider: React.FC<{ children: ReactNode }> = ({ children
   const [, setSessions] = useAtom(sessionsAtom);
   const [, setActiveSessionId] = useAtom(activeSessionIdAtom);
   const [, setConnectionStatus] = useAtom(connectionStatusAtom);
+  const processEvent = useContext(processEventAction); // 获取事件处理器
 
   // Initialize replay mode if window variables are present
   useEffect(() => {
@@ -62,15 +64,16 @@ export const ReplayModeProvider: React.FC<{ children: ReactNode }> = ({ children
         // Add debug logging
         console.log('[ReplayMode] Active session set to:', sessionData.id);
 
-        // Initialize replay state
+        // Initialize replay state with autoPlayCountdown
         setReplayState({
           isActive: true,
-          isPaused: false, // Auto-start replay
+          isPaused: true, // 始终从暂停状态开始
           events: events,
           currentEventIndex: -1,
           startTimestamp: events.length > 0 ? events[0].timestamp : null,
           endTimestamp: events.length > 0 ? events[events.length - 1].timestamp : null,
           playbackSpeed: 1,
+          autoPlayCountdown: 2, // 设置2秒倒计时
           visibleTimeWindow:
             events.length > 0
               ? {
@@ -87,6 +90,38 @@ export const ReplayModeProvider: React.FC<{ children: ReactNode }> = ({ children
         });
 
         console.log('[ReplayMode] Replay mode initialized successfully');
+
+        // 启动倒计时
+        const countdownTimer = setInterval(() => {
+          setReplayState((prev) => {
+            // 如果倒计时结束或已被取消
+            if (prev.autoPlayCountdown === null || prev.autoPlayCountdown <= 0) {
+              clearInterval(countdownTimer);
+
+              // 只在倒计时完成时准备开始播放，但不直接改变isPaused状态
+              // 这样将由useReplay中的startReplay函数正确启动播放过程
+              if (prev.autoPlayCountdown === 0) {
+                // 设置一个延迟启动标记，在下一个useEffect中捕获并启动播放
+                setTimeout(() => {
+                  console.log('[ReplayMode] Auto-play countdown finished, starting replay...');
+                  // 触发一个事件通知播放开始
+                  window.dispatchEvent(new CustomEvent('replay-autostart'));
+                }, 0);
+              }
+
+              return {
+                ...prev,
+                autoPlayCountdown: null, // 只清除倒计时，不改变播放状态
+              };
+            }
+
+            // 继续倒计时
+            return {
+              ...prev,
+              autoPlayCountdown: prev.autoPlayCountdown - 1,
+            };
+          });
+        }, 1000);
       } else {
         console.error('[ReplayMode] Missing session data or session ID');
       }

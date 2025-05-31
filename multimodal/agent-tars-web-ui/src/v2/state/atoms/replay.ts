@@ -20,6 +20,7 @@ export interface ReplayState {
 
   // Playback control
   playbackSpeed: number; // 1 = normal, 2 = 2x speed, etc.
+  autoPlayCountdown: number | null; // Countdown in seconds before autoplay starts
 
   // Current visible range
   visibleTimeWindow: {
@@ -36,12 +37,13 @@ export interface ReplayState {
  */
 const DEFAULT_REPLAY_STATE: ReplayState = {
   isActive: false,
-  isPaused: false,
+  isPaused: true,
   events: [],
   currentEventIndex: -1,
   startTimestamp: null,
   endTimestamp: null,
   playbackSpeed: 1,
+  autoPlayCountdown: null,
   visibleTimeWindow: null,
   processedEvents: {},
 };

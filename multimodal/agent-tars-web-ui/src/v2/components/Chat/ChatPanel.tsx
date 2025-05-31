@@ -9,6 +9,8 @@ import {
   FiRefreshCw,
   FiWifiOff,
   FiFileText,
+  FiClock,
+  FiX,
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAtom, useAtomValue } from 'jotai';
@@ -48,6 +50,7 @@ export const ChatPanel: React.FC = () => {
 
   const [replayState] = useAtom(replayStateAtom);
   const isReplayMode = useReplayMode();
+  const { cancelAutoPlay } = useReplay();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -260,7 +263,7 @@ export const ChatPanel: React.FC = () => {
           <div className="text-center p-6 max-w-md">
             <motion.div
               variants={itemVariants}
-              className="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-6 text-gray-500 dark:text-gray-400 border border-gray-100/50 dark:border-gray-700/30"
+              className="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-6 text-gray-500 dark:text-gray-400 border border-gray-100/50 dark:border-gray-700/20"
             >
               <FiMessageSquare size={24} />
             </motion.div>
@@ -332,11 +335,28 @@ export const ChatPanel: React.FC = () => {
                   <h3 className="text-lg font-display font-medium mb-2">
                     {replayState.isActive ? 'Replay starting...' : 'Start a conversation'}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    {replayState.isActive
-                      ? 'Please wait while the replay loads or press play to begin'
-                      : 'Ask Agent TARS a question or provide a command to begin.'}
-                  </p>
+                  {replayState.isActive && replayState.autoPlayCountdown !== null ? (
+                    <div className="mt-2">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                        Auto-play in {replayState.autoPlayCountdown} seconds...
+                      </p>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={cancelAutoPlay}
+                        className="px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200/50 dark:border-gray-700/30 flex items-center mx-auto"
+                      >
+                        <FiX size={12} className="mr-1.5" />
+                        Cancel auto-play
+                      </motion.button>
+                    </div>
+                  ) : (
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      {replayState.isActive
+                        ? 'Please wait while the replay loads or press play to begin'
+                        : 'Ask Agent TARS a question or provide a command to begin.'}
+                    </p>
+                  )}
                 </div>
               </motion.div>
             ) : (
