@@ -3,6 +3,8 @@ import { Routes, Route, Navigate, useParams, useNavigate, useLocation } from 're
 import { Layout } from './Layout';
 import { useSession } from '../hooks/useSession';
 import HomePage from './Router/HomePage';
+import { useAtomValue } from 'jotai';
+import { replayStateAtom } from '../state/atoms/replay';
 
 /**
  * Session Route Component - Handles session-specific routes
@@ -11,21 +13,22 @@ const SessionRoute: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const { setActiveSession, connectionStatus, loadSessions } = useSession();
   const location = useLocation();
-  
-  // Set active session based on route parameter
+  const replayState = useAtomValue(replayStateAtom);
+
+  // Set active session based on route parameter - 但在回放模式下不执行
   useEffect(() => {
-    if (sessionId && connectionStatus.connected) {
-      setActiveSession(sessionId).catch(error => {
+    if (sessionId && connectionStatus.connected && !replayState.isActive) {
+      setActiveSession(sessionId).catch((error) => {
         console.error(`Failed to load session ${sessionId}:`, error);
       });
     }
-  }, [sessionId, connectionStatus.connected, setActiveSession]);
-  
+  }, [sessionId, connectionStatus.connected, setActiveSession, replayState.isActive]);
+
   // Process query parameter if present
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const query = searchParams.get('q');
-    
+
     // If there's a query in the URL, process it
     if (query && sessionId) {
       // Remove the query parameter from the URL
@@ -33,22 +36,24 @@ const SessionRoute: React.FC = () => {
       navigate(`/${sessionId}`, { replace: true });
     }
   }, [location, sessionId]);
-  
-  return <Layout />;
+
+  return <Layout isReplayMode={replayState.isActive} />;
 };
 
 /**
  * App Component - Main application container with routing
  */
 export const App: React.FC = () => {
-  const { 
-    initConnectionMonitoring, 
-    loadSessions, 
-    connectionStatus
-  } = useSession();
-  
-  // Initialize connection monitoring and load sessions on mount
+  const { initConnectionMonitoring, loadSessions, connectionStatus } = useSession();
+  const replayState = useAtomValue(replayStateAtom);
+
+  // Initialize connection monitoring and load sessions on mount - 但在回放模式下不执行
   useEffect(() => {
+    // 在回放模式下跳过连接监控和会话加载
+    if (replayState.isActive) {
+      return;
+    }
+
     const initialize = async () => {
       // Initialize connection monitoring
       const cleanup = initConnectionMonitoring();
@@ -71,7 +76,7 @@ export const App: React.FC = () => {
         }
       });
     };
-  }, [initConnectionMonitoring, loadSessions, connectionStatus.connected]);
+  }, [initConnectionMonitoring, loadSessions, connectionStatus.connected, replayState.isActive]);
 
   return (
     <Routes>

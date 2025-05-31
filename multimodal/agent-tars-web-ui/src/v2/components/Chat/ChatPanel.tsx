@@ -20,6 +20,7 @@ import { replayStateAtom } from '../../state/atoms/replay';
 import { StartReplayButton } from '../Replay/StartReplayButton';
 import { MessageGroup as MessageGroupType } from '../../types';
 import { usePro } from '../../hooks/usePro';
+import { ShareButton } from '../Share';
 
 import './ChatPanel.css';
 import { apiService } from '@/v2/services/apiService';
@@ -57,12 +58,6 @@ export const ChatPanel: React.FC = () => {
   const location = useLocation();
 
   const isProMode = usePro();
-
-  const shouldShowReplayButton = React.useMemo(() => {
-    const hasReplayFlag = typeof window !== 'undefined' && !!(window as any).__REPLAY__;
-
-    return isProMode || hasReplayFlag;
-  }, [location.search, isProMode]);
 
   // 使用当前会话的消息 - 这样与正常渲染保持一致
   // 回放模式下会通过 processEvent 来更新这些消息
@@ -375,15 +370,14 @@ export const ChatPanel: React.FC = () => {
               </div>
             )}
 
-            {/* 修改回放按钮显示逻辑 */}
-            {!replayState.isActive &&
-              !isProcessing &&
-              activeSessionId &&
-              shouldShowReplayButton && (
-                <div className="flex justify-center mb-3">
-                  <StartReplayButton sessionId={activeSessionId} />
-                </div>
-              )}
+            {/* 按钮区域 */}
+            <div className="flex justify-center gap-3 mb-3">
+              {/* 修改回放按钮显示逻辑 */}
+              {!replayState.isActive ||
+                (activeSessionId && isProMode && <StartReplayButton sessionId={activeSessionId} />)}
+              {/* 添加分享按钮 */}
+              {!replayState.isActive && !isProcessing && activeSessionId && <ShareButton />}
+            </div>
 
             <MessageInput
               isDisabled={
