@@ -178,7 +178,7 @@ export const ChatPanel: React.FC = () => {
   };
 
   const renderOfflineBanner = () => {
-    if (connectionStatus.connected || !activeSessionId) return null;
+    if (connectionStatus.connected || !activeSessionId || isReplayMode) return null;
 
     return (
       <motion.div
@@ -375,17 +375,16 @@ export const ChatPanel: React.FC = () => {
             {/* 按钮区域 */}
             <div className="flex justify-center gap-3 mb-3">
               {/* 回放按钮相关代码 */}
-              {!isReplayMode && activeSessionId && isProMode && <StartReplayButton sessionId={activeSessionId} />}
+              {!isReplayMode && activeSessionId && isProMode && (
+                <StartReplayButton sessionId={activeSessionId} />
+              )}
               {/* 分享按钮 */}
               {!isReplayMode && !isProcessing && activeSessionId && <ShareButton />}
             </div>
 
             <MessageInput
               isDisabled={
-                !activeSessionId ||
-                isProcessing ||
-                !connectionStatus.connected ||
-                isReplayMode
+                !activeSessionId || isProcessing || !connectionStatus.connected || isReplayMode
               }
               onReconnect={checkServerStatus}
               connectionStatus={connectionStatus}
