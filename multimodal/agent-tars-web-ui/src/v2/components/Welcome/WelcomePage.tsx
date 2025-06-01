@@ -198,40 +198,42 @@ const WelcomePage: React.FC = () => {
                 />
 
                 {/* Submit button */}
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  type="submit"
-                  disabled={!query.trim() || isLoading || isDirectChatLoading}
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-3 rounded-xl transition-all duration-200 ${
-                    !query.trim() || isLoading || isDirectChatLoading
-                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
-                  }`}
-                >
-                  {isLoading ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    >
-                      <svg
-                        className="w-6 h-6"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                <div className="absolute right-3 inset-y-0 flex items-center">
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    type="submit"
+                    disabled={!query.trim() || isLoading || isDirectChatLoading}
+                    className={`p-3 rounded-xl transition-all duration-200 ${
+                      !query.trim() || isLoading || isDirectChatLoading
+                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
+                    }`}
+                  >
+                    {isLoading ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                       >
-                        <path
-                          d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </motion.div>
-                  ) : (
-                    <FiArrowRight size={20} />
-                  )}
-                </motion.button>
+                        <svg
+                          className="w-6 h-6"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </motion.div>
+                    ) : (
+                      <FiArrowRight size={20} />
+                    )}
+                  </motion.button>
+                </div>
               </div>
             </div>
 
