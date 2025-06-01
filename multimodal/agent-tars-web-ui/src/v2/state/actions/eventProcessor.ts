@@ -142,13 +142,36 @@ function handleAssistantMessage(
   sessionId: string,
   event: Event & { messageId?: string; finishReason?: string },
 ): void {
-  // 在回放模式下，我们总是创建新消息，而不是更新现有的流式消息
+  // 获取消息ID
   const messageId = event.messageId;
 
   set(messagesAtom, (prev: Record<string, Message[]>) => {
     const sessionMessages = prev[sessionId] || [];
 
-    // 在回放模式下，添加完整消息
+    // 检查是否已存在相同messageId的消息
+    if (messageId) {
+      const existingMessageIndex = sessionMessages.findIndex((msg) => msg.messageId === messageId);
+
+      // 如果找到了现有消息，更新它而不是添加新消息
+      if (existingMessageIndex !== -1) {
+        const updatedMessages = [...sessionMessages];
+        updatedMessages[existingMessageIndex] = {
+          ...updatedMessages[existingMessageIndex],
+          content: event.content,
+          timestamp: event.timestamp,
+          toolCalls: event.toolCalls,
+          finishReason: event.finishReason,
+          isStreaming: false,
+        };
+
+        return {
+          ...prev,
+          [sessionId]: updatedMessages,
+        };
+      }
+    }
+
+    // 没有找到现有消息，添加新消息
     return {
       ...prev,
       [sessionId]: [
@@ -188,17 +211,20 @@ function handleStreamingMessage(
     const messageIdToFind = event.messageId;
     let existingMessageIndex = -1;
 
+    // 优先按messageId查找
     if (messageIdToFind) {
       existingMessageIndex = sessionMessages.findIndex((msg) => msg.messageId === messageIdToFind);
-    } else if (sessionMessages.length > 0) {
-      // Fallback for backward compatibility
-      const lastMessage = sessionMessages[sessionMessages.length - 1];
+    }
+    // 没有messageId或未找到，尝试查找标记为streaming的最后一条消息
+    else if (sessionMessages.length > 0) {
+      const lastMessageIndex = sessionMessages.length - 1;
+      const lastMessage = sessionMessages[lastMessageIndex];
       if (lastMessage && lastMessage.isStreaming) {
-        existingMessageIndex = sessionMessages.length - 1;
+        existingMessageIndex = lastMessageIndex;
       }
     }
 
-    // Update existing message
+    // 更新现有消息
     if (existingMessageIndex !== -1) {
       const existingMessage = sessionMessages[existingMessageIndex];
       const updatedMessage = {
@@ -221,7 +247,7 @@ function handleStreamingMessage(
       };
     }
 
-    // Create new message
+    // 创建新消息
     const newMessage: Message = {
       id: event.id || uuidv4(),
       role: 'assistant',
