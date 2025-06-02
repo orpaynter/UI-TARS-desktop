@@ -40,6 +40,7 @@ export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }
         <Sidebar isCollapsed={isSidebarCollapsed} onToggleCollapse={toggleSidebar} />
       )}
 
+      {/* Main content area - using flex-col to properly distribute vertical space */}
       <div className="flex-1 flex flex-col overflow-hidden p-3 lg:p-4 lg:pl-1">
         {/* Show replay header when in replay mode */}
         {isReplayMode && (
@@ -56,16 +57,20 @@ export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }
           </div>
         )}
 
-        <div className="flex gap-3 h-full">
+        {/* Panels container - apply flex-1 to take remaining vertical space */}
+        <div className="flex gap-3 flex-1 min-h-0">
           {/* Chat panel - adjust width based on replay mode */}
-          <motion.div layout className={isReplayMode ? 'w-[40%]' : 'w-[40%]'}>
+          <motion.div
+            layout
+            className={isReplayMode ? 'w-[40%] flex flex-col' : 'w-[40%] flex flex-col'}
+          >
             <Shell className="h-full rounded-3xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-[#E5E6EC] dark:border-none bg-[#FFFFFFE5] dark:shadow-gray-950/5">
               <ChatPanel />
             </Shell>
           </motion.div>
 
           {/* Workspace panel */}
-          <motion.div layout className="w-[60%]">
+          <motion.div layout className="w-[60%] flex flex-col">
             <Shell className="h-full rounded-3xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-[#E5E6EC] dark:border-none bg-[#FFFFFFE5] dark:shadow-gray-950/5">
               <WorkspacePanel />
             </Shell>
