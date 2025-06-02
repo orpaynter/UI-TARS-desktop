@@ -41,7 +41,7 @@ export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }
       )}
 
       {/* Main content area - using flex-col to properly distribute vertical space */}
-      <div className="flex-1 flex flex-col overflow-hidden p-3 lg:p-4 lg:pl-1">
+      <div className="flex-1 flex flex-col overflow-hidden p-3 lg:p-4">
         {/* Show replay header when in replay mode */}
         {isReplayMode && (
           <div className="mb-3 p-4 bg-white/90 dark:bg-gray-800/90 rounded-xl border border-[#E5E6EC] dark:border-gray-700/30 flex items-center">
