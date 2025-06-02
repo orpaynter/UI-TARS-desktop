@@ -123,7 +123,7 @@ export function useReplay() {
           currentEventIndex: nextIndex,
         };
       });
-    }, 200 / replayState.playbackSpeed); // 由于只显示关键帧，增加了帧间隔时间
+    }, 500 / replayState.playbackSpeed);
 
     setPlaybackInterval(interval);
   }, [activeSessionId, playbackInterval, processEvent, replayState.playbackSpeed, setReplayState]);
