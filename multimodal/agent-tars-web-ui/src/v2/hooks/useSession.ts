@@ -75,15 +75,6 @@ export function useSession() {
 
     // Initial status check when session becomes active
     checkSessionStatus(activeSessionId);
-
-    // Set up periodic status checking
-    const intervalId = setInterval(() => {
-      if (connectionStatus.connected && !isReplayMode) {
-        checkSessionStatus(activeSessionId);
-      }
-    }, 10000); // Check every 10 seconds
-
-    return () => clearInterval(intervalId);
   }, [activeSessionId, connectionStatus.connected, checkSessionStatus, isReplayMode]);
 
   // Enhanced socket handler for session status sync - 在回放模式下不更新状态
