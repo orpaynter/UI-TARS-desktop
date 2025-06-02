@@ -26,10 +26,10 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }) => {
   const { isSidebarCollapsed, toggleSidebar } = useLayout();
   const { connectionStatus } = useSession();
-  
+
   // Use the context hook to get global replay mode status
   const contextIsReplayMode = useReplayMode();
-  
+
   // Prioritize props for backward compatibility, but fall back to context
   const isReplayMode = propIsReplayMode !== undefined ? propIsReplayMode : contextIsReplayMode;
 
@@ -58,10 +58,7 @@ export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }
 
         <div className="flex gap-3 h-full">
           {/* Chat panel - adjust width based on replay mode */}
-          <motion.div 
-            layout 
-            className={isReplayMode ? "w-[40%]" : "w-[40%]"}
-          >
+          <motion.div layout className={isReplayMode ? 'w-[40%]' : 'w-[40%]'}>
             <Shell className="h-full rounded-3xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-[#E5E6EC] dark:border-none bg-[#FFFFFFE5] dark:shadow-gray-950/5">
               <ChatPanel />
             </Shell>
