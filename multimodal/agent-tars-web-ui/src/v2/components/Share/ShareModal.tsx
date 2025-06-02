@@ -42,6 +42,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session
     }
   }, [isOpen]);
 
+  // 当模态框关闭时重置状态，允许重新分享
+  useEffect(() => {
+    if (!isOpen) {
+      setShareResult(null);
+    }
+  }, [isOpen]);
+
   // 处理上传分享
   const handleUpload = async () => {
     if (!sessionId || !shareConfig) return;
@@ -97,11 +104,17 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session
     }
   };
 
+  // 处理关闭模态框
+  const handleClose = () => {
+    onClose();
+    // 不要在这里重置状态，因为我们使用了useEffect来处理
+  };
+
   if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -118,7 +131,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
             >
               <FiX size={20} />
@@ -268,7 +281,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Close
@@ -298,7 +311,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Close
@@ -327,7 +340,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Close
