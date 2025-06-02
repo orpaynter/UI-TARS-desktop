@@ -781,8 +781,16 @@ export class AgentTARSServer {
           // 获取会话事件
           const events = await this.storageProvider.getSessionEvents(sessionId);
 
+          // 过滤出关键帧事件，排除流式消息
+          const keyFrameEvents = events.filter(
+            (event) =>
+              event.type !== EventType.ASSISTANT_STREAMING_MESSAGE &&
+              event.type !== EventType.ASSISTANT_STREAMING_THINKING_MESSAGE &&
+              event.type !== EventType.FINAL_ANSWER_STREAMING,
+          );
+
           // 生成 HTML 内容
-          const shareHtml = this.generateShareHtml(events, metadata);
+          const shareHtml = this.generateShareHtml(keyFrameEvents, metadata);
 
           // 如果有配置分享提供者，则上传 HTML
           if (req.body.upload && this.options.shareProvider) {
