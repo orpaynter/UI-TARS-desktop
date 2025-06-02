@@ -44,7 +44,7 @@ export function useSession() {
   const [plans, setPlans] = useAtom(plansAtom);
   const setPlanUIState = useSetAtom(planUIStateAtom);
   const [replayState, setReplayState] = useAtom(replayStateAtom);
-  
+
   // Check if we're in replay mode using the context hook
   const isReplayMode = useReplayMode();
 

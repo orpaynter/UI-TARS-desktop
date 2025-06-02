@@ -19,7 +19,6 @@ import { groupedMessagesAtom, messagesAtom } from '../../state/atoms/message';
 
 import { useReplay } from '../../hooks/useReplay';
 import { replayStateAtom } from '../../state/atoms/replay';
-import { StartReplayButton } from '../Replay/StartReplayButton';
 import { MessageGroup as MessageGroupType } from '../../types';
 import { usePro } from '../../hooks/usePro';
 import { ShareButton } from '../Share';
@@ -31,7 +30,6 @@ import { BrowserControlDisplay } from './BrowserControlDisplay';
 import { ResearchReportEntry } from './ResearchReportEntry';
 
 import { useLocation } from 'react-router-dom';
-
 /**
  * ChatPanel Component - Main chat interface
  *
@@ -394,10 +392,6 @@ export const ChatPanel: React.FC = () => {
 
             {/* 按钮区域 */}
             <div className="flex justify-center gap-3 mb-3">
-              {/* 回放按钮相关代码 */}
-              {!isReplayMode && activeSessionId && isProMode && (
-                <StartReplayButton sessionId={activeSessionId} />
-              )}
               {/* 分享按钮 */}
               {!isReplayMode && !isProcessing && activeSessionId && <ShareButton />}
             </div>
