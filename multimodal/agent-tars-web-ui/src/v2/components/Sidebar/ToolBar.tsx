@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { FiPlus, FiMoon, FiSun, FiHome, FiCpu, FiMonitor } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useSession } from '../../hooks/useSession';
-import icon from '../../../icon.png';
 
 /**
  * ToolBar Component - Vertical toolbar inspired by modern IDE designs
@@ -52,7 +51,7 @@ export const ToolBar: React.FC = () => {
       <motion.img
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        src={icon}
+        src="https://lf3-static.bytednsdoc.com/obj/eden-cn/psvhouloj/agent-tars/icon.png"
         className="w-10 h-10 rounded-xl flex items-center justify-center text-white dark:text-gray-900 font-bold mx-auto mt-4 mb-6 cursor-pointer"
         onClick={handleNavigateHome}
       ></motion.img>
