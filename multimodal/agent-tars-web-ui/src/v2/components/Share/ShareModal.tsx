@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FiX, FiShare2, FiLink, FiDownload, FiCheck, FiLoader } from 'react-icons/fi';
 import { shareService, ShareConfig, ShareResult } from '../../services/shareService';
+import { Dialog } from '@headlessui/react';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -104,34 +105,24 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session
     }
   };
 
-  // 处理关闭模态框
-  const handleClose = () => {
-    onClose();
-    // 不要在这里重置状态，因为我们使用了useEffect来处理
-  };
-
-  if (!isOpen) return null;
-
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-          className="relative w-full max-w-md p-6 bg-white dark:bg-gray-800 rounded-3xl border border-[#E5E6EC] dark:border-gray-700/30 shadow-sm"
-        >
+    <Dialog open={isOpen} onClose={onClose} className="relative z-[9999]">
+      {/* 背景遮罩层 */}
+      <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm" aria-hidden="true" />
+
+      {/* 模态框内容容器 */}
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <Dialog.Panel className="w-full max-w-md p-6 bg-white dark:bg-gray-800 rounded-3xl border border-[#E5E6EC] dark:border-gray-700/30 shadow-lg">
           {/* 标题和关闭按钮 */}
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-medium text-gray-800 dark:text-gray-200 flex items-center">
+            <Dialog.Title className="text-xl font-medium text-gray-800 dark:text-gray-200 flex items-center">
               <FiShare2 className="mr-3 text-gray-500 dark:text-gray-400" />
               Share Conversation
-            </h3>
+            </Dialog.Title>
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={handleClose}
+              onClick={onClose}
               className="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
             >
               <FiX size={20} />
@@ -281,7 +272,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={handleClose}
+                  onClick={onClose}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Close
@@ -311,7 +302,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={handleClose}
+                  onClick={onClose}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Close
@@ -340,7 +331,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={handleClose}
+                  onClick={onClose}
                   className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Close
@@ -348,8 +339,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, session
               </div>
             </div>
           )}
-        </motion.div>
+        </Dialog.Panel>
       </div>
-    </AnimatePresence>
+    </Dialog>
   );
 };
