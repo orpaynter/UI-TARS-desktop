@@ -39,8 +39,8 @@ export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }
 
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar with ToolBar and ChatSession */}
-        <Sidebar />
+        {/* Sidebar with ToolBar and ChatSession - only show when not in replay mode */}
+        {!isReplayMode && <Sidebar />}
 
         {/* Content area - using flex-col to properly distribute vertical space */}
         <div className="flex-1 flex flex-col overflow-hidden p-2 lg:p-3">

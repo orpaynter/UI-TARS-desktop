@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiMoon, FiSun } from 'react-icons/fi';
 import { GoSidebarCollapse, GoSidebarExpand } from 'react-icons/go';
 import { useLayout } from '../../hooks/useLayout';
 import { useSession } from '../../hooks/useSession';
@@ -13,6 +13,19 @@ export const Navbar: React.FC = () => {
   const { isSidebarCollapsed, toggleSidebar } = useLayout();
   const { activeSessionId, isProcessing, modelInfo } = useSession();
   const isReplayMode = useReplayMode();
+  const [isDarkMode, setIsDarkMode] = React.useState(
+    document.documentElement.classList.contains('dark'),
+  );
+
+  // Toggle dark mode
+  const toggleDarkMode = useCallback(() => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    document.documentElement.classList.toggle('dark', newMode);
+
+    // Save preference to localStorage
+    localStorage.setItem('agent-tars-theme', newMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   return (
     <div className="h-12 border-b border-gray-300/40 dark:border-gray-600/20 backdrop-blur-sm flex items-center px-3">
@@ -56,9 +69,20 @@ export const Navbar: React.FC = () => {
         )}
       </div>
 
-      {/* Right section - with share button */}
+      {/* Right section - with share button and dark mode toggle */}
       <div className="flex items-center space-x-2">
         {activeSessionId && !isProcessing && <ShareButton variant="navbar" />}
+        
+        {/* Dark mode toggle */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={toggleDarkMode}
+          className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100/40 dark:hover:bg-gray-800/40 transition-colors"
+          title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+        >
+          {isDarkMode ? <FiSun size={16} /> : <FiMoon size={16} />}
+        </motion.button>
       </div>
     </div>
   );

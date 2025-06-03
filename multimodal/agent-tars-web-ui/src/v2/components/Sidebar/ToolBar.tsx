@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FiPlus, FiMoon, FiSun, FiHome, FiCpu, FiMonitor } from 'react-icons/fi';
+import { FiPlus, FiHome, FiCpu, FiMonitor } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useSession } from '../../hooks/useSession';
 import { useReplayMode } from '../../context/ReplayModeContext';
@@ -18,19 +18,6 @@ export const ToolBar: React.FC = () => {
   const navigate = useNavigate();
   const isReplayMode = useReplayMode();
   const { createSession, connectionStatus } = useSession();
-  const [isDarkMode, setIsDarkMode] = React.useState(
-    document.documentElement.classList.contains('dark'),
-  );
-
-  // Toggle dark mode
-  const toggleDarkMode = useCallback(() => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    document.documentElement.classList.toggle('dark', newMode);
-
-    // Save preference to localStorage
-    localStorage.setItem('agent-tars-theme', newMode ? 'dark' : 'light');
-  }, [isDarkMode]);
 
   // Create new session
   const handleNewSession = useCallback(async () => {
@@ -99,19 +86,6 @@ export const ToolBar: React.FC = () => {
           title="Workspace"
         >
           <FiMonitor size={20} />
-        </motion.button>
-      </div>
-
-      {/* Dark mode toggle */}
-      <div className="mb-4 flex justify-center">
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={toggleDarkMode}
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100/80 dark:hover:bg-gray-700/80 transition-all duration-200"
-          title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-        >
-          {isDarkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
         </motion.button>
       </div>
     </div>
