@@ -1,6 +1,7 @@
 import { API_BASE_URL, API_ENDPOINTS } from '../constants';
 import { Event, SessionInfo, SessionMetadata } from '../types';
 import { socketService } from './socketService';
+import { ChatCompletionContentPart } from '@multimodal/agent-interface';
 
 /**
  * API Service - Handles HTTP requests to the Agent TARS Server
@@ -235,11 +236,11 @@ class ApiService {
   }
 
   /**
-   * Send a query in streaming mode
+   * Send a streaming query
    */
   async sendStreamingQuery(
     sessionId: string,
-    query: string,
+    query: string | ChatCompletionContentPart[],
     onEvent: (event: Event) => void,
   ): Promise<void> {
     try {
@@ -287,7 +288,7 @@ class ApiService {
   /**
    * Send a non-streaming query
    */
-  async sendQuery(sessionId: string, query: string): Promise<string> {
+  async sendQuery(sessionId: string, query: string | ChatCompletionContentPart[]): Promise<string> {
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.QUERY}`, {
         method: 'POST',
