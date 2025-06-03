@@ -1,41 +1,43 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FiChevronLeft, FiChevronRight, FiShare2 } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { GoSidebarCollapse, GoSidebarExpand } from 'react-icons/go';
 import { useLayout } from '../../hooks/useLayout';
 import { useSession } from '../../hooks/useSession';
 import { ShareButton } from '../Share';
 import './Navbar.css';
 
-/**
- * Navbar Component - Global navigation bar in IDE style
- * 
- * Design principles:
- * - Clean, minimal interface that fits modern IDE aesthetics
- * - Centralized location for global actions and status display
- * - Adaptive layout that works in both normal and replay modes
- * - Consistent visual language with the rest of the application
- */
 export const Navbar: React.FC = () => {
   const { isSidebarCollapsed, toggleSidebar } = useLayout();
   const { activeSessionId, isProcessing, modelInfo } = useSession();
-  
+
   return (
-    <div className="h-12 border-b border-gray-100/40 dark:border-gray-700/20 backdrop-blur-sm flex items-center justify-between px-3">
-      {/* Left section */}
+    <div className="h-12 border-b border-gray-300/40 dark:border-gray-600/20 backdrop-blur-sm flex items-center px-3">
+      {/* Left section with macOS-style traffic lights */}
       <div className="flex items-center">
+        {/* macOS-style traffic lights */}
+        <div className="flex space-x-1.5 mr-3">
+          <div className="traffic-light traffic-light-red" />
+          <div className="traffic-light traffic-light-yellow" />
+          <div className="traffic-light traffic-light-green" />
+        </div>
+      </div>
+
+      {/* Sidebar toggle button - positioned at the right edge aligned with Chat area */}
+      <div className={`ml-auto ${isSidebarCollapsed ? 'ml-0' : 'ml-[240px]'}`}>
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={toggleSidebar}
           className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-1.5 hover:bg-gray-100/40 dark:hover:bg-gray-800/40 rounded-full transition-colors"
-          title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isSidebarCollapsed ? <FiChevronRight size={16} /> : <FiChevronLeft size={16} />}
+          {isSidebarCollapsed ? <GoSidebarCollapse size={16} /> : <GoSidebarExpand size={16} />}
         </motion.button>
       </div>
-      
+
       {/* Center section - Model info */}
-      <div className="flex items-center">
+      <div className="flex-1 flex items-center justify-center">
         {modelInfo.model && (
           <div className="px-3 py-1 rounded-full bg-gray-100/80 dark:bg-gray-700/80 text-xs text-gray-700 dark:text-gray-300 border border-gray-200/40 dark:border-gray-700/30 flex items-center">
             <div className="w-4 h-4 rounded-full bg-purple-400 dark:bg-purple-500 mr-2 flex-shrink-0"></div>
@@ -48,9 +50,9 @@ export const Navbar: React.FC = () => {
           </div>
         )}
       </div>
-      
-      {/* Right section */}
-      <div className="flex items-center">
+
+      {/* Right section - with share button */}
+      <div className="flex items-center space-x-2">
         {activeSessionId && !isProcessing && <ShareButton variant="navbar" />}
       </div>
     </div>

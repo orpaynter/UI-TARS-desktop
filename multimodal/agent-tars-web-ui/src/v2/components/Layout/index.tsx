@@ -43,7 +43,7 @@ export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }
         <Sidebar />
 
         {/* Content area - using flex-col to properly distribute vertical space */}
-        <div className="flex-1 flex flex-col overflow-hidden p-1 lg:p-1">
+        <div className="flex-1 flex flex-col overflow-hidden p-2 lg:p-3">
           {/* Show replay header when in replay mode */}
           {isReplayMode && (
             <div className="mb-3 p-4 bg-white/90 dark:bg-gray-800/90 rounded-xl border border-[#E5E6EC] dark:border-gray-700/30 flex items-center">
@@ -64,16 +64,16 @@ export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }
             {/* Chat panel - adjust width based on replay mode */}
             <motion.div
               layout
-              className={isReplayMode ? 'w-[40%] flex flex-col' : 'w-[40%] flex flex-col'}
+              className={isReplayMode ? 'w-[50%] flex flex-col' : 'w-[50%] flex flex-col'}
             >
-              <Shell className="h-full rounded-3xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-[#E5E6EC] dark:border-none bg-[#FFFFFFE5] dark:shadow-gray-950/5">
+              <Shell className="h-full rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-[#E5E6EC] dark:border-none bg-[#FFFFFFE5] dark:shadow-gray-950/5">
                 <ChatPanel />
               </Shell>
             </motion.div>
 
             {/* Workspace panel */}
-            <motion.div layout className="w-[60%] flex flex-col">
-              <Shell className="h-full rounded-3xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-[#E5E6EC] dark:border-none bg-[#FFFFFFE5] dark:shadow-gray-950/5">
+            <motion.div layout className="w-[50%] flex flex-col">
+              <Shell className="h-full rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-[#E5E6EC] dark:border-none bg-[#FFFFFFE5] dark:shadow-gray-950/5">
                 <WorkspacePanel />
               </Shell>
             </motion.div>
