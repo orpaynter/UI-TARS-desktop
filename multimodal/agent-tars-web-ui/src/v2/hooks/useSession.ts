@@ -21,6 +21,7 @@ import {
   checkConnectionStatusAction,
 } from '../state/actions/connectionActions';
 import { socketService } from '../services/socketService';
+
 import { useEffect, useCallback, useMemo, useState } from 'react';
 import { EventType } from '../types';
 import { useReplayMode } from '../context/ReplayModeContext';
@@ -45,7 +46,7 @@ export function useSession() {
   const [plans, setPlans] = useAtom(plansAtom);
   const setPlanUIState = useSetAtom(planUIStateAtom);
   const [replayState, setReplayState] = useAtom(replayStateAtom);
-  
+
   // 替换写死的模型信息，改为状态管理
   const [modelInfo, setModelInfo] = useState<{ provider: string; model: string }>({
     provider: '',
@@ -135,7 +136,7 @@ export function useSession() {
   useEffect(() => {
     // 在回放模式或未连接时不获取模型信息
     if (isReplayMode || !connectionStatus.connected) return;
-    
+
     const fetchModelInfo = async () => {
       try {
         const info = await apiService.getModelInfo();
@@ -144,7 +145,7 @@ export function useSession() {
         console.error('Failed to fetch model info:', error);
       }
     };
-    
+
     fetchModelInfo();
   }, [connectionStatus.connected, isReplayMode]);
 

@@ -5,11 +5,14 @@ import { GoSidebarCollapse, GoSidebarExpand } from 'react-icons/go';
 import { useLayout } from '../../hooks/useLayout';
 import { useSession } from '../../hooks/useSession';
 import { ShareButton } from '../Share';
+import { useReplayMode } from '../../context/ReplayModeContext';
+
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
   const { isSidebarCollapsed, toggleSidebar } = useLayout();
   const { activeSessionId, isProcessing, modelInfo } = useSession();
+  const isReplayMode = useReplayMode();
 
   return (
     <div className="h-12 border-b border-gray-300/40 dark:border-gray-600/20 backdrop-blur-sm flex items-center px-3">
@@ -24,17 +27,19 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Sidebar toggle button - positioned at the right edge aligned with Chat area */}
-      <div className={`ml-auto ${isSidebarCollapsed ? 'ml-0' : 'ml-[240px]'}`}>
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={toggleSidebar}
-          className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-1.5 hover:bg-gray-100/40 dark:hover:bg-gray-800/40 rounded-full transition-colors"
-          title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isSidebarCollapsed ? <GoSidebarCollapse size={16} /> : <GoSidebarExpand size={16} />}
-        </motion.button>
-      </div>
+      {!isReplayMode && (
+        <div className={`ml-auto ${isSidebarCollapsed ? 'ml-0' : 'ml-[245px]'}`}>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={toggleSidebar}
+            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-1.5 hover:bg-gray-100/40 dark:hover:bg-gray-800/40 rounded-full transition-colors"
+            title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isSidebarCollapsed ? <GoSidebarCollapse size={16} /> : <GoSidebarExpand size={16} />}
+          </motion.button>
+        </div>
+      )}
 
       {/* Center section - Model info */}
       <div className="flex-1 flex items-center justify-center">

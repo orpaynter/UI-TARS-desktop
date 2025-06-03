@@ -36,7 +36,7 @@ export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }
     <div className="flex flex-col h-screen bg-[#F2F3F5] dark:bg-white/5 text-gray-900 dark:text-gray-100 overflow-hidden">
       {/* Global navbar at the top */}
       <Navbar />
-      
+
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar with ToolBar and ChatSession */}
@@ -44,21 +44,6 @@ export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }
 
         {/* Content area - using flex-col to properly distribute vertical space */}
         <div className="flex-1 flex flex-col overflow-hidden p-2 lg:p-3">
-          {/* Show replay header when in replay mode */}
-          {isReplayMode && (
-            <div className="mb-3 p-4 bg-white/90 dark:bg-gray-800/90 rounded-xl border border-[#E5E6EC] dark:border-gray-700/30 flex items-center">
-              <div className="w-10 h-10 rounded-2xl bg-gray-900 dark:bg-gray-100 flex items-center justify-center text-white dark:text-gray-900 font-bold mr-3 text-base">
-                A
-              </div>
-              <div>
-                <h1 className="font-bold text-gray-900 dark:text-gray-100 text-xl">Agent TARS</h1>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Shared Conversation (Replay Mode)
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Panels container - apply flex-1 to take remaining vertical space */}
           <div className="flex gap-3 flex-1 min-h-0">
             {/* Chat panel - adjust width based on replay mode */}

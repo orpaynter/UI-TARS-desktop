@@ -3,7 +3,6 @@ import { ToolBar } from './ToolBar';
 import { ChatSession } from './ChatSession';
 import { useLayout } from '../../hooks/useLayout';
 import { useReplayMode } from '../../context/ReplayModeContext';
-import { BrowserControlToolbar } from './BrowserControlToolbar';
 
 /**
  * SidebarContainer - Container component that orchestrates the sidebar layout
