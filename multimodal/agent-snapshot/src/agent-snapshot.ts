@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
  * SPDX-License-Identifier: Apache-2.0
@@ -11,6 +12,8 @@ import {
   AgentRunObjectOptions,
   Event,
   isStreamingOptions,
+  isAgentRunObjectOptions,
+  AssistantMessageEvent,
 } from '@multimodal/agent-interface';
 import {
   AgentSnapshotOptions,
@@ -64,6 +67,122 @@ export class AgentSnapshot {
     }
 
     process.env.TEST = 'true';
+
+    this.proxyAgentInterface();
+  }
+
+  /**
+   * Proxy all agent methods and properties to ensure proper interface alignment
+   * This makes AgentSnapshot behave like an Agent without duplicating code
+   */
+  private proxyAgentInterface() {
+    const agentProto = Object.getPrototypeOf(this.agent);
+    const agentOwnProps = Object.getOwnPropertyNames(this.agent);
+    const agentProtoProps = Object.getOwnPropertyNames(agentProto).filter(
+      (name) => name !== 'constructor',
+    );
+
+    // Proxy methods
+    for (const methodName of agentProtoProps) {
+      // @ts-expect-error
+      if (typeof this.agent[methodName] === 'function' && !(methodName in this)) {
+        // @ts-expect-error
+        this[methodName] = (...args: any[]) => {
+          // @ts-expect-error
+          return this.agent[methodName](...args);
+        };
+      }
+    }
+
+    // Proxy properties
+    for (const propName of agentOwnProps) {
+      if (!(propName in this)) {
+        Object.defineProperty(this, propName, {
+          // @ts-expect-error
+          get: () => this.agent[propName],
+          set: (value) => {
+            // @ts-expect-error
+            this.agent[propName] = value;
+          },
+        });
+      }
+    }
+  }
+
+  /**
+   * Run method with interface aligned with Agent.run
+   *
+   * This method serves as a transparent wrapper around the agent's run method
+   * while simultaneously generating a snapshot of the interaction.
+   *
+   * @param input - String input for a basic text message
+   * @returns The final response event from the agent (stream is false)
+   */
+  async run(input: string): Promise<AssistantMessageEvent>;
+
+  /**
+   * Run method with interface aligned with Agent.run
+   *
+   * @param options - Object with input and optional configuration
+   * @returns The final response event from the agent (when stream is false)
+   */
+  async run(options: AgentRunObjectOptions & { stream?: false }): Promise<AssistantMessageEvent>;
+
+  /**
+   * Run method with interface aligned with Agent.run
+   *
+   * @param options - Object with input and streaming enabled
+   * @returns An async iterable of streaming events
+   */
+  async run(options: AgentRunObjectOptions & { stream: true }): Promise<AsyncIterable<Event>>;
+
+  /**
+   * Implementation of the run method to handle all overload cases
+   * This is a facade that matches Agent.run's interface exactly while generating snapshots
+   *
+   * @param runOptions - Input options
+   */
+  async run(runOptions: AgentRunOptions): Promise<AssistantMessageEvent | AsyncIterable<Event>> {
+    logger.info(
+      `AgentSnapshot.run called with ${typeof runOptions === 'string' ? 'string' : 'options object'}`,
+    );
+
+    // Initialize the snapshot generation hook if needed
+    if (!this.generateHook) {
+      this.generateHook = new AgentGenerateSnapshotHook(this.agent, {
+        snapshotPath: this.options.snapshotPath,
+        snapshotName: this.snapshotName,
+      });
+    }
+
+    // Set current run options and hook into agent
+    this.generateHook.setCurrentRunOptions(runOptions);
+    this.generateHook.hookAgent();
+
+    try {
+      // Determine if this is a streaming request
+      const isStreaming =
+        typeof runOptions === 'object' &&
+        isAgentRunObjectOptions(runOptions) &&
+        isStreamingOptions(runOptions);
+
+      // Run the agent with the provided options
+      logger.info(`Executing agent with ${isStreaming ? 'streaming' : 'non-streaming'} mode`);
+      // @ts-expect-error
+      const response = await this.agent.run(runOptions);
+
+      // Return the response directly to maintain the same interface as Agent.run
+      return response;
+    } catch (error) {
+      logger.error(`Error during AgentSnapshot.run: ${error}`);
+      throw error;
+    } finally {
+      // We don't unhook here as the response might be an AsyncIterable that's consumed later
+      // The hook will be cleaned up when the agent is done processing
+      if (this.generateHook) {
+        this.generateHook.clearError();
+      }
+    }
   }
 
   /**
