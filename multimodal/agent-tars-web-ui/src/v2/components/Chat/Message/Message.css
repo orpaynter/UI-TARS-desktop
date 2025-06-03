@@ -15,7 +15,7 @@
   @apply mb-2;
 }
 
-.message-user {
+.message-user, .message-user p {
   @apply bg-gradient-to-r from-[#141414] to-[#1e1e1e] dark:from-gray-900 dark:to-gray-800 text-white dark:text-gray-100 max-w-[85%];
 }
 

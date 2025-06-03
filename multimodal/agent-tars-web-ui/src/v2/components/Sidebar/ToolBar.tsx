@@ -47,7 +47,7 @@ export const ToolBar: React.FC = () => {
   }, [navigate]);
 
   return (
-    <div className="w-14 h-full flex flex-col backdrop-blur-sm border-r border-gray-300/40 dark:border-gray-700/20">
+    <div className="w-14 h-full flex flex-col backdrop-blur-sm border-r border-gray-300/40 dark:border-gray-600/20">
       {/* Logo */}
       <motion.img
         whileHover={{ scale: 1.05 }}
