@@ -314,6 +314,23 @@ export class AgentTARSServer {
       res.status(200).json({ status: 'ok' });
     });
 
+    // Add API endpoint to get model information
+    this.app.get('/api/model-info', (req, res) => {
+      try {
+        // 获取模型信息
+        const modelInfo = {
+          provider:
+            process.env.MODEL_PROVIDER || this.config?.model?.use?.provider || 'Default Provider',
+          model: process.env.MODEL_NAME || this.config?.model?.use?.model || 'Default Model',
+        };
+
+        res.status(200).json(modelInfo);
+      } catch (error) {
+        console.error('Error getting model info:', error);
+        res.status(500).json({ error: 'Failed to get model information' });
+      }
+    });
+
     // Add API endpoint to get session status
     this.app.get('/api/sessions/status', async (req, res) => {
       const sessionId = req.query.sessionId as string;
@@ -390,7 +407,6 @@ export class AgentTARSServer {
       }
     });
 
-    // Get all sessions
     this.app.get('/api/sessions', async (req, res) => {
       try {
         if (!this.storageProvider) {
@@ -420,7 +436,6 @@ export class AgentTARSServer {
       }
     });
 
-    // Get session details
     this.app.get('/api/sessions/details', async (req, res) => {
       const sessionId = req.query.sessionId as string;
 
@@ -463,7 +478,6 @@ export class AgentTARSServer {
       }
     });
 
-    // Get session events
     this.app.get('/api/sessions/events', async (req, res) => {
       const sessionId = req.query.sessionId as string;
 
@@ -484,7 +498,6 @@ export class AgentTARSServer {
       }
     });
 
-    // Update session metadata
     this.app.post('/api/sessions/update', async (req, res) => {
       const { sessionId, name, tags } = req.body;
 
@@ -515,7 +528,6 @@ export class AgentTARSServer {
       }
     });
 
-    // Delete session
     this.app.post('/api/sessions/delete', async (req, res) => {
       const { sessionId } = req.body;
 
@@ -551,7 +563,6 @@ export class AgentTARSServer {
       }
     });
 
-    // Restore session from storage
     this.app.post('/api/sessions/restore', async (req, res) => {
       const { sessionId } = req.body;
 

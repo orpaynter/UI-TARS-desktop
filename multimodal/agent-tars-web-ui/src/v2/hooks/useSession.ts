@@ -21,9 +21,10 @@ import {
   checkConnectionStatusAction,
 } from '../state/actions/connectionActions';
 import { socketService } from '../services/socketService';
-import { useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useCallback, useMemo, useState } from 'react';
 import { EventType } from '../types';
 import { useReplayMode } from '../context/ReplayModeContext';
+import { apiService } from '../services/apiService';
 
 /**
  * Hook for session management functionality
@@ -45,11 +46,11 @@ export function useSession() {
   const setPlanUIState = useSetAtom(planUIStateAtom);
   const [replayState, setReplayState] = useAtom(replayStateAtom);
   
-  // Mock model information - would come from server in a real implementation
-  const modelInfo = useMemo(() => ({
-    provider: "ByteDance OpenAI",
-    model: "gpt-4o-2024-11-20"
-  }), []);
+  // 替换写死的模型信息，改为状态管理
+  const [modelInfo, setModelInfo] = useState<{ provider: string; model: string }>({
+    provider: '',
+    model: '',
+  });
 
   // Check if we're in replay mode using the context hook
   const isReplayMode = useReplayMode();
@@ -129,6 +130,23 @@ export function useSession() {
       }
     }
   }, [activeSessionId, plans, setPlanUIState, isReplayMode]);
+
+  // 添加获取模型信息的效果
+  useEffect(() => {
+    // 在回放模式或未连接时不获取模型信息
+    if (isReplayMode || !connectionStatus.connected) return;
+    
+    const fetchModelInfo = async () => {
+      try {
+        const info = await apiService.getModelInfo();
+        setModelInfo(info);
+      } catch (error) {
+        console.error('Failed to fetch model info:', error);
+      }
+    };
+    
+    fetchModelInfo();
+  }, [connectionStatus.connected, isReplayMode]);
 
   // Memoize the session state object to avoid unnecessary re-renders
   const sessionState = useMemo(
