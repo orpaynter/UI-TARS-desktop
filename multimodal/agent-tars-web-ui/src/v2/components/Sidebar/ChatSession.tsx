@@ -1,13 +1,12 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useSession } from '../../hooks/useSession';
 import { useNavigate } from 'react-router-dom';
-import { FiRefreshCw, FiChevronLeft, FiWifiOff, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiRefreshCw, FiWifiOff, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import SessionItem from './SessionItem';
 
 interface ChatSessionProps {
   isCollapsed: boolean;
-  onToggleCollapse: () => void;
 }
 
 /**
@@ -19,7 +18,7 @@ interface ChatSessionProps {
  * - Time-based grouping for easy navigation
  * - Offline mode support with clear visual feedback
  */
-export const ChatSession: React.FC<ChatSessionProps> = ({ isCollapsed, onToggleCollapse }) => {
+export const ChatSession: React.FC<ChatSessionProps> = ({ isCollapsed }) => {
   const {
     sessions,
     activeSessionId,
@@ -149,28 +148,18 @@ export const ChatSession: React.FC<ChatSessionProps> = ({ isCollapsed, onToggleC
     [loadingSessionId, connectionStatus.connected, navigate, checkServerStatus],
   );
 
-  // If collapsed, render just the collapse button
+  // If collapsed, render minimal sidebar
   if (isCollapsed) {
     return (
       <div className="flex flex-col h-full bg-transparent w-0 border-r border-gray-100/40 dark:border-gray-700/20">
-        <div className="flex justify-center py-4">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onToggleCollapse}
-            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-1.5 hover:bg-gray-100/40 dark:hover:bg-gray-800/40 rounded-full transition-colors"
-            title="Expand sidebar"
-          >
-            <FiChevronLeft size={16} style={{ transform: 'rotate(180deg)' }} />
-          </motion.button>
-        </div>
+        {/* No collapse button here anymore - moved to Navbar */}
       </div>
     );
   }
 
   return (
     <div className="w-64 flex flex-col h-full duration-200 backdrop-blur-sm border-r border-gray-100/40 dark:border-gray-700/20">
-      {/* Header with title and collapse button */}
+      {/* Header with title - no collapse button anymore */}
       <div className="p-4 flex items-center justify-between border-b border-gray-100/40 dark:border-gray-700/20">
         <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Recent Tasks</div>
         <div className="flex items-center gap-2">
@@ -203,16 +192,6 @@ export const ChatSession: React.FC<ChatSessionProps> = ({ isCollapsed, onToggleC
             title={connectionStatus.connected ? 'Refresh tasks' : 'Server disconnected'}
           >
             <FiRefreshCw className={isRefreshing ? 'animate-spin' : ''} size={12} />
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onToggleCollapse}
-            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-1.5 hover:bg-gray-100/40 dark:hover:bg-gray-800/40 rounded-full transition-colors"
-            title="Collapse sidebar"
-          >
-            <FiChevronLeft size={16} />
           </motion.button>
         </div>
       </div>

@@ -44,6 +44,12 @@ export function useSession() {
   const [plans, setPlans] = useAtom(plansAtom);
   const setPlanUIState = useSetAtom(planUIStateAtom);
   const [replayState, setReplayState] = useAtom(replayStateAtom);
+  
+  // Mock model information - would come from server in a real implementation
+  const modelInfo = useMemo(() => ({
+    provider: "ByteDance OpenAI",
+    model: "gpt-4o-2024-11-20"
+  }), []);
 
   // Check if we're in replay mode using the context hook
   const isReplayMode = useReplayMode();
@@ -138,6 +144,7 @@ export function useSession() {
       connectionStatus,
       plans,
       replayState,
+      modelInfo, // Add model info to the returned state
 
       // Session operations
       loadSessions,
@@ -172,6 +179,7 @@ export function useSession() {
       connectionStatus,
       plans,
       replayState,
+      modelInfo, // Add to dependencies
       loadSessions,
       createSession,
       setActiveSession,

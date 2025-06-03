@@ -15,7 +15,7 @@ import { BrowserControlToolbar } from './BrowserControlToolbar';
  * - Provides a clean interface for the main layout
  */
 export const SidebarContainer: React.FC = () => {
-  const { isSidebarCollapsed, toggleSidebar } = useLayout();
+  const { isSidebarCollapsed } = useLayout();
   const isReplayMode = useReplayMode();
 
   // In replay mode, only show the ToolBar
@@ -30,7 +30,7 @@ export const SidebarContainer: React.FC = () => {
   return (
     <div className="flex h-full">
       <ToolBar />
-      <ChatSession isCollapsed={isSidebarCollapsed} onToggleCollapse={toggleSidebar} />
+      <ChatSession isCollapsed={isSidebarCollapsed} />
     </div>
   );
 };

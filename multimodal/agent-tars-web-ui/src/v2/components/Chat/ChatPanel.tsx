@@ -350,10 +350,9 @@ export const ChatPanel: React.FC = () => {
               </div>
             )}
 
-            {/* 按钮区域 */}
+            {/* 按钮区域 - 移除分享按钮 */}
             <div className="flex justify-center gap-3 mb-3">
-              {/* 分享按钮 */}
-              {!isReplayMode && !isProcessing && activeSessionId && <ShareButton />}
+              {/* 分享按钮已移至Navbar */}
             </div>
 
             <MessageInput
