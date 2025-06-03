@@ -932,6 +932,11 @@ export class AgentTARSServer {
         window.AGENT_TARS_REPLAY_MODE = true;
         window.AGENT_TARS_SESSION_DATA = ${JSON.stringify(metadata)};
         window.AGENT_TARS_EVENT_STREAM = ${JSON.stringify(events)};
+        window.AGENT_TARS_MODEL_INFO = ${JSON.stringify({
+          provider:
+            process.env.MODEL_PROVIDER || this.config?.model?.use?.provider || 'Default Provider',
+          model: process.env.MODEL_NAME || this.config?.model?.use?.model || 'Default Model',
+        })};
       </script>
       <script>
         // Add a fallback mechanism for when routes don't match in shared HTML files

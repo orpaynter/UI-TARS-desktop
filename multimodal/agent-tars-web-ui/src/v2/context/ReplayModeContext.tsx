@@ -1,10 +1,12 @@
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
-import { useAtom, useAtomValue } from 'jotai';
+import { atom, useAtom, useAtomValue } from 'jotai';
 import { replayStateAtom } from '../state/atoms/replay';
 import { activeSessionIdAtom, sessionsAtom } from '../state/atoms/session';
 import { messagesAtom } from '../state/atoms/message';
 import { connectionStatusAtom } from '../state/atoms/ui';
 import { processEventAction } from '../state/actions/eventProcessor'; // 新增引入
+
+const replayModelInfoAtom = atom<{ provider: string; model: string } | null>(null);
 
 /**
  * ReplayModeContext - Global context for sharing replay mode state
@@ -15,9 +17,13 @@ import { processEventAction } from '../state/actions/eventProcessor'; // 新增�
  */
 interface ReplayModeContextType {
   isReplayMode: boolean;
+  modelInfo: { provider: string; model: string } | null;
 }
 
-const ReplayModeContext = createContext<ReplayModeContextType>({ isReplayMode: false });
+const ReplayModeContext = createContext<ReplayModeContextType>({
+  isReplayMode: false,
+  modelInfo: null,
+});
 
 /**
  * ReplayModeProvider - Provides replay mode state to the application and initializes replay data
@@ -34,6 +40,7 @@ export const ReplayModeProvider: React.FC<{ children: ReactNode }> = ({ children
   const [, setSessions] = useAtom(sessionsAtom);
   const [, setActiveSessionId] = useAtom(activeSessionIdAtom);
   const [, setConnectionStatus] = useAtom(connectionStatusAtom);
+  const [modelInfo, setModelInfo] = useAtom(replayModelInfoAtom);
   const processEvent = useContext(processEventAction); // 获取事件处理器
 
   // Initialize replay mode if window variables are present
@@ -43,6 +50,7 @@ export const ReplayModeProvider: React.FC<{ children: ReactNode }> = ({ children
       // Get session data and event stream
       const sessionData = window.AGENT_TARS_SESSION_DATA;
       const events = window.AGENT_TARS_EVENT_STREAM;
+      const modelData = window.AGENT_TARS_MODEL_INFO;
 
       console.log('[ReplayMode] Initializing replay mode with', events.length, 'events');
 
@@ -54,6 +62,12 @@ export const ReplayModeProvider: React.FC<{ children: ReactNode }> = ({ children
           lastError: null,
           reconnecting: false,
         });
+
+        // Set model info if available
+        if (modelData) {
+          setModelInfo(modelData);
+          console.log('[ReplayMode] Model info loaded:', modelData);
+        }
 
         // Set sessions data
         setSessions([sessionData]);
@@ -132,7 +146,14 @@ export const ReplayModeProvider: React.FC<{ children: ReactNode }> = ({ children
   const isReplayMode = replayState.isActive || !!window.AGENT_TARS_REPLAY_MODE;
 
   return (
-    <ReplayModeContext.Provider value={{ isReplayMode }}>{children}</ReplayModeContext.Provider>
+    <ReplayModeContext.Provider
+      value={{
+        isReplayMode,
+        modelInfo,
+      }}
+    >
+      {children}
+    </ReplayModeContext.Provider>
   );
 };
 
@@ -145,4 +166,14 @@ export const ReplayModeProvider: React.FC<{ children: ReactNode }> = ({ children
 export const useReplayMode = (): boolean => {
   const { isReplayMode } = useContext(ReplayModeContext);
   return isReplayMode;
+};
+
+/**
+ * useReplayModelInfo - Hook to access model info in replay mode
+ *
+ * Provides access to the model information when in replay mode
+ */
+export const useReplayModelInfo = (): { provider: string; model: string } | null => {
+  const { modelInfo } = useContext(ReplayModeContext);
+  return modelInfo;
 };

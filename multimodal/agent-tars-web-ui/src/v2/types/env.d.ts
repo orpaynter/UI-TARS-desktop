@@ -19,5 +19,6 @@ declare global {
     AGENT_TARS_REPLAY_MODE?: boolean;
     AGENT_TARS_SESSION_DATA?: SessionMetadata;
     AGENT_TARS_EVENT_STREAM?: Event[];
+    AGENT_TARS_MODEL_INFO?: { provider: string; model: string };
   }
 }

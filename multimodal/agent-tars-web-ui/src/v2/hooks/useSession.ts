@@ -24,7 +24,7 @@ import { socketService } from '../services/socketService';
 
 import { useEffect, useCallback, useMemo, useState } from 'react';
 import { EventType } from '../types';
-import { useReplayMode } from '../context/ReplayModeContext';
+import { useReplayMode, useReplayModelInfo } from '../context/ReplayModeContext';
 import { apiService } from '../services/apiService';
 
 /**
@@ -55,6 +55,8 @@ export function useSession() {
 
   // Check if we're in replay mode using the context hook
   const isReplayMode = useReplayMode();
+  // 获取回放模式下的模型信息
+  const replayModelInfo = useReplayModelInfo();
 
   // Actions
   const loadSessions = useSetAtom(loadSessionsAction);
@@ -134,6 +136,12 @@ export function useSession() {
 
   // 添加获取模型信息的效果
   useEffect(() => {
+    // 在回放模式下使用回放模式的模型信息
+    if (isReplayMode && replayModelInfo) {
+      setModelInfo(replayModelInfo);
+      return;
+    }
+
     // 在回放模式或未连接时不获取模型信息
     if (isReplayMode || !connectionStatus.connected) return;
 
