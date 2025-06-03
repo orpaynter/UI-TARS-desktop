@@ -26,10 +26,10 @@ import { useReplayMode } from '../../context/ReplayModeContext';
 
 import './ChatPanel.css';
 import { apiService } from '@/v2/services/apiService';
-import { BrowserControlDisplay } from './BrowserControlDisplay';
 import { ResearchReportEntry } from './ResearchReportEntry';
 
 import { useLocation } from 'react-router-dom';
+
 /**
  * ChatPanel Component - Main chat interface
  *
@@ -54,9 +54,6 @@ export const ChatPanel: React.FC = () => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const [showScrollButton, setShowScrollButton] = useState(false);
-
-  const [browserMode, setBrowserMode] = useState<string>('default');
-  const [browserTools, setBrowserTools] = useState<string[]>([]);
 
   const location = useLocation();
 
@@ -83,22 +80,6 @@ export const ChatPanel: React.FC = () => {
       return () => container.removeEventListener('scroll', checkScroll);
     }
   }, []);
-
-  // 当激活的会话改变时获取浏览器控制信息
-  useEffect(() => {
-    if (activeSessionId && connectionStatus.connected) {
-      // 使用API获取浏览器控制信息
-      apiService
-        .getBrowserControlInfo(activeSessionId)
-        .then((info) => {
-          setBrowserMode(info.mode);
-          setBrowserTools(info.tools);
-        })
-        .catch((error) => {
-          console.error('Failed to get browser control info:', error);
-        });
-    }
-  }, [activeSessionId, connectionStatus.connected]);
 
   // Auto-scroll when new messages arrive
   useEffect(() => {
@@ -214,20 +195,6 @@ export const ChatPanel: React.FC = () => {
     );
   };
 
-  // const renderScrollButton = () => {
-  //   if (!showScrollButton) return null;
-
-  //   return (
-  //     <motion.button
-  //       whileTap={{ scale: 0.95 }}
-  //       className="absolute bottom-4 right-4 p-2 bg-white dark:bg-gray-800 rounded-full shadow-md"
-  //       onClick={scrollToBottom}
-  //     >
-  //       <FiArrowDown size={20} className="text-gray-600 dark:text-gray-400" />
-  //     </motion.button>
-  //   );
-  // };
-
   // 新增：查找会话中的研究报告
   const findResearchReport = () => {
     if (!activeSessionId || !allMessages[activeSessionId]) return null;
@@ -247,7 +214,6 @@ export const ChatPanel: React.FC = () => {
   };
 
   const researchReport = findResearchReport();
-  console.log('researchReport', researchReport);
 
   return (
     <div className="flex flex-col h-full">
@@ -296,12 +262,6 @@ export const ChatPanel: React.FC = () => {
             className="flex-1 overflow-y-auto px-5 py-5 overflow-x-hidden min-h-0 chat-scrollbar relative"
           >
             {renderOfflineBanner()}
-            {/* {renderScrollButton()} */}
-
-            {/* 添加浏览器控制模式显示组件 */}
-            {browserTools.length > 0 && (
-              <BrowserControlDisplay mode={browserMode} tools={browserTools} />
-            )}
 
             <AnimatePresence>
               {!connectionStatus.connected && !activeSessionId && (

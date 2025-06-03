@@ -2,7 +2,6 @@ import React from 'react';
 import { Sidebar } from '../Sidebar';
 import { ChatPanel } from '../Chat/ChatPanel';
 import { WorkspacePanel } from '../Workspace/WorkspacePanel';
-import { useLayout } from '../../hooks/useLayout';
 import { useSession } from '../../hooks/useSession';
 import { motion } from 'framer-motion';
 import { Shell } from '../Common/Shell';
@@ -24,7 +23,6 @@ interface LayoutProps {
  * - Adapts layout based on replay mode status
  */
 export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }) => {
-  const { isSidebarCollapsed, toggleSidebar } = useLayout();
   const { connectionStatus } = useSession();
 
   // Use the context hook to get global replay mode status
@@ -35,10 +33,8 @@ export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }
 
   return (
     <div className="flex h-screen bg-[#F2F3F5] dark:bg-white/5 text-gray-900 dark:text-gray-100 overflow-hidden">
-      {/* Only show sidebar when not in replay mode */}
-      {!isReplayMode && (
-        <Sidebar isCollapsed={isSidebarCollapsed} onToggleCollapse={toggleSidebar} />
-      )}
+      {/* Sidebar with ToolBar and ChatSession */}
+      <Sidebar />
 
       {/* Main content area - using flex-col to properly distribute vertical space */}
       <div className="flex-1 flex flex-col overflow-hidden p-3 lg:p-4">
