@@ -4,7 +4,12 @@ import { sessionsAtom, activeSessionIdAtom } from '../state/atoms/session';
 import { messagesAtom, groupedMessagesAtom } from '../state/atoms/message';
 import { toolResultsAtom } from '../state/atoms/tool';
 import { plansAtom, planUIStateAtom } from '../state/atoms/plan';
-import { isProcessingAtom, activePanelContentAtom, connectionStatusAtom } from '../state/atoms/ui';
+import { 
+  isProcessingAtom, 
+  activePanelContentAtom, 
+  connectionStatusAtom,
+  modelInfoAtom 
+} from '../state/atoms/ui';
 import { replayStateAtom } from '../state/atoms/replay';
 import {
   loadSessionsAction,
@@ -20,18 +25,14 @@ import {
   initConnectionMonitoringAction,
   checkConnectionStatusAction,
 } from '../state/actions/connectionActions';
+import { fetchModelInfoAction, setModelInfoAction } from '../state/actions/modelInfoAction';
 import { socketService } from '../services/socketService';
 
-import { useEffect, useCallback, useMemo, useState } from 'react';
-import { EventType } from '../types';
+import { useEffect, useCallback, useMemo } from 'react';
 import { useReplayMode, useReplayModelInfo } from '../context/ReplayModeContext';
-import { apiService } from '../services/apiService';
 
 /**
  * Hook for session management functionality
- *
- * Optimized to reduce unnecessary re-renders when switching sessions
- * and to prevent API calls when in replay mode
  */
 export function useSession() {
   // State
@@ -46,12 +47,7 @@ export function useSession() {
   const [plans, setPlans] = useAtom(plansAtom);
   const setPlanUIState = useSetAtom(planUIStateAtom);
   const [replayState, setReplayState] = useAtom(replayStateAtom);
-
-  // 替换写死的模型信息，改为状态管理
-  const [modelInfo, setModelInfo] = useState<{ provider: string; model: string }>({
-    provider: '',
-    model: '',
-  });
+  const modelInfo = useAtomValue(modelInfoAtom);
 
   // Check if we're in replay mode using the context hook
   const isReplayMode = useReplayMode();
@@ -69,6 +65,8 @@ export function useSession() {
   const initConnectionMonitoring = useSetAtom(initConnectionMonitoringAction);
   const checkServerStatus = useSetAtom(checkConnectionStatusAction);
   const checkSessionStatus = useSetAtom(checkSessionStatusAction);
+  const fetchModelInfo = useSetAtom(fetchModelInfoAction);
+  const setModelInfo = useSetAtom(setModelInfoAction);
 
   // Get current location
   const location = useLocation();
@@ -145,17 +143,9 @@ export function useSession() {
     // 在回放模式或未连接时不获取模型信息
     if (isReplayMode || !connectionStatus.connected) return;
 
-    const fetchModelInfo = async () => {
-      try {
-        const info = await apiService.getModelInfo();
-        setModelInfo(info);
-      } catch (error) {
-        console.error('Failed to fetch model info:', error);
-      }
-    };
-
+    // 使用新的 action 获取模型信息
     fetchModelInfo();
-  }, [connectionStatus.connected, isReplayMode]);
+  }, [connectionStatus.connected, isReplayMode, replayModelInfo, fetchModelInfo, setModelInfo]);
 
   // Memoize the session state object to avoid unnecessary re-renders
   const sessionState = useMemo(
@@ -171,7 +161,7 @@ export function useSession() {
       connectionStatus,
       plans,
       replayState,
-      modelInfo, // Add model info to the returned state
+      modelInfo, // Now from atom
 
       // Session operations
       loadSessions,
@@ -206,7 +196,7 @@ export function useSession() {
       connectionStatus,
       plans,
       replayState,
-      modelInfo, // Add to dependencies
+      modelInfo,
       loadSessions,
       createSession,
       setActiveSession,
