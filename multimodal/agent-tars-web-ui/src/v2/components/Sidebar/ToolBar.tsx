@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FiPlus, FiMoon, FiSun, FiHome, FiCpu, FiMonitor } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useSession } from '../../hooks/useSession';
+import icon from '../../../icon.png';
 
 /**
  * ToolBar Component - Vertical toolbar inspired by modern IDE designs
@@ -48,14 +49,13 @@ export const ToolBar: React.FC = () => {
   return (
     <div className="w-14 h-full flex flex-col backdrop-blur-sm border-r border-gray-300/40 dark:border-gray-700/20">
       {/* Logo */}
-      <motion.div
+      <motion.img
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="w-10 h-10 rounded-xl bg-gray-900 dark:bg-gray-100 flex items-center justify-center text-white dark:text-gray-900 font-bold mx-auto mt-4 mb-6 cursor-pointer"
+        src={icon}
+        className="w-10 h-10 rounded-xl flex items-center justify-center text-white dark:text-gray-900 font-bold mx-auto mt-4 mb-6 cursor-pointer"
         onClick={handleNavigateHome}
-      >
-        A
-      </motion.div>
+      ></motion.img>
 
       {/* Tool buttons */}
       <div className="flex-1 flex flex-col items-center gap-4 py-4">
@@ -65,7 +65,7 @@ export const ToolBar: React.FC = () => {
           whileTap={{ scale: 0.95 }}
           onClick={handleNewSession}
           disabled={!connectionStatus.connected}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
+          className={`w-8 h-8 rounded-3xl flex items-center justify-center transition-all duration-200 ${
             connectionStatus.connected
               ? 'bg-gradient-to-r from-[#141414] to-[#1e1e1e] dark:from-gray-900 dark:to-gray-800 text-white hover:shadow-md'
               : 'bg-gray-400 text-white cursor-not-allowed opacity-60'
