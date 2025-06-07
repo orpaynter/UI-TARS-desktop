@@ -15,25 +15,20 @@ import {
   Event,
   EventType,
   AssistantMessageEvent,
-  LLMRequestHookPayload,
-  LLMResponseHookPayload,
-  LLMStreamingResponseHookPayload,
   ToolDefinition,
   isAgentRunObjectOptions,
   isStreamingOptions,
-  ToolCallResult,
-  ChatCompletionMessageToolCall,
   AgentContextAwarenessOptions,
   AgentRunObjectOptions,
   SummaryRequest,
   SummaryResponse,
   ChatCompletionMessageParam,
-  LoopTerminationCheckResult,
   IAgent,
   ChatCompletionCreateParams,
   ChatCompletion,
 } from '@multimodal/agent-interface';
 
+import { BaseAgent } from './base-agent';
 import { AgentRunner } from './agent-runner';
 import { EventStream as EventStreamImpl } from '../stream/event-stream';
 import { ToolManager } from './tool-manager';
@@ -58,7 +53,10 @@ import { getLLMClient } from './llm-client';
  * - Communication with multiple LLM providers
  * - Event stream management for tracking agent loop state
  */
-export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
+export class Agent<T extends AgentOptions = AgentOptions>
+  extends BaseAgent<T>
+  implements IAgent<T>
+{
   private instructions: string;
   private maxIterations: number;
   private maxTokens: number | undefined;
@@ -77,7 +75,6 @@ export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
   public initialized = false;
   public isReplaySnapshot = false;
   private currentResolvedModel?: ResolvedModel;
-  private shouldTerminateLoop = false;
   private isCustomLLMClientSet = false; // Track if custom client was explicitly set
 
   /**
@@ -86,7 +83,9 @@ export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
    * @param options - Configuration options for the agent including instructions,
    * tools, model selection, and runtime parameters.
    */
-  constructor(private options: AgentOptions = {}) {
+  constructor(options: AgentOptions = {}) {
+    super(options as T);
+
     this.instructions = options.instructions || this.getDefaultPrompt();
     this.maxIterations = options.maxIterations ?? 10;
     this.maxTokens = options.maxTokens;
@@ -183,14 +182,6 @@ export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
   }
 
   /**
-   * Control the initialize process, you may need to perform some time-consuming
-   * operations before starting here
-   */
-  public initialize(): void | Promise<void> {
-    this.initialized = true;
-  }
-
-  /**
    * Custom LLM client for testing or custom implementations
    *
    * @param customLLMClient - OpenAI-compatible llm client
@@ -265,42 +256,6 @@ Provide concise and accurate responses.`;
    */
   protected getAgentIdentifier(): string {
     return this.id ? `${this.name} (${this.id})` : this.name;
-  }
-
-  /**
-   * Request to terminate the agent loop after the current iteration
-   * This allows higher-level agents to control when the loop should end,
-   * even if there are remaining iterations or tool calls
-   *
-   * @returns True if the termination request was set, false if already terminating
-   */
-  public requestLoopTermination(): boolean {
-    if (this.shouldTerminateLoop) {
-      return false;
-    }
-
-    this.logger.info(`[Agent] Loop termination requested by higher-level agent`);
-    this.shouldTerminateLoop = true;
-    return true;
-  }
-
-  /**
-   * Check if loop termination has been requested
-   * Used internally by the loop executor
-   *
-   * @returns True if termination has been requested
-   * @internal
-   */
-  public isLoopTerminationRequested(): boolean {
-    return this.shouldTerminateLoop;
-  }
-
-  /**
-   * Reset the termination flag when a new run begins
-   * @internal
-   */
-  private resetLoopTermination(): void {
-    this.shouldTerminateLoop = false;
   }
 
   /**
@@ -631,144 +586,6 @@ Provide concise and accurate responses.`;
   }
 
   /**
-   * Hook called before sending a request to the LLM
-   * This allows subclasses to inspect the request before it's sent
-   *
-   * @param id Session identifier for this conversation
-   * @param payload The complete request payload
-   */
-  public onLLMRequest(id: string, payload: LLMRequestHookPayload): void | Promise<void> {
-    // Default implementation: pass-through
-  }
-
-  /**
-   * Hook called after receiving a response from the LLM
-   * This allows subclasses to inspect the response before it's processed
-   *
-   * @param id Session identifier for this conversation
-   * @param payload The complete response payload
-   */
-  public onLLMResponse(id: string, payload: LLMResponseHookPayload): void | Promise<void> {
-    // Default implementation: pass-through, perf cost: 0.007ms - 0.021ms
-  }
-
-  /**
-   * Hook called after receiving streaming responses from the LLM
-   * Similar to onLLMResponse, but specifically for streaming
-   *
-   * @param id Session identifier for this conversation
-   * @param payload The streaming response payload
-   */
-  public onLLMStreamingResponse(id: string, payload: LLMStreamingResponseHookPayload): void {
-    // Keep it empty.
-  }
-
-  /**
-   * Hook called at the beginning of each agent loop iteration
-   * This method is invoked before each iteration of the agent loop starts,
-   * allowing derived classes to perform setup or inject additional context
-   *
-   * @param sessionId The session identifier for this conversation
-   * @returns A promise that resolves when pre-iteration setup is complete
-   */
-  public onEachAgentLoopStart(sessionId: string): void | Promise<void> {
-    // Default implementation does nothing
-    // Derived classes can override to insert custom logic
-  }
-
-  /**
-   * Hook called before a tool is executed
-   * This allows subclasses to intercept or modify tool calls before execution
-   *
-   * @param id Session identifier for this conversation
-   * @param toolCall Information about the tool being called
-   * @param args The arguments for the tool call
-   * @returns The possibly modified args for the tool call
-   */
-  public onBeforeToolCall(
-    id: string,
-    toolCall: { toolCallId: string; name: string },
-    args: any,
-  ): Promise<any> | any {
-    this.logger.infoWithData(`[Tool] onBeforeToolCall`, { toolCall }, JSON.stringify);
-    // Default implementation: pass-through
-    return args;
-  }
-
-  /**
-   * Hook called after a tool is executed
-   * This allows subclasses to intercept or modify tool results after execution
-   *
-   * @param id Session identifier for this conversation
-   * @param toolCall Information about the tool that was called
-   * @param result The result of the tool call
-   * @returns The possibly modified result of the tool call
-   */
-  public onAfterToolCall(
-    id: string,
-    toolCall: { toolCallId: string; name: string },
-    result: any,
-  ): Promise<any> | any {
-    this.logger.infoWithData(`[Tool] onAfterToolCall`, { toolCall, result }, JSON.stringify);
-    // Default implementation: pass-through
-    return result;
-  }
-
-  /**
-   * Hook called when a tool execution results in an error
-   * This allows subclasses to handle or transform errors from tool calls
-   *
-   * @param id Session identifier for this conversation
-   * @param toolCall Information about the tool that was called
-   * @param error The error that occurred
-   * @returns A potentially modified error or recovery value
-   */
-  public onToolCallError(
-    id: string,
-    toolCall: { toolCallId: string; name: string },
-    error: any,
-  ): Promise<any> | any {
-    this.logger.infoWithData(`[Tool] onToolCallError`, { toolCall, error }, JSON.stringify);
-    // Default implementation: pass through the error
-    return `Error: ${error}`;
-  }
-
-  /**
-   * Hook called at the end of the agent's execution loop
-   * This method is invoked after the agent has completed all iterations or reached a final answer
-   *
-   * @param id Session identifier for the completed conversation
-   */
-  public onAgentLoopEnd(id: string): void | Promise<void> {
-    // Reset termination flag
-    this.shouldTerminateLoop = false;
-
-    // End execution if not already ended
-    if (this.executionController.isExecuting()) {
-      this.executionController.endExecution(AgentStatus.IDLE).catch((err) => {
-        this.logger.error(`Error ending execution: ${err}`);
-      });
-    }
-  }
-
-  /**
-   * Hook called before processing a batch of tool calls
-   * This allows for intercepting and potentially replacing tool call execution
-   * without executing the actual tools - essential for test mocking
-   *
-   * @param id Session identifier for this conversation
-   * @param toolCalls Array of tool calls to be processed
-   * @returns Either undefined (to execute tools normally) or an array of tool call results (to skip execution)
-   */
-  public onProcessToolCalls(
-    id: string,
-    toolCalls: ChatCompletionMessageToolCall[],
-  ): Promise<ToolCallResult[] | undefined> | ToolCallResult[] | undefined {
-    // Default implementation allows normal tool execution
-    return undefined;
-  }
-
-  /**
    * Get the custom LLM client if it was provided
    * @returns The custom LLM client or undefined if none was provided
    */
@@ -784,36 +601,20 @@ Provide concise and accurate responses.`;
   }
 
   /**
-   * Hook called when the agent loop is about to terminate with a final answer
-   * This allows subclasses to inspect the final response and decide whether to:
-   * 1. Allow termination (return {finished: true})
-   * 2. Force continuation (return {finished: false})
-   *
-   * This hook is crucial for higher-level agents that need to enforce specific
-   * completion criteria or ensure certain tools are called before finishing.
-   *
-   * @param id Session identifier for this conversation
-   * @param finalEvent The final assistant message event that would end the loop
-   * @returns Decision object indicating whether to finish or continue the loop
+   * Override the onAgentLoopEnd from BaseAgent to add execution controller cleanup
    */
-  public onBeforeLoopTermination(
-    id: string,
-    finalEvent: AssistantMessageEvent,
-  ): Promise<LoopTerminationCheckResult> | LoopTerminationCheckResult {
-    // Default implementation always allows termination
-    return { finished: true };
+  public async onAgentLoopEnd(id: string): Promise<void> {
+    // Call parent implementation first
+    await super.onAgentLoopEnd(id);
+
+    // End execution if not already ended
+    if (this.executionController.isExecuting()) {
+      this.executionController.endExecution(AgentStatus.IDLE).catch((err) => {
+        this.logger.error(`Error ending execution: ${err}`);
+      });
+    }
   }
 
-  /**
-   * Get the agent's configuration options
-   *
-   * @returns The agent configuration options used during initialization
-   */
-  public getOptions(): T {
-    return this.options as T;
-  }
-
-  // /multimodal/agent/src/agent/agent.ts
   /**
    * Convenient method to call the current selected LLM
    * This method encapsulates the common pattern of getting the LLM client and resolved model,
