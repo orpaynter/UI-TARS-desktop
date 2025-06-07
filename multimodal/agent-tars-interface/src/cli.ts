@@ -32,6 +32,13 @@ export type AgentTARSCLIArguments = Pick<
   /** Server port number - maps to server.port */
   port?: number;
 
+  // Deprecated options, for backward compatible
+  provider?: string;
+  apiKey?: string;
+  baseURL?: string;
+  browserControl?: string;
+  shareProvider?: string;
+
   /** Configuration file paths or URLs */
   config?: string[];
 

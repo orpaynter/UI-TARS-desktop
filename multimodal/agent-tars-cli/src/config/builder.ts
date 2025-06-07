@@ -19,6 +19,7 @@ import { resolveValue } from '../utils';
  * - Resolve environment variables
  * - Handle CLI-specific shortcuts (debug, quiet, port)
  * - Leverage CLI parser's automatic dot notation handling
+ * - Handle deprecated CLI options with warnings
  */
 export class ConfigBuilder {
   /**
@@ -36,7 +37,29 @@ export class ConfigBuilder {
     const config: AgentTARSAppConfig = this.deepMerge({}, userConfig);
 
     // Extract CLI-specific properties that need special handling
-    const { config: configPath, debug, quiet, port, stream, ...cliConfigProps } = cliArgs;
+    const {
+      config: configPath,
+      debug,
+      quiet,
+      port,
+      stream,
+      // Extract deprecated options
+      provider,
+      apiKey,
+      baseURL,
+      browserControl,
+      shareProvider,
+      ...cliConfigProps
+    } = cliArgs;
+
+    // Handle deprecated options with warnings and migration
+    this.handleDeprecatedOptions(cliConfigProps, {
+      provider,
+      apiKey,
+      baseURL,
+      browserControl,
+      shareProvider,
+    });
 
     // Merge CLI configuration properties directly (CLI overrides user config)
     this.deepMerge(config, cliConfigProps);
@@ -49,6 +72,94 @@ export class ConfigBuilder {
     this.resolveModelSecrets(cliConfigProps);
 
     return config;
+  }
+
+  /**
+   * Handle deprecated CLI options with appropriate warnings and migrations
+   */
+  private static handleDeprecatedOptions(
+    config: Partial<AgentTARSAppConfig>,
+    deprecated: {
+      provider?: string;
+      apiKey?: string;
+      baseURL?: string;
+      browserControl?: string;
+      shareProvider?: string;
+    },
+  ): void {
+    console.log('config', config);
+
+    const { provider, apiKey, baseURL, browserControl, shareProvider } = deprecated;
+
+    // Handle deprecated model configuration
+    if (provider || apiKey || baseURL) {
+      if (config.model) {
+        console.warn('⚠️  DEPRECATED: --model is deprecated. Use --model.id instead.');
+        console.warn('   Migration: Replace --model with --model.id');
+        // For backward
+        if (typeof config.model === 'string') {
+          config.model = {
+            id: config.model,
+          };
+        }
+      } else {
+        config.model = {};
+      }
+
+      if (provider) {
+        console.warn('⚠️  DEPRECATED: --provider is deprecated. Use --model.provider instead.');
+        console.warn('   Migration: Replace --provider with --model.provider');
+        if (!config.model.provider) {
+          config.model.provider = provider as any;
+        }
+      }
+
+      if (apiKey) {
+        console.warn('⚠️  DEPRECATED: --apiKey is deprecated. Use --model.apiKey instead.');
+        console.warn('   Migration: Replace --apiKey with --model.apiKey');
+        if (!config.model.apiKey) {
+          config.model.apiKey = apiKey;
+        }
+      }
+
+      if (baseURL) {
+        console.warn('⚠️  DEPRECATED: --baseURL is deprecated. Use --model.baseURL instead.');
+        console.warn('   Migration: Replace --baseURL with --model.baseURL');
+        if (!config.model.baseURL) {
+          config.model.baseURL = baseURL;
+        }
+      }
+    }
+
+    // Handle deprecated browser control
+    if (browserControl) {
+      console.warn(
+        '⚠️  DEPRECATED: --browser-control is deprecated. Use --browser.control instead.',
+      );
+      console.warn('   Migration: Replace --browser-control with --browser.control');
+
+      if (!config.browser) {
+        config.browser = {};
+      }
+
+      if (!config.browser.control) {
+        config.browser.control = browserControl as any;
+      }
+    }
+
+    // Handle deprecated share provider
+    if (shareProvider) {
+      console.warn('⚠️  DEPRECATED: --share-provider is deprecated. Use --share.provider instead.');
+      console.warn('   Migration: Replace --share-provider with --share.provider');
+
+      if (!config.share) {
+        config.share = {};
+      }
+
+      if (!config.share.provider) {
+        config.share.provider = shareProvider;
+      }
+    }
   }
 
   /**

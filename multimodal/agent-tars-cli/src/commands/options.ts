@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Command } from 'cac';
 import { AgentTARSCLIArguments, AgentTARSAppConfig } from '@agent-tars/interface';
 import { logger } from '../utils';
@@ -48,11 +43,17 @@ export function addCommonOptions(command: Command): Command {
       .option('--quiet', 'Reduce startup logging to minimum')
 
       // Model configuration (CLI parser will automatically handles dot notation)
-      .option('--model', 'model provider config')
+      .option('--model <model>', 'model provider config')
       .option('--model.provider [provider]', 'LLM provider name')
+      .option(
+        '--provider [provider]',
+        'LLM provider name (deprecated, replaced by `--model.provider`)',
+      )
       .option('--model.id [model]', 'Model identifier')
-      .option('--model.apiKey [apiKey]', 'Custom API key')
-      .option('--model.baseURL [baseURL]', 'Custom base URL')
+      .option('--model.apiKey [apiKey]', 'Model API key')
+      .option('--apiKey [apiKey]', 'Model API key (deprecated, replaced by `--model.apiKey`)')
+      .option('--model.baseURL [baseURL]', 'Model base URL')
+      .option('--baseURL [baseURL]', 'Model Base URL (deprecated, replaced by `--model.baseURL`)')
 
       // LLM behavior
       .option('--stream', 'Enable streaming mode for LLM responses')
@@ -66,31 +67,39 @@ export function addCommonOptions(command: Command): Command {
       )
 
       // Workspace configuration
-      .option('--workspace', 'workspace config')
+      .option('--workspace <workspace>', 'workspace config')
       .option('--workspace.workingDirectory <path>', 'Path to workspace directory')
 
       // Browser configuration
-      .option('--browser', 'browser config')
+      .option('--browser <browser>', 'browser config')
       .option(
         '--browser.control [mode]',
         'Browser control mode (mixed, browser-use-only, gui-agent-only)',
       )
+      .option(
+        '--browser-control [mode]',
+        'Browser control mode (deprecated, replaced by `--browser.control`)',
+      )
 
       // Planner configuration
-      .option('--planner', 'Planner config')
+      .option('--planner <planner>', 'Planner config')
       .option('--planner.enabled', 'Enable planning functionality for complex tasks')
 
       // Share configuration
-      .option('--share', 'Share config')
+      .option('--share <share>', 'Share config')
       .option('--share.provider [url]', 'Share provider URL')
+      .option(
+        '--share-provider [url]',
+        'Share provider URL (deprecated, replaced by `--share.provider`)',
+      )
 
       // Snapshot configuration
-      .option('--snapshot', 'Snapshot config')
+      .option('--snapshot <snapshot>', 'Snapshot config')
       .option('--snapshot.enable', 'Enable agent snapshot functionality')
       .option('--snapshot.snapshotPath <path>', 'Path for storing agent snapshots')
 
       // AGIO configuration
-      .option('--agio', 'Agio config')
+      .option('--agio <agio>', 'Agio config')
       .option(
         '--agio.provider <url>',
         `AGIO monitoring provider URL for agent analytics
