@@ -118,7 +118,6 @@ export class AgentTARS<T extends AgentTARSOptions = AgentTARSOptions> extends MC
           ? { enabled: true }
           : undefined
         : tarsOptions.planner;
-    console.log('plannerOptions', plannerOptions);
 
     // Generate planner prompt if enabled
     let plannerPrompt = '';
