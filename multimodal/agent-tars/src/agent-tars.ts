@@ -7,7 +7,7 @@
 import fs from 'fs';
 import path from 'path';
 import {
-  EventType,
+  AgentEventStream,
   ToolDefinition,
   JSONSchema7,
   MCPAgent,
@@ -15,7 +15,6 @@ import {
   LLMRequestHookPayload,
   LLMResponseHookPayload,
   ConsoleLogger,
-  AssistantMessageEvent,
   LoopTerminationCheckResult,
 } from '@mcp-agent/core';
 import {
@@ -548,7 +547,7 @@ Current Working Directory: ${workingDirectory}
    */
   override async onBeforeLoopTermination(
     id: string,
-    finalEvent: AssistantMessageEvent,
+    finalEvent: AgentEventStream.AssistantMessageEvent,
   ): Promise<LoopTerminationCheckResult> {
     // If planner is enabled, check if "final_answer" was called
     // if (
@@ -559,7 +558,7 @@ Current Working Directory: ${workingDirectory}
     //   this.logger.warn(`[Planner] Preventing loop termination: "final_answer" tool was not called`);
 
     //   // Add a user message reminding the agent to call "final_answer"
-    //   const reminderEvent = this.eventStream.createEvent(EventType.USER_MESSAGE, {
+    //   const reminderEvent = this.eventStream.createEvent('user_message', {
     //     content:
     //       'Please call the "final_answer" tool before providing your final answer. This is required to complete the task.',
     //   });
@@ -595,13 +594,13 @@ Current Working Directory: ${workingDirectory}
   private getMessagesForPlanning(): any[] {
     // Get user and assistant messages
     const events = this.eventStream.getEventsByType([
-      EventType.USER_MESSAGE,
-      EventType.ASSISTANT_MESSAGE,
+      'user_message',
+      'assistant_message',
     ]);
 
     // Convert events to message format
     return events.map((event) => {
-      if (event.type === EventType.ASSISTANT_MESSAGE) {
+      if (event.type === 'assistant_message') {
         return {
           role: 'assistant',
           content: event.content,
