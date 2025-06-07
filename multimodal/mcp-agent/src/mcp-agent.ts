@@ -13,7 +13,7 @@ export class MCPAgent<T extends MCPAgentOptions = MCPAgentOptions> extends Agent
   private mcpServerConfig: MCPServerRegistry;
   private clientVersion: 'v1' | 'v2';
 
-  constructor(options: T) {
+  constructor(options: MCPAgentOptions) {
     // Create a new agent with the base options
     super(options);
 

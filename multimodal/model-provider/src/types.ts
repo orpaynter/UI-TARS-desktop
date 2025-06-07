@@ -38,21 +38,6 @@ export interface ModelProviderServingConfig {
 }
 
 /**
- * Model provider configuration
- */
-export interface ModelProvider extends ModelProviderServingConfig {
-  /**
-   * Model provider name
-   */
-  name: ModelProviderName;
-
-  /**
-   * Provider's supported models
-   */
-  models: string[];
-}
-
-/**
  * Default model selection
  */
 export interface ModelDefaultSelection extends ModelProviderServingConfig {
@@ -63,17 +48,28 @@ export interface ModelDefaultSelection extends ModelProviderServingConfig {
   /**
    * Default model
    */
-  model?: string;
+  id?: string;
+}
+
+/**
+ * Model provider configuration
+ */
+export interface ModelProvider extends ModelProviderServingConfig {
+  /**
+   * Model provider name
+   */
+  name: ModelProviderName;
+
+  /**
+   * Provider's supported model ids.
+   */
+  models: string[];
 }
 
 /**
  * Configuration options for the LLM provider
  */
-export interface ProviderOptions {
-  /**
-   * Default used model provider and model
-   */
-  use?: ModelDefaultSelection;
+export interface ProviderOptions extends ModelDefaultSelection {
   /**
    * Pre-built Model Providers to be used during runtime
    */
@@ -89,9 +85,9 @@ export interface ResolvedModel {
    */
   provider: ModelProviderName;
   /**
-   * The model name/ID
+   * The model id used to perform LLM request, not display name.
    */
-  model: string;
+  id: string;
   /**
    * Base URL for the provider (if specified)
    */

@@ -165,29 +165,24 @@ export function mergeCommandLineOptions(
       mergedConfig.model = {};
     }
 
-    // Initialize 'use' configuration if not present
-    if (!mergedConfig.model.use) {
-      mergedConfig.model.use = {};
-    }
-
     // Set provider if specified
     if (options.provider) {
-      mergedConfig.model.use.provider = options.provider as ModelProviderName;
+      mergedConfig.model.provider = options.provider as ModelProviderName;
     }
 
     // Set model if specified
     if (options.model) {
-      mergedConfig.model.use.model = options.model as string;
+      mergedConfig.model.id = options.model as string;
     }
 
     // Set API key if specified (resolve environment variables)
     if (options.apiKey) {
-      mergedConfig.model.use.apiKey = resolveValue(options.apiKey as string, 'API key');
+      mergedConfig.model.apiKey = resolveValue(options.apiKey as string, 'API key');
     }
 
     // Set baseURL if specified (resolve environment variables)
     if (options.baseURL) {
-      mergedConfig.model.use.baseURL = resolveValue(options.baseURL as string, 'base URL');
+      mergedConfig.model.baseURL = resolveValue(options.baseURL as string, 'base URL');
     }
   }
 

@@ -76,7 +76,7 @@ export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
    * @param options - Configuration options for the agent including instructions,
    * tools, model selection, and runtime parameters.
    */
-  constructor(private options: AgentOptions) {
+  constructor(private options: AgentOptions = {}) {
     this.instructions = options.instructions || this.getDefaultPrompt();
     this.maxIterations = options.maxIterations ?? 10;
     this.maxTokens = options.maxTokens;
@@ -120,10 +120,10 @@ export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
 
     // Log the default selection
     const defaultSelection = this.modelResolver.getDefaultSelection();
-    if (defaultSelection.provider || defaultSelection.model) {
+    if (defaultSelection.provider || defaultSelection.id) {
       this.logger.info(
         `[Agent] ${this.name} initialized | Default model provider: ${defaultSelection.provider ?? 'N/A'} | ` +
-          `Default model: ${defaultSelection.model ?? 'N/A'} | ` +
+          `Default model: ${defaultSelection.id ?? 'N/A'} | ` +
           `Tools: ${options.tools?.length || 0} | Max iterations: ${this.maxIterations}`,
       );
     }
@@ -488,7 +488,7 @@ Provide concise and accurate responses.`;
       // Call the LLM with the prepared messages
       const response = await llmClient.chat.completions.create(
         {
-          model: resolvedModel.model,
+          model: resolvedModel.id,
           messages,
           temperature: 0.3, // Lower temperature for more focused summaries
 
@@ -510,14 +510,14 @@ Provide concise and accurate responses.`;
 
         return {
           summary,
-          model: resolvedModel.model,
+          model: resolvedModel.id,
           provider: resolvedModel.provider,
         };
       } catch (jsonError) {
         this.logger.warn(`Failed to parse JSON response: ${content}`);
         return {
           summary: 'Untitled Conversation',
-          model: resolvedModel.model,
+          model: resolvedModel.id,
           provider: resolvedModel.provider,
         };
       }

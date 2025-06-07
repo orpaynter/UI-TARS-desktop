@@ -31,9 +31,9 @@ function extractConfigInfo(
   config: AgentTARSOptions,
 ): ConfigInfo {
   // Get model information
-  const modelInfo = config.model?.use || {};
+  const modelInfo = config.model || {};
   const provider = modelInfo.provider || 'default';
-  const model = modelInfo.model || 'default';
+  const model = modelInfo.id || 'default';
 
   // Get other relevant config
   const searchProvider = config.search?.provider;

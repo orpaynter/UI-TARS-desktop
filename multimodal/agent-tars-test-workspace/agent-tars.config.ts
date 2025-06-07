@@ -7,9 +7,7 @@ import { defineConfig } from '@agent-tars/cli';
 export default defineConfig({
   maxTokens: 16384,
   model: {
-    use: {
-      model: 'ep-20250512165931-2c2ln',
-    },
+    id: 'ep-20250512165931-2c2ln',
     providers: [
       {
         name: 'volcengine',

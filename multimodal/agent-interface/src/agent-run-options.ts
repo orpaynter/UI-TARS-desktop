@@ -18,13 +18,13 @@ export interface AgentRunBaseOptions {
   /**
    * Model id used to run the agent.
    *
-   * @defaultValue "model.use" or the first configured "model.providers."
+   * @defaultValue "model.id" or the first configured "model.providers."
    */
   model?: string;
   /**
    * Model provider used to run the agent.
    *
-   * @defaultValue "model.use" or the first configured "model.providers."
+   * @defaultValue "model.provider" or the first configured "model.providers."
    */
   provider?: ModelProviderName;
   /**

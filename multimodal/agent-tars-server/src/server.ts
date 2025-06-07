@@ -147,9 +147,8 @@ export class AgentTARSServer {
     }
 
     const modelInfo = {
-      provider:
-        process.env.MODEL_PROVIDER || this.config?.model?.use?.provider || 'Default Provider',
-      model: process.env.MODEL_NAME || this.config?.model?.use?.model || 'Default Model',
+      provider: process.env.MODEL_PROVIDER || this.config?.model?.provider || 'Default Provider',
+      model: process.env.MODEL_NAME || this.config?.model?.id || 'Default Model',
     };
 
     return ShareUtils.generateShareHtml(events, metadata, this.options.staticPath, modelInfo);

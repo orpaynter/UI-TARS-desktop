@@ -21,10 +21,8 @@ import type { AgentTARSOptions } from '@agent-tars/core';
  *         apiKey: process.env.OPENAI_API_KEY,
  *       }
  *     ],
- *     use: {
- *       provider: 'openai',
- *       model: 'gpt-4o',
- *     }
+ *     provider: 'openai',
+ *     id: 'gpt-4o',
  *   },
  *   // Other options...
  * });

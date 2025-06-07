@@ -39,11 +39,11 @@ export class ModelResolver {
    * Determines the default model selection based on configuration
    */
   private determineDefaultModelSelection(): ModelDefaultSelection {
-    const { providers, use } = this.options;
+    const { providers, id, provider } = this.options;
 
     // Use explicit selection if provided
-    if (use) {
-      return use;
+    if (id && provider) {
+      return { id, provider };
     }
 
     // Try to infer from provided providers
@@ -55,7 +55,7 @@ export class ModelResolver {
     ) {
       return {
         provider: providers[0].name,
-        model: providers[0].models[0],
+        id: providers[0].models[0],
         baseURL: providers[0].baseURL,
         apiKey: providers[0].apiKey,
       };
@@ -103,7 +103,7 @@ export class ModelResolver {
 
     // If no model specified in run options, use default
     if (!model) {
-      model = this.defaultSelection.model;
+      model = this.defaultSelection.id;
       provider = this.defaultSelection.provider;
       baseURL = this.defaultSelection.baseURL;
       apiKey = this.defaultSelection.apiKey;
@@ -158,7 +158,7 @@ export class ModelResolver {
 
     return {
       provider,
-      model,
+      id: model,
       baseURL,
       apiKey,
       actualProvider,

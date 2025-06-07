@@ -58,8 +58,8 @@ export class AgioProvider {
       timestamp: Date.now(),
       sessionId: this.sessionId,
       config: {
-        modelProvider: this.config.model?.use?.provider,
-        modelName: this.config.model?.use?.model,
+        modelProvider: this.config.model?.provider,
+        modelName: this.config.model?.id,
         toolCallEngine: this.config.toolCallEngine,
         browserControl: this.config.browser?.control,
         plannerEnabled:

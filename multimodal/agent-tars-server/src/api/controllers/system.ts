@@ -27,8 +27,8 @@ export class SystemController {
       // 获取模型信息
       const modelInfo = {
         provider:
-          process.env.MODEL_PROVIDER || server.config?.model?.use?.provider || 'Default Provider',
-        model: process.env.MODEL_NAME || server.config?.model?.use?.model || 'Default Model',
+          process.env.MODEL_PROVIDER || server.config?.model?.provider || 'Default Provider',
+        model: process.env.MODEL_NAME || server.config?.model?.id || 'Default Model',
       };
 
       res.status(200).json(modelInfo);
