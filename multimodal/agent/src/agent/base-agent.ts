@@ -11,7 +11,7 @@ import {
   LLMStreamingResponseHookPayload,
   ToolCallResult,
   ChatCompletionMessageToolCall,
-  AssistantMessageEvent,
+  AgentEventStream,
   LoopTerminationCheckResult,
 } from '@multimodal/agent-interface';
 import { getLogger } from '../utils/logger';
@@ -189,7 +189,7 @@ export abstract class BaseAgent<T extends AgentOptions = AgentOptions> {
    */
   public onBeforeLoopTermination(
     id: string,
-    finalEvent: AssistantMessageEvent,
+    finalEvent: AgentEventStream.AssistantMessageEvent,
   ): Promise<LoopTerminationCheckResult> | LoopTerminationCheckResult {
     // Default implementation always allows termination
     return { finished: true };

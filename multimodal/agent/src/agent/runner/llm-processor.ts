@@ -8,8 +8,8 @@ import { Agent } from '../agent';
 import { getLLMClient } from '../llm-client';
 import { MessageHistory } from '../message-history';
 import {
-  EventStream,
-  EventType,
+  AgentEventStream,
+  IAgentEventStreamManager,
   PrepareRequestContext,
   ChatCompletionChunk,
   ChatCompletionCreateParams,
@@ -34,7 +34,7 @@ export class LLMProcessor {
 
   constructor(
     private agent: Agent,
-    private eventStream: EventStream,
+    private eventStream: IAgentEventStreamManager,
     private toolProcessor: ToolProcessor,
     private reasoningOptions: LLMReasoningOptions,
     private maxTokens?: number,
@@ -215,7 +215,7 @@ export class LLMProcessor {
         this.logger.info(`[LLM] Request aborted: ${error}`);
 
         // Add system event for aborted request
-        const systemEvent = this.eventStream.createEvent(EventType.SYSTEM, {
+        const systemEvent = this.eventStream.createEvent('system', {
           level: 'info',
           message: `LLM request aborted`,
           details: { provider: resolvedModel.provider },
@@ -229,7 +229,7 @@ export class LLMProcessor {
       this.logger.error(`[LLM] API error: ${error} | Provider: ${resolvedModel.provider}`);
 
       // Add system event for LLM API error
-      const systemEvent = this.eventStream.createEvent(EventType.SYSTEM, {
+      const systemEvent = this.eventStream.createEvent('system', {
         level: 'error',
         message: `LLM API error: ${error}`,
         details: { error: String(error), provider: resolvedModel.provider },
@@ -238,7 +238,7 @@ export class LLMProcessor {
 
       // Add error message as assistant response
       const errorMessage = `Sorry, an error occurred while processing your request: ${error}`;
-      const assistantEvent = this.eventStream.createEvent(EventType.ASSISTANT_MESSAGE, {
+      const assistantEvent = this.eventStream.createEvent('assistant_message', {
         content: errorMessage,
         finishReason: 'error',
       });
@@ -292,7 +292,7 @@ export class LLMProcessor {
           if (chunkResult.reasoningContent) {
             // Create thinking streaming event
             const thinkingEvent = this.eventStream.createEvent(
-              EventType.ASSISTANT_STREAMING_THINKING_MESSAGE,
+              'assistant_streaming_thinking_message',
               {
                 content: chunkResult.reasoningContent,
                 isComplete: Boolean(processingState.finishReason),
@@ -304,14 +304,11 @@ export class LLMProcessor {
           // Only send content chunk if it contains actual content
           if (chunkResult.content) {
             // Create content streaming event with only the incremental content
-            const messageEvent = this.eventStream.createEvent(
-              EventType.ASSISTANT_STREAMING_MESSAGE,
-              {
-                content: chunkResult.content, // Only send the incremental content, not accumulated
-                isComplete: Boolean(processingState.finishReason),
-                messageId: messageId, // Add the message ID to correlate with final message
-              },
-            );
+            const messageEvent = this.eventStream.createEvent('assistant_streaming_message', {
+              content: chunkResult.content, // Only send the incremental content, not accumulated
+              isComplete: Boolean(processingState.finishReason),
+              messageId: messageId, // Add the message ID to correlate with final message
+            });
             this.eventStream.sendEvent(messageEvent);
           }
 
@@ -396,7 +393,7 @@ export class LLMProcessor {
         );
 
         // Add system event for LLM API error
-        const systemEvent = this.eventStream.createEvent(EventType.SYSTEM, {
+        const systemEvent = this.eventStream.createEvent('system', {
           level: 'error',
           message: `LLM Streaming process error: ${error}`,
           details: { error: String(error), provider: resolvedModel.provider },
@@ -426,7 +423,7 @@ export class LLMProcessor {
   ): void {
     // If we have complete content, create a consolidated assistant message event
     if (contentBuffer || currentToolCalls.length > 0) {
-      const assistantEvent = this.eventStream.createEvent(EventType.ASSISTANT_MESSAGE, {
+      const assistantEvent = this.eventStream.createEvent('assistant_message', {
         content: contentBuffer,
         toolCalls: currentToolCalls.length > 0 ? (currentToolCalls as any[]) : undefined,
         finishReason: finishReason,
@@ -438,7 +435,7 @@ export class LLMProcessor {
 
     // If we have complete reasoning content, create a consolidated thinking message event
     if (reasoningBuffer) {
-      const thinkingEvent = this.eventStream.createEvent(EventType.ASSISTANT_THINKING_MESSAGE, {
+      const thinkingEvent = this.eventStream.createEvent('assistant_thinking_message', {
         content: reasoningBuffer,
         isComplete: true,
       });

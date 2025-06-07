@@ -13,9 +13,7 @@ import {
   Agent,
   AgentOptions,
   AgentRunNonStreamingOptions,
-  AgentRunObjectOptions,
-  ConsoleLogger,
-  EventType,
+  AgentEventStream,
   LogLevel,
   Tool,
   z,
@@ -189,7 +187,7 @@ finished(content='xxx') # Use escape characters \\', \", and \\n in content part
     });
 
     // Create environment input event instead of user message
-    const event = this.eventStream.createEvent(EventType.ENVIRONMENT_INPUT, {
+    const event = this.eventStream.createEvent('environment_input', {
       description: 'Browser Screenshot',
       content: [
         {

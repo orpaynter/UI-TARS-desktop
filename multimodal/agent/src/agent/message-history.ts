@@ -4,20 +4,14 @@
  */
 
 import {
-  Event,
-  EventStream,
-  EventType,
+  AgentEventStream,
+  IAgentEventStreamManager,
   ToolCallEngine,
-  ToolResultEvent,
   ToolDefinition,
-  AssistantMessageEvent,
   AgentSingleLoopReponse,
   MultimodalToolCallResult,
   ChatCompletionMessageParam,
   ChatCompletionContentPart,
-  UserMessageEvent,
-  EnvironmentInputEvent,
-  PlanUpdateEvent,
 } from '@multimodal/agent-interface';
 import { convertToMultimodalToolCallResult } from '../utils/multimodal';
 import { getLogger } from '../utils/logger';
@@ -29,7 +23,7 @@ import { isTest } from '../utils/env';
 interface ImageReference {
   eventIndex: number;
   contentIndex: number;
-  event: Event;
+  event: AgentEventStream.Event;
 }
 
 /**
@@ -55,7 +49,7 @@ export class MessageHistory {
    *                         replaced with text placeholders to preserve context while reducing token usage.
    */
   constructor(
-    private eventStream: EventStream,
+    private eventStream: IAgentEventStreamManager,
     private maxImagesCount?: number,
   ) {}
 
@@ -96,7 +90,7 @@ export class MessageHistory {
    * Process all events in a single unified path with optional image limiting
    */
   private processEvents(
-    events: Event[],
+    events: AgentEventStream.Event[],
     messages: ChatCompletionMessageParam[],
     toolCallEngine: ToolCallEngine,
   ): void {
@@ -108,26 +102,21 @@ export class MessageHistory {
     for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
       const event = events[eventIndex];
 
-      if (event.type === EventType.USER_MESSAGE) {
-        this.processUserMessage(event as UserMessageEvent, eventIndex, imagesToOmit, messages);
-      } else if (event.type === EventType.ASSISTANT_MESSAGE) {
+      if (event.type === 'user_message') {
+        this.processUserMessage(event, eventIndex, imagesToOmit, messages);
+      } else if (event.type === 'assistant_message') {
         this.processAssistantMessage(
-          event as AssistantMessageEvent,
+          event as AgentEventStream.AssistantMessageEvent,
           events,
           eventIndex,
           imagesToOmit,
           messages,
           toolCallEngine,
         );
-      } else if (event.type === EventType.ENVIRONMENT_INPUT) {
-        this.processEnvironmentInput(
-          event as EnvironmentInputEvent,
-          eventIndex,
-          imagesToOmit,
-          messages,
-        );
-      } else if (event.type === EventType.PLAN_UPDATE) {
-        this.processPlanUpdate(event as PlanUpdateEvent, messages);
+      } else if (event.type === 'environment_input') {
+        this.processEnvironmentInput(event, eventIndex, imagesToOmit, messages);
+      } else if (event.type === 'plan_update') {
+        this.processPlanUpdate(event, messages);
       }
     }
 
@@ -146,7 +135,10 @@ export class MessageHistory {
    * Process plan update event
    * Adds plan information as a system message to guide the agent
    */
-  private processPlanUpdate(event: PlanUpdateEvent, messages: ChatCompletionMessageParam[]): void {
+  private processPlanUpdate(
+    event: AgentEventStream.PlanUpdateEvent,
+    messages: ChatCompletionMessageParam[],
+  ): void {
     // Format the plan steps as a readable list
     const planStepsText = event.steps
       .map((step, index) => `${index + 1}. [${step.done ? 'DONE' : 'TODO'}] ${step.content}`)
@@ -162,12 +154,12 @@ export class MessageHistory {
   /**
    * Process all images in all events
    */
-  private countAllImagesInEvents(events: Event[]): number {
+  private countAllImagesInEvents(events: AgentEventStream.Event[]): number {
     return events.reduce((total, event) => {
       if (
-        (event.type === EventType.USER_MESSAGE ||
-          event.type === EventType.TOOL_RESULT ||
-          event.type === EventType.ENVIRONMENT_INPUT) &&
+        (event.type === 'user_message' ||
+          event.type === 'tool_result' ||
+          event.type === 'environment_input') &&
         Array.isArray(event.content)
       ) {
         return total + this.countImagesInContent(event.content);
@@ -179,7 +171,7 @@ export class MessageHistory {
   /**
    * Get a set of image references that should be omitted based on the sliding window
    */
-  private getImagesToOmit(events: Event[]): Set<string> {
+  private getImagesToOmit(events: AgentEventStream.Event[]): Set<string> {
     if (this.maxImagesCount === undefined) {
       return new Set<string>();
     }
@@ -208,7 +200,7 @@ export class MessageHistory {
   /**
    * Collect all image references from events, ordered from newest to oldest
    */
-  private collectAllImageReferences(events: Event[]): ImageReference[] {
+  private collectAllImageReferences(events: AgentEventStream.Event[]): ImageReference[] {
     const imageReferences: ImageReference[] = [];
 
     // Scan events in reverse order (newest first)
@@ -216,9 +208,9 @@ export class MessageHistory {
       const event = events[eventIndex];
 
       if (
-        (event.type === EventType.USER_MESSAGE ||
-          event.type === EventType.TOOL_RESULT ||
-          event.type === EventType.ENVIRONMENT_INPUT) &&
+        (event.type === 'user_message' ||
+          event.type === 'tool_result' ||
+          event.type === 'environment_input') &&
         Array.isArray(event.content)
       ) {
         // Find images in this event's content
@@ -241,7 +233,7 @@ export class MessageHistory {
    * Process a user message
    */
   private processUserMessage(
-    event: UserMessageEvent,
+    event: AgentEventStream.UserMessageEvent,
     eventIndex: number,
     imagesToOmit: Set<string>,
     messages: ChatCompletionMessageParam[],
@@ -304,8 +296,8 @@ export class MessageHistory {
    * Process an assistant message and its tool calls
    */
   private processAssistantMessage(
-    assistantEvent: AssistantMessageEvent,
-    events: Event[],
+    assistantEvent: AgentEventStream.AssistantMessageEvent,
+    events: AgentEventStream.Event[],
     eventIndex: number,
     imagesToOmit: Set<string>,
     messages: ChatCompletionMessageParam[],
@@ -330,8 +322,8 @@ export class MessageHistory {
    * Process tool calls and their results
    */
   private processToolCalls(
-    assistantEvent: AssistantMessageEvent,
-    events: Event[],
+    assistantEvent: AgentEventStream.AssistantMessageEvent,
+    events: AgentEventStream.Event[],
     imagesToOmit: Set<string>,
     messages: ChatCompletionMessageParam[],
     toolCallEngine: ToolCallEngine,
@@ -352,9 +344,7 @@ export class MessageHistory {
       if (imagesToOmit.size > 0 && Array.isArray(convertedResult.content)) {
         // Find the event index for this tool result
         const toolResultEventIndex = events.findIndex(
-          (e) =>
-            e.type === EventType.TOOL_RESULT &&
-            (e as ToolResultEvent).toolCallId === result.toolCallId,
+          (e) => e.type === 'tool_result' && e.toolCallId === result.toolCallId,
         );
 
         if (toolResultEventIndex !== -1) {
@@ -379,8 +369,8 @@ export class MessageHistory {
    * Helper method to find all tool results associated with an assistant message's tool calls
    */
   private findToolResultsForAssistantMessage(
-    assistantEvent: AssistantMessageEvent,
-    events: Event[],
+    assistantEvent: AgentEventStream.AssistantMessageEvent,
+    events: AgentEventStream.Event[],
   ) {
     // If no tool calls in the message, return empty array
     if (!assistantEvent.toolCalls?.length) {
@@ -398,15 +388,15 @@ export class MessageHistory {
 
       // Stop at new conversation turn
       if (
-        event.type === EventType.USER_MESSAGE ||
-        (event.type === EventType.ASSISTANT_MESSAGE && event !== assistantEvent)
+        event.type === 'user_message' ||
+        (event.type === 'assistant_message' && event !== assistantEvent)
       ) {
         break;
       }
 
       // Process tool result event
-      if (event.type === EventType.TOOL_RESULT) {
-        const toolResult = event as ToolResultEvent;
+      if (event.type === 'tool_result') {
+        const toolResult = event;
         if (toolCallIds.includes(toolResult.toolCallId)) {
           toolResults.push({
             toolCallId: toolResult.toolCallId,
@@ -451,7 +441,7 @@ Current time: ${new Date().toLocaleString()}`;
    * Adds environment context as a user-like message but with a specific role
    */
   private processEnvironmentInput(
-    event: EnvironmentInputEvent,
+    event: AgentEventStream.EnvironmentInputEvent,
     eventIndex: number,
     imagesToOmit: Set<string>,
     messages: ChatCompletionMessageParam[],

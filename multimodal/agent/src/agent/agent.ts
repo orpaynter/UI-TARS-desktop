@@ -11,10 +11,7 @@ import {
   AgentRunOptions,
   AgentRunStreamingOptions,
   AgentRunNonStreamingOptions,
-  EventStream,
-  Event,
-  EventType,
-  AssistantMessageEvent,
+  AgentEventStream,
   ToolDefinition,
   isAgentRunObjectOptions,
   isStreamingOptions,
@@ -30,7 +27,7 @@ import {
 
 import { BaseAgent } from './base-agent';
 import { AgentRunner } from './agent-runner';
-import { EventStream as EventStreamImpl } from '../stream/event-stream';
+import { AgentEventStreamManager } from './event-stream';
 import { ToolManager } from './tool-manager';
 import {
   ModelResolver,
@@ -62,7 +59,7 @@ export class Agent<T extends AgentOptions = AgentOptions>
   private maxTokens: number | undefined;
   protected name: string;
   protected id: string;
-  protected eventStream: EventStreamImpl;
+  protected eventStream: AgentEventStreamManager;
   private toolManager: ToolManager;
   private modelResolver: ModelResolver;
   private temperature: number;
@@ -100,8 +97,8 @@ export class Agent<T extends AgentOptions = AgentOptions>
       this.logger.debug(`Log level set to: ${LogLevel[options.logLevel]}`);
     }
 
-    // Initialize event stream
-    this.eventStream = new EventStreamImpl(options.eventStreamOptions);
+    // Initialize event stream manager
+    this.eventStream = new AgentEventStreamManager(options.eventStreamOptions);
 
     // Initialize Tool Manager
     this.toolManager = new ToolManager(this.logger);
@@ -243,7 +240,7 @@ Provide concise and accurate responses.`;
    *
    * @returns The EventStream instance
    */
-  getEventStream(): EventStream {
+  getEventStream(): AgentEventStreamManager {
     return this.eventStream;
   }
 
@@ -268,7 +265,7 @@ Provide concise and accurate responses.`;
    * @param input - String input for a basic text message
    * @returns The final response event from the agent (stream is false)
    */
-  async run(input: string): Promise<AssistantMessageEvent>;
+  async run(input: string): Promise<AgentEventStream.AssistantMessageEvent>;
 
   /**
    * Executes the main agent reasoning loop with additional options.
@@ -276,7 +273,7 @@ Provide concise and accurate responses.`;
    * @param options - Object with input and optional configuration
    * @returns The final response event from the agent (when stream is false)
    */
-  async run(options: AgentRunNonStreamingOptions): Promise<AssistantMessageEvent>;
+  async run(options: AgentRunNonStreamingOptions): Promise<AgentEventStream.AssistantMessageEvent>;
 
   /**
    * Executes the main agent reasoning loop with streaming support.
@@ -284,7 +281,7 @@ Provide concise and accurate responses.`;
    * @param options - Object with input and streaming enabled
    * @returns An async iterable of streaming events
    */
-  async run(options: AgentRunStreamingOptions): Promise<AsyncIterable<Event>>;
+  async run(options: AgentRunStreamingOptions): Promise<AsyncIterable<AgentEventStream.Event>>;
 
   /**
    * Implementation of the run method to handle all overload cases
@@ -292,7 +289,9 @@ Provide concise and accurate responses.`;
    */
   async run(
     runOptions: AgentRunOptions,
-  ): Promise<string | AssistantMessageEvent | AsyncIterable<Event>> {
+  ): Promise<
+    string | AgentEventStream.AssistantMessageEvent | AsyncIterable<AgentEventStream.Event>
+  > {
     // Check if agent is already executing
     if (this.executionController.isExecuting()) {
       throw new Error(
@@ -337,7 +336,7 @@ Provide concise and accurate responses.`;
 
       // Create and send agent run start event
       const startTime = Date.now();
-      const runStartEvent = this.eventStream.createEvent(EventType.AGENT_RUN_START, {
+      const runStartEvent = this.eventStream.createEvent('agent_run_start', {
         sessionId,
         runOptions: this.sanitizeRunOptions(normalizedOptions),
         provider: this.isCustomLLMClientSet
@@ -348,7 +347,7 @@ Provide concise and accurate responses.`;
       this.eventStream.sendEvent(runStartEvent);
 
       // Add user message to event stream
-      const userEvent = this.eventStream.createEvent(EventType.USER_MESSAGE, {
+      const userEvent = this.eventStream.createEvent('user_message', {
         content: normalizedOptions.input,
       });
 
@@ -370,7 +369,7 @@ Provide concise and accurate responses.`;
         this.executionController.registerCleanupHandler(async () => {
           if (this.executionController.isAborted()) {
             // Add system event to indicate abort
-            const systemEvent = this.eventStream.createEvent(EventType.SYSTEM, {
+            const systemEvent = this.eventStream.createEvent('system', {
               level: 'warning',
               message: 'Agent execution was aborted',
             });
@@ -378,7 +377,7 @@ Provide concise and accurate responses.`;
           }
 
           // Send agent run end event regardless of whether it was aborted
-          const endEvent = this.eventStream.createEvent(EventType.AGENT_RUN_END, {
+          const endEvent = this.eventStream.createEvent('agent_run_end', {
             sessionId,
             iterations: this.runner.getCurrentIteration(),
             elapsedMs: Date.now() - startTime,
@@ -398,7 +397,7 @@ Provide concise and accurate responses.`;
           );
 
           // Add agent run end event
-          const endEvent = this.eventStream.createEvent(EventType.AGENT_RUN_END, {
+          const endEvent = this.eventStream.createEvent('agent_run_end', {
             sessionId,
             iterations: this.runner.getCurrentIteration(),
             elapsedMs: Date.now() - startTime,
@@ -412,7 +411,7 @@ Provide concise and accurate responses.`;
           return result;
         } catch (error) {
           // Send agent run end event with error status
-          const endEvent = this.eventStream.createEvent(EventType.AGENT_RUN_END, {
+          const endEvent = this.eventStream.createEvent('agent_run_end', {
             sessionId,
             iterations: this.runner.getCurrentIteration(),
             elapsedMs: Date.now() - startTime,

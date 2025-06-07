@@ -6,63 +6,54 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import {
-  Event,
-  EventType,
-  BaseEvent,
-  EventStream as IEventStream,
-  EventStreamOptions,
-  AssistantMessageEvent,
+  AgentEventStream,
+  IAgentEventStreamManager,
+  AgentEventStreamOptions,
   AgentSingleLoopReponse,
-  ToolResultEvent,
-  AssistantStreamingMessageEvent,
-  AssistantStreamingThinkingMessageEvent,
 } from '@multimodal/agent-interface';
 import { getLogger } from '../utils/logger';
 
 /**
  * Default event stream options
  */
-const DEFAULT_OPTIONS: EventStreamOptions = {
+const DEFAULT_OPTIONS: AgentEventStreamOptions = {
   maxEvents: 1000,
   autoTrim: true,
 };
 
 /**
- * Implementation of the EventStream
+ * Implementation of the EventStream manager
  */
-export class EventStream implements IEventStream {
-  private events: Event[] = [];
-  private options: EventStreamOptions;
-  private subscribers: ((event: Event) => void)[] = [];
+export class AgentEventStreamManager implements IAgentEventStreamManager {
+  private events: AgentEventStream.Event[] = [];
+  private options: AgentEventStreamOptions;
+  private subscribers: ((event: AgentEventStream.Event) => void)[] = [];
   private logger = getLogger('EventStream');
 
-  constructor(options: EventStreamOptions = {}) {
+  constructor(options: AgentEventStreamOptions = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
     this.logger.debug('EventStream initialized with options:', this.options);
   }
 
   /**
    * Create a new event with default properties
-   * @param type The event type
-   * @param data Additional event data
    */
-  createEvent<T extends EventType>(
+  createEvent<T extends AgentEventStream.EventType>(
     type: T,
-    data: Omit<Extract<Event, { type: T }>, keyof BaseEvent>,
-  ): Extract<Event, { type: T }> {
+    data: Omit<AgentEventStream.EventPayload<T>, keyof AgentEventStream.BaseEvent>,
+  ): AgentEventStream.EventPayload<T> {
     return {
       id: uuidv4(),
       type,
       timestamp: Date.now(),
       ...data,
-    } as Extract<Event, { type: T }>;
+    } as AgentEventStream.EventPayload<T>;
   }
 
   /**
-   * Seed an event to the stream
-   * @param event The event to add or event data to create an event from
+   * Send an event to the stream
    */
-  sendEvent(event: Event): void {
+  sendEvent(event: AgentEventStream.Event): void {
     this.events.push(event);
     this.logger.debug(`Event added: ${event.type} (${event.id})`);
 
@@ -89,10 +80,8 @@ export class EventStream implements IEventStream {
 
   /**
    * Get all events in the stream
-   * @param filter Optional filter for event types
-   * @param limit Optional limit on number of events to return
    */
-  getEvents(filter?: EventType[], limit?: number): Event[] {
+  getEvents(filter?: AgentEventStream.EventType[], limit?: number): AgentEventStream.Event[] {
     let events = this.events;
 
     // Apply type filter if provided
@@ -110,10 +99,8 @@ export class EventStream implements IEventStream {
 
   /**
    * Get events by their type
-   * @param types The event types to filter by
-   * @param limit Optional limit on number of events to return
    */
-  getEventsByType(types: EventType[], limit?: number): Event[] {
+  getEventsByType(types: AgentEventStream.EventType[], limit?: number): AgentEventStream.Event[] {
     return this.getEvents(types, limit);
   }
 
@@ -122,14 +109,14 @@ export class EventStream implements IEventStream {
    */
   getLatestAssistantResponse(): AgentSingleLoopReponse | null {
     // Get the most recent assistant message event
-    const assistantEvents = this.getEventsByType([EventType.ASSISTANT_MESSAGE]);
+    const assistantEvents = this.getEventsByType(['assistant_message']);
     if (assistantEvents.length === 0) {
       return null;
     }
 
     const latestAssistantEvent = assistantEvents[
       assistantEvents.length - 1
-    ] as AssistantMessageEvent;
+    ] as AgentEventStream.AssistantMessageEvent;
     return {
       content: latestAssistantEvent.content || '',
       toolCalls: latestAssistantEvent.toolCalls,
@@ -138,12 +125,10 @@ export class EventStream implements IEventStream {
 
   /**
    * Get tool results since the last assistant message
-   * This method is used to collect all tool results that need to be processed
-   * for the next message in the conversation
    */
   getLatestToolResults(): { toolCallId: string; toolName: string; content: any }[] {
     // Find the index of the most recent assistant message
-    const assistantEvents = this.getEventsByType([EventType.ASSISTANT_MESSAGE]);
+    const assistantEvents = this.getEventsByType(['assistant_message']);
     if (assistantEvents.length === 0) {
       return [];
     }
@@ -155,8 +140,8 @@ export class EventStream implements IEventStream {
 
     // Get all tool result events that occurred after the latest assistant message
     const toolResultEvents = this.events.filter(
-      (event, index) => index > latestAssistantIndex && event.type === EventType.TOOL_RESULT,
-    ) as ToolResultEvent[];
+      (event, index) => index > latestAssistantIndex && event.type === 'tool_result',
+    ) as AgentEventStream.ToolResultEvent[];
 
     return toolResultEvents.map((event) => ({
       toolCallId: event.toolCallId,
@@ -175,10 +160,8 @@ export class EventStream implements IEventStream {
 
   /**
    * Subscribe to new events
-   * @param callback Function to call when a new event is added
-   * @returns Function to unsubscribe
    */
-  subscribe(callback: (event: Event) => void): () => void {
+  subscribe(callback: (event: AgentEventStream.Event) => void): () => void {
     this.subscribers.push(callback);
     this.logger.debug(`Subscribed to events (total subscribers: ${this.subscribers.length})`);
 
@@ -193,12 +176,12 @@ export class EventStream implements IEventStream {
 
   /**
    * Subscribe to specific event types
-   * @param types Array of event types to subscribe to
-   * @param callback Function to call when a matching event is added
-   * @returns Function to unsubscribe
    */
-  subscribeToTypes(types: EventType[], callback: (event: Event) => void): () => void {
-    const wrappedCallback = (event: Event) => {
+  subscribeToTypes(
+    types: AgentEventStream.EventType[],
+    callback: (event: AgentEventStream.Event) => void,
+  ): () => void {
+    const wrappedCallback = (event: AgentEventStream.Event) => {
       if (types.includes(event.type)) {
         callback(event);
       }
@@ -216,22 +199,26 @@ export class EventStream implements IEventStream {
 
   /**
    * Subscribe to streaming events only
-   * @param callback Function to call when a streaming event is added
-   * @returns Function to unsubscribe
    */
   subscribeToStreamingEvents(
     callback: (
-      event: AssistantStreamingMessageEvent | AssistantStreamingThinkingMessageEvent,
+      event:
+        | AgentEventStream.AssistantStreamingMessageEvent
+        | AgentEventStream.AssistantStreamingThinkingMessageEvent,
     ) => void,
   ): () => void {
-    const streamingTypes = [
-      EventType.ASSISTANT_STREAMING_MESSAGE,
-      EventType.ASSISTANT_STREAMING_THINKING_MESSAGE,
+    const streamingTypes: AgentEventStream.EventType[] = [
+      'assistant_streaming_message',
+      'assistant_streaming_thinking_message',
     ];
 
-    const wrappedCallback = (event: Event) => {
+    const wrappedCallback = (event: AgentEventStream.Event) => {
       if (streamingTypes.includes(event.type)) {
-        callback(event as AssistantStreamingMessageEvent | AssistantStreamingThinkingMessageEvent);
+        callback(
+          event as
+            | AgentEventStream.AssistantStreamingMessageEvent
+            | AgentEventStream.AssistantStreamingThinkingMessageEvent,
+        );
       }
     };
 
