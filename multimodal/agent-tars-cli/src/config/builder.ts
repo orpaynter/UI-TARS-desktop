@@ -87,8 +87,6 @@ export class ConfigBuilder {
       shareProvider?: string;
     },
   ): void {
-    console.log('config', config);
-
     const { provider, apiKey, baseURL, browserControl, shareProvider } = deprecated;
 
     // Handle deprecated model configuration
