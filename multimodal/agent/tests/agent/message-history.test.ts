@@ -9,12 +9,11 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   Tool,
   MessageHistory,
-  Event,
-  EventType,
   NativeToolCallEngine,
   PromptEngineeringToolCallEngine,
 } from './../../src';
-import { EventStream } from '../../src/stream/event-stream';
+import { AgentEventStream } from 'agent-interface/src';
+import { AgentEventStreamManager } from '../../src/agent/event-stream';
 
 import { AgentSnapshotNormalizer } from '../../../agent-snapshot/src';
 const normalizer = new AgentSnapshotNormalizer({});
@@ -30,14 +29,14 @@ function loadEventStream(loopNumber: number): AgentEventStream.Event[] {
 }
 
 describe('MessageHistory', () => {
-  let eventStream: EventStream;
+  let eventStream: AgentEventStreamManager;
   let messageHistory: MessageHistory;
   let nativeEngine: NativeToolCallEngine;
   let promptEngine: PromptEngineeringToolCallEngine;
   const defaultSystemPrompt = 'You are a helpful assistant that can use provided tools.';
 
   beforeEach(() => {
-    eventStream = new EventStream();
+    eventStream = new AgentEventStreamManager();
     messageHistory = new MessageHistory(eventStream);
     nativeEngine = new NativeToolCallEngine();
     promptEngine = new PromptEngineeringToolCallEngine();
@@ -279,7 +278,7 @@ describe('MessageHistory', () => {
         },
         {
           id: 'tool-call-1',
-          type: EventType.TOOL_CALL,
+          type: 'tool_call',
           timestamp: 1747472651525,
           toolCallId: 'call-screenshot',
           name: 'getWeatherScreenshot',
@@ -484,7 +483,7 @@ describe('MessageHistory', () => {
         },
         {
           id: 'tool-call-1',
-          type: EventType.TOOL_CALL,
+          type: 'tool_call',
           timestamp: 1747472651525,
           toolCallId: 'call-screenshot',
           name: 'getWeatherScreenshot',
