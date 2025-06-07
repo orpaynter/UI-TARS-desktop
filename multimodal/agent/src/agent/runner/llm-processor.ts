@@ -9,7 +9,6 @@ import { getLLMClient } from '../llm-client';
 import { MessageHistory } from '../message-history';
 import {
   AgentEventStream,
-  IAgentEventStreamManager,
   PrepareRequestContext,
   ChatCompletionChunk,
   ChatCompletionCreateParams,
@@ -34,7 +33,7 @@ export class LLMProcessor {
 
   constructor(
     private agent: Agent,
-    private eventStream: IAgentEventStreamManager,
+    private eventStream: AgentEventStream.Processor,
     private toolProcessor: ToolProcessor,
     private reasoningOptions: LLMReasoningOptions,
     private maxTokens?: number,

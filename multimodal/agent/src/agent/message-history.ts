@@ -5,11 +5,9 @@
 
 import {
   AgentEventStream,
-  IAgentEventStreamManager,
   ToolCallEngine,
   ToolDefinition,
   AgentSingleLoopReponse,
-  MultimodalToolCallResult,
   ChatCompletionMessageParam,
   ChatCompletionContentPart,
 } from '@multimodal/agent-interface';
@@ -49,7 +47,7 @@ export class MessageHistory {
    *                         replaced with text placeholders to preserve context while reducing token usage.
    */
   constructor(
-    private eventStream: IAgentEventStreamManager,
+    private eventStream: AgentEventStream.Processor,
     private maxImagesCount?: number,
   ) {}
 

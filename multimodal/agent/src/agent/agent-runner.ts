@@ -8,7 +8,6 @@ import {
   AgentRunObjectOptions,
   AgentRunStreamingOptions,
   AgentEventStream,
-  IAgentEventStreamManager,
   ToolCallEngine,
   ToolCallEngineType,
   AgentContextAwarenessOptions,

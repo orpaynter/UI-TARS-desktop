@@ -6,7 +6,6 @@
 import { Agent } from '../agent';
 import { ToolManager } from '../tool-manager';
 import {
-  IAgentEventStreamManager,
   AgentEventStream,
   ToolDefinition,
   ToolCallResult,
@@ -28,7 +27,7 @@ export class ToolProcessor {
   constructor(
     private agent: Agent,
     private toolManager: ToolManager,
-    private eventStream: IAgentEventStreamManager,
+    private eventStream: AgentEventStream.Processor,
   ) {}
 
   /**

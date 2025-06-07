@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AgentEventStream, IAgentEventStreamManager } from '@multimodal/agent-interface';
+import { AgentEventStream } from '@multimodal/agent-interface';
 import { getLogger } from '../../utils/logger';
 
 /**
@@ -16,7 +16,7 @@ import { getLogger } from '../../utils/logger';
 export class StreamAdapter {
   private logger = getLogger('StreamAdapter');
 
-  constructor(private eventStream: IAgentEventStreamManager) {}
+  constructor(private eventStream: AgentEventStream.Processor) {}
 
   /**
    * Create an AsyncIterable from the event stream for streaming back to the client

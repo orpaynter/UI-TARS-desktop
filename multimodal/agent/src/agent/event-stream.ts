@@ -5,18 +5,13 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import {
-  AgentEventStream,
-  IAgentEventStreamManager,
-  AgentEventStreamOptions,
-  AgentSingleLoopReponse,
-} from '@multimodal/agent-interface';
+import { AgentEventStream, AgentSingleLoopReponse } from '@multimodal/agent-interface';
 import { getLogger } from '../utils/logger';
 
 /**
  * Default event stream options
  */
-const DEFAULT_OPTIONS: AgentEventStreamOptions = {
+const DEFAULT_OPTIONS: AgentEventStream.ProcessorOptions = {
   maxEvents: 1000,
   autoTrim: true,
 };
@@ -24,13 +19,13 @@ const DEFAULT_OPTIONS: AgentEventStreamOptions = {
 /**
  * Implementation of the EventStream manager
  */
-export class AgentEventStreamManager implements IAgentEventStreamManager {
+export class AgentEventStreamManager implements AgentEventStream.Processor {
   private events: AgentEventStream.Event[] = [];
-  private options: AgentEventStreamOptions;
+  private options: AgentEventStream.ProcessorOptions;
   private subscribers: ((event: AgentEventStream.Event) => void)[] = [];
   private logger = getLogger('EventStream');
 
-  constructor(options: AgentEventStreamOptions = {}) {
+  constructor(options: AgentEventStream.ProcessorOptions = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
     this.logger.debug('EventStream initialized with options:', this.options);
   }

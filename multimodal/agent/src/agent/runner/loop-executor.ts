@@ -3,11 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  AgentEventStream,
-  IAgentEventStreamManager,
-  ToolCallEngine,
-} from '@multimodal/agent-interface';
+import { AgentEventStream, ToolCallEngine } from '@multimodal/agent-interface';
 import { getLogger } from '../../utils/logger';
 import { ResolvedModel } from '@multimodal/model-provider';
 import { LLMProcessor } from './llm-processor';
@@ -26,7 +22,7 @@ export class LoopExecutor {
   constructor(
     private agent: Agent,
     private llmProcessor: LLMProcessor,
-    private eventStream: IAgentEventStreamManager,
+    private eventStream: AgentEventStream.Processor,
     private instructions: string,
     private maxIterations: number,
   ) {}
