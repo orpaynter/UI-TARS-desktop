@@ -16,6 +16,7 @@ export const DEFAULT_PORT = 8888;
 /**
  * Add common options to a command
  * Centralizes option definitions to ensure consistency across commands
+ * Uses dot notation that maps directly to nested configuration structure
  */
 export function addCommonOptions(command: Command): Command {
   return (
@@ -42,49 +43,54 @@ export function addCommonOptions(command: Command): Command {
           type: [String],
         },
       )
-      .option('--log-level <level>', 'Log level (debug, info, warn, error)')
+      .option('--logLevel <level>', 'Log level (debug, info, warn, error)')
       .option('--debug', 'Enable debug mode (show tool calls and system events), highest priority')
       .option('--quiet', 'Reduce startup logging to minimum')
 
-      // Model configuration (using dot notation)
-      .option('--model.provider [provider]', 'LLM provider name (replaces deprecated --provider)')
-      .option('--model.id [model]', 'Model identifier (replaces deprecated --model)')
+      // Model configuration (CLI parser will automatically handles dot notation)
+      .option('--model', 'model provider config')
+      .option('--model.provider [provider]', 'LLM provider name')
+      .option('--model.id [model]', 'Model identifier')
       .option('--model.apiKey [apiKey]', 'Custom API key')
       .option('--model.baseURL [baseURL]', 'Custom base URL')
 
       // LLM behavior
       .option('--stream', 'Enable streaming mode for LLM responses')
+      .option('--thinking', 'Used to control the reasoning content.')
       .option('--thinking.type [type]', 'Enable reasoning mode for compatible models (enabled)')
 
-      // Tool call engine (replaces deprecated --pe)
+      // Tool call engine
       .option(
         '--toolCallEngine [engine]',
         'Tool call engine type (native, prompt_engineering, structured_outputs)',
       )
 
       // Workspace configuration
+      .option('--workspace', 'workspace config')
       .option('--workspace.workingDirectory <path>', 'Path to workspace directory')
 
       // Browser configuration
+      .option('--browser', 'browser config')
       .option(
         '--browser.control [mode]',
         'Browser control mode (mixed, browser-use-only, gui-agent-only)',
       )
 
       // Planner configuration
+      .option('--planner', 'Planner config')
       .option('--planner.enabled', 'Enable planning functionality for complex tasks')
 
       // Share configuration
+      .option('--share', 'Share config')
       .option('--share.provider [url]', 'Share provider URL')
 
-      // Snapshot configuration (using dot notation)
-      .option(
-        '--snapshot.enable',
-        'Enable agent snapshot functionality (replaces deprecated --enableSnapshot)',
-      )
+      // Snapshot configuration
+      .option('--snapshot', 'Snapshot config')
+      .option('--snapshot.enable', 'Enable agent snapshot functionality')
       .option('--snapshot.snapshotPath <path>', 'Path for storing agent snapshots')
 
       // AGIO configuration
+      .option('--agio', 'Agio config')
       .option(
         '--agio.provider <url>',
         `AGIO monitoring provider URL for agent analytics
