@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentTARSOptions } from '@agent-tars/core';
+import type { AgentTARSAppConfig } from './config';
 
 /**
- * Helper function for defining Agent TARS configuration with TypeScript type checking.
+ * Helper function for defining Agent TARS application configuration with TypeScript type checking.
  *
  * @example
  * ```ts
@@ -23,6 +23,12 @@ import type { AgentTARSOptions } from '@agent-tars/core';
  *     ],
  *     provider: 'openai',
  *     id: 'gpt-4o',
+ *   },
+ *   server: {
+ *     port: 8888,
+ *     storage: {
+ *       type: 'sqlite',
+ *     },
  *   },
  *   // Other options...
  * });
@@ -43,9 +49,9 @@ import type { AgentTARSOptions } from '@agent-tars/core';
  * tars --config https://example.com/shared-config.json
  * ```
  *
- * @param config The Agent TARS configuration object
+ * @param config The Agent TARS application configuration object
  * @returns The typed configuration object
  */
-export function defineConfig(config: AgentTARSOptions): AgentTARSOptions {
+export function defineConfig(config: AgentTARSAppConfig): AgentTARSAppConfig {
   return config;
 }

@@ -348,9 +348,9 @@ importers:
 
   agent-tars-test-workspace:
     dependencies:
-      '@agent-tars/cli':
+      '@agent-tars/interface':
         specifier: workspace:*
-        version: link:../agent-tars-cli
+        version: link:../agent-tars-interface
     devDependencies:
       '@types/node':
         specifier: ^20.10.4

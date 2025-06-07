@@ -45,9 +45,9 @@ export class AgentTARSServer {
   public readonly workspacePath?: string;
   public readonly isDebug: boolean;
   public readonly storageProvider: StorageProvider | null = null;
-  public readonly appConfig: AgentTARSAppConfig;
+  public readonly appConfig: Required<AgentTARSAppConfig>;
 
-  constructor(appConfig: AgentTARSAppConfig) {
+  constructor(appConfig: Required<AgentTARSAppConfig>) {
     // Initialize options
     this.appConfig = appConfig;
     this.port = appConfig.server.port;

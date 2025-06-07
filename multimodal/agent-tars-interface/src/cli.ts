@@ -1,12 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 /**
- * Common interface for command options
- * Used to define the shape of options shared between CLI commands
+ * Command line interface arguments definition
+ * Used to capture and parse CLI input parameters
  */
 export interface AgentTARSCLIArguments {
   port?: number;

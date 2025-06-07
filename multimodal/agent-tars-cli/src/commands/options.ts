@@ -1,37 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import { Command } from 'cac';
-import path from 'path';
-import {
-  AgentTARSOptions,
-  LogLevel,
-  BrowserControlMode,
-  AgentTARSCLIArguments,
-} from '@agent-tars/interface';
-import { mergeCommandLineOptions, logger } from '../utils';
+import { AgentTARSCLIArguments, AgentTARSAppConfig } from '@agent-tars/interface';
+import { logger } from '../utils';
 import { loadTarsConfig } from '../config/loader';
+import { ConfigBuilder } from '../config/builder';
+
+export { AgentTARSCLIArguments };
 
 export const DEFAULT_PORT = 8888;
-
-/**
- * Helper to convert string log level to enum
- */
-export function parseLogLevel(level?: string): LogLevel | undefined {
-  if (!level) return undefined;
-
-  const upperLevel = level.toUpperCase();
-  if (upperLevel === 'DEBUG') return LogLevel.DEBUG;
-  if (upperLevel === 'INFO') return LogLevel.INFO;
-  if (upperLevel === 'WARN' || upperLevel === 'WARNING') return LogLevel.WARN;
-  if (upperLevel === 'ERROR') return LogLevel.ERROR;
-
-  console.warn(`Unknown log level: ${level}, using default log level`);
-  return undefined;
-}
 
 /**
  * Add common options to a command
@@ -80,7 +60,6 @@ export function addCommonOptions(command: Command): Command {
     .option('--share-provider', 'Share provider information')
     .option('--enable-snapshot', 'Enable agent snapshot functionality')
     .option('--snapshot-path <path>', 'Path for storing agent snapshots')
-    .option('--port <port>', 'Port to run the server on', { default: DEFAULT_PORT })
     .option(
       '--agio-provider <url>',
       `AGIO monitoring provider URL for agent analytics
@@ -106,70 +85,26 @@ export function addCommonOptions(command: Command): Command {
  * Handles option parsing, config loading, and merging for reuse across commands
  */
 export async function processCommonOptions(options: AgentTARSCLIArguments): Promise<{
-  mergedConfig: AgentTARSOptions;
+  appConfig: AgentTARSAppConfig;
   isDebug: boolean;
-  agioProvider?: string;
-  snapshotConfig?: { enable: boolean; snapshotPath: string };
 }> {
-  const {
-    config: configPath,
-    logLevel,
-    debug,
-    quiet,
-    workspace,
-    enableSnapshot,
-    snapshotPath,
-    agioProvider,
-  } = options;
+  const { config: configPath, debug } = options;
 
   // Set debug mode flag
   const isDebug = !!debug;
 
-  // Load config from file
+  // Load user config from file
   const userConfig = await loadTarsConfig(configPath, isDebug);
 
-  // Set log level if provided
-  if (logLevel) {
-    userConfig.logLevel = parseLogLevel(logLevel);
+  // Build complete application configuration
+  const appConfig = ConfigBuilder.buildAppConfig(options, userConfig);
+
+  // Set logger level if specified
+  if (appConfig.logLevel) {
+    logger.setLevel(appConfig.logLevel);
   }
 
-  // Set quiet mode if requested
-  if (quiet) {
-    userConfig.logLevel = LogLevel.SILENT;
-  }
+  logger.debug('Application configuration built from CLI and config files');
 
-  // Set debug mode if requested
-  if (isDebug) {
-    userConfig.logLevel = LogLevel.DEBUG;
-  }
-
-  // Set workspace path if provided
-  if (workspace) {
-    if (!userConfig.workspace) userConfig.workspace = {};
-    userConfig.workspace.workingDirectory = workspace;
-  }
-
-  // Merge command line model options with loaded config
-  const mergedConfig = mergeCommandLineOptions(userConfig, options);
-
-  // Browser control mode
-  if (options.browserControl && typeof options.browserControl === 'string') {
-    if (!mergedConfig.browser) mergedConfig.browser = {};
-    mergedConfig.browser.control = options.browserControl as BrowserControlMode;
-  }
-
-  if (mergedConfig.logLevel) logger.setLevel(mergedConfig.logLevel);
-
-  logger.debug('cli config merged with default config');
-
-  // Create snapshot config if enabled
-  const snapshotConfig = enableSnapshot
-    ? {
-        enable: true,
-        snapshotPath:
-          snapshotPath || path.join(process.cwd(), 'agent-snapshots', `snapshot-${Date.now()}`),
-      }
-    : undefined;
-
-  return { mergedConfig, isDebug, agioProvider, snapshotConfig };
+  return { appConfig, isDebug };
 }

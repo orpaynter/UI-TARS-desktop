@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AgentTARSOptions } from '@agent-tars/core';
+import { AgentTARSAppConfig } from '@agent-tars/interface';
 
 /**
  * Command handler interface
@@ -24,51 +24,14 @@ export interface CommandHandler {
  */
 export interface WebUIOptions {
   /**
-   * Port to run the server on
-   * @default 8888
+   * Complete application configuration
    */
-  port?: number;
-
-  /**
-   * UI mode to use
-   * - 'interactive': Full interactive UI
-   * - 'none': API server only
-   * @default 'interactive'
-   */
-  uiMode?: 'none' | 'interactive';
-
-  /**
-   * Agent TARS configuration
-   */
-  config?: AgentTARSOptions;
-
-  /**
-   * Path to workspace directory
-   */
-  workspacePath?: string;
+  appConfig: AgentTARSAppConfig;
 
   /**
    * Enable debug mode
    */
   isDebug?: boolean;
-
-  /**
-   * Share provider information
-   */
-  shareProvider?: string;
-
-  /**
-   * AGIO provider URL for monitoring events
-   */
-  agioProvider?: string;
-
-  /**
-   * Snapshot configuration
-   */
-  snapshot?: {
-    enable: boolean;
-    snapshotPath: string;
-  };
 }
 
 /**
