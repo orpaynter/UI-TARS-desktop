@@ -13,7 +13,7 @@ import {
   PromptEngineeringToolCallEngine,
 } from './../../src';
 import { AgentEventStream } from 'agent-interface/src';
-import { AgentEventStreamManager } from '../../src/agent/event-stream';
+import { AgentEventStreamProcessor } from '../../src/agent/event-stream';
 
 import { AgentSnapshotNormalizer } from '../../../agent-snapshot/src';
 const normalizer = new AgentSnapshotNormalizer({});
@@ -29,14 +29,14 @@ function loadEventStream(loopNumber: number): AgentEventStream.Event[] {
 }
 
 describe('MessageHistory', () => {
-  let eventStream: AgentEventStreamManager;
+  let eventStream: AgentEventStreamProcessor;
   let messageHistory: MessageHistory;
   let nativeEngine: NativeToolCallEngine;
   let promptEngine: PromptEngineeringToolCallEngine;
   const defaultSystemPrompt = 'You are a helpful assistant that can use provided tools.';
 
   beforeEach(() => {
-    eventStream = new AgentEventStreamManager();
+    eventStream = new AgentEventStreamProcessor();
     messageHistory = new MessageHistory(eventStream);
     nativeEngine = new NativeToolCallEngine();
     promptEngine = new PromptEngineeringToolCallEngine();

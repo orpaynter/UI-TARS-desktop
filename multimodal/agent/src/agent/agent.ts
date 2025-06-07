@@ -27,7 +27,7 @@ import {
 
 import { BaseAgent } from './base-agent';
 import { AgentRunner } from './agent-runner';
-import { AgentEventStreamManager } from './event-stream';
+import { AgentEventStreamProcessor } from './event-stream';
 import { ToolManager } from './tool-manager';
 import {
   ModelResolver,
@@ -59,7 +59,7 @@ export class Agent<T extends AgentOptions = AgentOptions>
   private maxTokens: number | undefined;
   protected name: string;
   protected id: string;
-  protected eventStream: AgentEventStreamManager;
+  protected eventStream: AgentEventStreamProcessor;
   private toolManager: ToolManager;
   private modelResolver: ModelResolver;
   private temperature: number;
@@ -98,7 +98,7 @@ export class Agent<T extends AgentOptions = AgentOptions>
     }
 
     // Initialize event stream manager
-    this.eventStream = new AgentEventStreamManager(options.eventStreamOptions);
+    this.eventStream = new AgentEventStreamProcessor(options.eventStreamOptions);
 
     // Initialize Tool Manager
     this.toolManager = new ToolManager(this.logger);
@@ -240,7 +240,7 @@ Provide concise and accurate responses.`;
    *
    * @returns The EventStream instance
    */
-  getEventStream(): AgentEventStreamManager {
+  getEventStream(): AgentEventStreamProcessor {
     return this.eventStream;
   }
 

@@ -17,9 +17,9 @@ const DEFAULT_OPTIONS: AgentEventStream.ProcessorOptions = {
 };
 
 /**
- * Implementation of the EventStream manager
+ * Implementation of the EventStream processor
  */
-export class AgentEventStreamManager implements AgentEventStream.Processor {
+export class AgentEventStreamProcessor implements AgentEventStream.Processor {
   private events: AgentEventStream.Event[] = [];
   private options: AgentEventStream.ProcessorOptions;
   private subscribers: ((event: AgentEventStream.Event) => void)[] = [];

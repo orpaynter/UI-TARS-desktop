@@ -25,7 +25,7 @@ import { LLMProcessor } from './runner/llm-processor';
 import { ToolProcessor } from './runner/tool-processor';
 import { LoopExecutor } from './runner/loop-executor';
 import { StreamAdapter } from './runner/stream-adapter';
-import { AgentEventStreamManager } from './event-stream';
+import { AgentEventStreamProcessor } from './event-stream';
 
 /**
  * Runner configuration options
@@ -37,7 +37,7 @@ interface AgentRunnerOptions {
   temperature: number;
   reasoningOptions: LLMReasoningOptions;
   toolCallEngine?: ToolCallEngineType;
-  eventStream: AgentEventStreamManager;
+  eventStream: AgentEventStreamProcessor;
   toolManager: ToolManager;
   agent: Agent;
   contextAwarenessOptions?: AgentContextAwarenessOptions;
@@ -56,7 +56,7 @@ export class AgentRunner {
   private temperature: number;
   private reasoningOptions: LLMReasoningOptions;
   private toolCallEngine?: ToolCallEngine; // lazy init
-  private eventStream: AgentEventStreamManager;
+  private eventStream: AgentEventStreamProcessor;
   private toolManager: ToolManager;
   private agent: Agent;
   private contextAwarenessOptions?: AgentContextAwarenessOptions;
