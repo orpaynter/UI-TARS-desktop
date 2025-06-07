@@ -16,7 +16,8 @@ export function registerServeCommand(cli: CAC): void {
   // Use the common options function to add shared options
   addCommonOptions(serveCommand).action(async (options: CommonCommandOptions = {}) => {
     try {
-      const { mergedConfig, isDebug, snapshotConfig } = await processCommonOptions(options);
+      const { mergedConfig, isDebug, agioProvider, snapshotConfig } =
+        await processCommonOptions(options);
 
       await startInteractiveWebUI({
         port: Number(options.port),
@@ -25,6 +26,7 @@ export function registerServeCommand(cli: CAC): void {
         workspacePath: options.workspace,
         isDebug,
         shareProvider: options.shareProvider,
+        agioProvider,
         snapshot: snapshotConfig,
       });
     } catch (err) {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
  * SPDX-License-Identifier: Apache-2.0
@@ -32,6 +33,7 @@ export interface CommonCommandOptions {
   browserControl?: string;
   planner?: boolean;
   shareProvider?: string;
+  agioProvider?: string;
   enableSnapshot?: boolean;
   snapshotPath?: string;
   [key: string]: any; // Allow additional properties
@@ -100,7 +102,25 @@ export function addCommonOptions(command: Command): Command {
     .option('--share-provider', 'Share provider information')
     .option('--enable-snapshot', 'Enable agent snapshot functionality')
     .option('--snapshot-path <path>', 'Path for storing agent snapshots')
-    .option('--port <port>', 'Port to run the server on', { default: DEFAULT_PORT });
+    .option('--port <port>', 'Port to run the server on', { default: DEFAULT_PORT })
+    .option(
+      '--agio-provider <url>',
+      `AGIO monitoring provider URL for agent analytics
+      
+                            When specified, the agent will send standardized monitoring events to the configured
+                            endpoint for insights and observability. This includes metrics like execution time,
+                            tool usage, loop iterations, and error rates.
+                            
+                            PRIVACY NOTICE: This cli does not connect to any external server by default.
+                            Event transmission only occurs when you explicitly configure this option with a provider URL.
+                            
+                            Examples:
+                              --agio-provider http://localhost:3000/events
+                              --agio-provider https://analytics.example.com/api/events
+                            
+                            For more information about AGIO events and data collection, see the documentation.
+      `,
+    );
 }
 
 /**
@@ -110,6 +130,7 @@ export function addCommonOptions(command: Command): Command {
 export async function processCommonOptions(options: CommonCommandOptions): Promise<{
   mergedConfig: AgentTARSOptions;
   isDebug: boolean;
+  agioProvider?: string;
   snapshotConfig?: { enable: boolean; snapshotPath: string };
 }> {
   const {
@@ -120,6 +141,7 @@ export async function processCommonOptions(options: CommonCommandOptions): Promi
     workspace,
     enableSnapshot,
     snapshotPath,
+    agioProvider,
   } = options;
 
   // Set debug mode flag
@@ -171,5 +193,5 @@ export async function processCommonOptions(options: CommonCommandOptions): Promi
       }
     : undefined;
 
-  return { mergedConfig, isDebug, snapshotConfig };
+  return { mergedConfig, isDebug, agioProvider, snapshotConfig };
 }

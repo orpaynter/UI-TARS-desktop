@@ -20,6 +20,7 @@ export { express };
  * - WebSocket communication
  * - Session management
  * - Storage integration
+ * - AGIO monitoring integration
  */
 export class AgentTARSServer {
   // Core server components
@@ -157,9 +158,7 @@ export class AgentTARSServer {
   /**
    * Upload share HTML to provider
    */
-  /**
-   * Upload share HTML to provider
-   */
+
   async uploadShareHtml(
     html: string,
     sessionId: string,

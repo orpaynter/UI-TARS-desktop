@@ -26,6 +26,7 @@ export interface ServerSnapshotOptions {
  * - Security settings (CORS)
  * - Storage configuration
  * - Sharing capabilities
+ * - AGIO monitoring integration
  */
 export interface ServerOptions {
   /**
@@ -65,6 +66,12 @@ export interface ServerOptions {
    * Controls whether to create and store snapshots of agent executions
    */
   snapshot?: ServerSnapshotOptions;
+  /**
+   * AGIO provider URL for monitoring events
+   * When configured, the server will send standardized monitoring events
+   * to the specified endpoint for operational insights and analytics
+   */
+  agioProvider?: string;
 }
 
 /**

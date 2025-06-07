@@ -15,6 +15,7 @@ interface UIServerOptions extends ServerOptions {
   config?: AgentTARSOptions;
   workspacePath?: string;
   isDebug?: boolean;
+  agioProvider?: string;
   snapshot?: {
     enable: boolean;
     snapshotPath: string;
@@ -25,7 +26,16 @@ interface UIServerOptions extends ServerOptions {
  * Start the Agent TARS server with UI capabilities
  */
 export async function startInteractiveWebUI(options: UIServerOptions): Promise<http.Server> {
-  const { port, uiMode, config = {}, workspacePath, isDebug, shareProvider, snapshot } = options;
+  const {
+    port,
+    uiMode,
+    config = {},
+    workspacePath,
+    isDebug,
+    shareProvider,
+    agioProvider,
+    snapshot,
+  } = options;
 
   // Ensure config.workspace exists
   if (!config.workspace) {
@@ -57,6 +67,7 @@ export async function startInteractiveWebUI(options: UIServerOptions): Promise<h
       type: 'sqlite',
     },
     shareProvider,
+    agioProvider,
     staticPath,
     snapshot,
   });

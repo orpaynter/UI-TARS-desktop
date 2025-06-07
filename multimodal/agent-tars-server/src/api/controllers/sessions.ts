@@ -71,6 +71,7 @@ export class SessionsController {
         server.isDebug,
         server.storageProvider,
         server.options.snapshot,
+        server.options.agioProvider, // Pass AGIO provider URL
       );
 
       server.sessions[sessionId] = session;
@@ -318,6 +319,7 @@ export class SessionsController {
         server.isDebug,
         server.storageProvider,
         server.options.snapshot,
+        server.options.agioProvider, // Pass AGIO provider URL
       );
 
       server.sessions[sessionId] = session;
