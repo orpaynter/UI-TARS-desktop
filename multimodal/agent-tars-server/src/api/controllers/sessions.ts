@@ -4,6 +4,7 @@
  */
 
 import { Request, Response } from 'express';
+import { nanoid } from 'nanoid';
 import { AgentTARSServer } from '../../server';
 import { ensureWorkingDirectory } from '../../utils/workspace';
 import { EventType } from '@agent-tars/core';
@@ -60,7 +61,8 @@ export class SessionsController {
   async createSession(req: Request, res: Response) {
     try {
       const server = req.app.locals.server as AgentTARSServer;
-      const sessionId = `session_${Date.now()}`;
+
+      const sessionId = nanoid();
 
       // Use config.workspace?.isolateSessions (defaulting to false) to determine directory isolation
       const isolateSessions = server.appConfig.workspace?.isolateSessions ?? false;
