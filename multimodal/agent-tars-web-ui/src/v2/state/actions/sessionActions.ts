@@ -6,10 +6,10 @@ import { messagesAtom } from '../atoms/message';
 import { toolResultsAtom, toolCallResultMap } from '../atoms/tool';
 import { isProcessingAtom } from '../atoms/ui';
 import { processEventAction } from './eventProcessor';
-import { Message, EventType } from '../../types';
+import { Message } from '../../types';
 import { connectionStatusAtom } from '../atoms/ui'; // 假设 connectionStatusAtom 已经存在
 import { replayStateAtom } from '../atoms/replay'; // 添加引入回放状态atom
-import { ChatCompletionContentPart } from '@multimodal/agent-interface';
+import { ChatCompletionContentPart, AgentEventStream } from '@multimodal/agent-interface';
 
 /**
  * Load all available sessions
@@ -159,13 +159,13 @@ export const updateSessionAction = atom(
 /**
  * 预处理事件，确保流式事件按正确顺序处理
  */
-function preprocessStreamingEvents(events: Event[]): Event[] {
+function preprocessStreamingEvents(events: AgentEventStream.Event[]): AgentEventStream.Event[] {
   // 对流式消息进行整理
-  const messageStreams: Record<string, Event[]> = {};
+  const messageStreams: Record<string, AgentEventStream.Event[]> = {};
 
   // 收集所有流式事件，按messageId分组
   events.forEach((event) => {
-    if (event.type === EventType.FINAL_ANSWER_STREAMING && 'messageId' in event) {
+    if (event.type === 'final_answer_streaming' && 'messageId' in event) {
       const messageId = event.messageId as string;
       if (!messageStreams[messageId]) {
         messageStreams[messageId] = [];
@@ -289,7 +289,7 @@ export const sendMessageAction = atom(
         set(processEventAction, { sessionId: activeSessionId, event });
 
         // 确保状态保持为处理中，直到明确收到结束事件
-        if (event.type !== EventType.AGENT_RUN_END && event.type !== EventType.ASSISTANT_MESSAGE) {
+        if (event.type !== 'agent_run_end' && event.type !== 'assistant_message') {
           set(isProcessingAtom, true);
         }
       });

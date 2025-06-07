@@ -1,5 +1,5 @@
 import { API_BASE_URL, API_ENDPOINTS } from '../constants';
-import { Event, SessionMetadata, SessionMetadata } from '../types';
+import { AgentEventStream, SessionMetadata } from '../types';
 import { socketService } from './socketService';
 import { ChatCompletionContentPart } from '@multimodal/agent-interface';
 
@@ -110,7 +110,7 @@ class ApiService {
   /**
    * Get events for a specific session
    */
-  async getSessionEvents(sessionId: string): Promise<Event[]> {
+  async getSessionEvents(sessionId: string): Promise<AgentEventStream.Event[]> {
     try {
       const response = await fetch(
         `${API_BASE_URL}${API_ENDPOINTS.SESSION_EVENTS}?sessionId=${sessionId}`,
@@ -214,7 +214,7 @@ class ApiService {
   async sendStreamingQuery(
     sessionId: string,
     query: string | ChatCompletionContentPart[],
-    onEvent: (event: Event) => void,
+    onEvent: (event: AgentEventStream.Event) => void,
   ): Promise<void> {
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.QUERY_STREAM}`, {
