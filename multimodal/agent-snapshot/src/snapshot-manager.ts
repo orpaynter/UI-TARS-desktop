@@ -226,7 +226,7 @@ export class SnapshotManager {
     updateSnapshots = false,
   ): Promise<boolean> {
     const filename = 'event-stream.jsonl';
-    const expectedEventStream = await this.readSnapshot<Event[]>(caseName, loopDir, filename);
+    const expectedEventStream = await this.readSnapshot<AgentEventStream.Event[]>(caseName, loopDir, filename);
 
     if (!expectedEventStream) {
       if (updateSnapshots) {
