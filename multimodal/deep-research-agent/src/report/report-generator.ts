@@ -5,7 +5,7 @@
  */
 
 import { z, Tool, OpenAI, ResolvedModel } from '@multimodal/agent';
-import { ToolResultEvent } from '@multimodal/agent';
+import { AgentEventStream } from '@multimodal/agent';
 import { ContentProcessor } from '../utils/content-processor';
 import { Logger } from '@agent-infra/logger';
 
@@ -30,7 +30,7 @@ export interface ReportStructure {
  */
 export interface ResearchData {
   originalQuery: string;
-  toolResults: ToolResultEvent[];
+  toolResults: AgentEventStream.ToolResultEvent[];
   visitedUrls?: Map<string, any>;
   collectedImages?: any[];
   language?: string;
@@ -136,7 +136,10 @@ export class ReportGenerator {
   /**
    * 从工具结果中过滤相关信息
    */
-  public static filterRelevantInformation(toolResults: ToolResultEvent[], query: string): any[] {
+  public static filterRelevantInformation(
+    toolResults: AgentEventStream.ToolResultEvent[],
+    query: string,
+  ): any[] {
     const relevantResults = [];
 
     // 从查询中提取关键词

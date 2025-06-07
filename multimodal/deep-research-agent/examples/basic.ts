@@ -4,7 +4,7 @@
  */
 
 import { LogLevel } from '@multimodal/agent';
-import { Event, EventType, PlanStep } from '@multimodal/agent';
+import { AgentEventStream PlanStep } from '@multimodal/agent';
 import { DeepResearchAgent } from '../src/agent/deep-research-agent';
 
 // Configure the agent with API key from environment
@@ -50,20 +50,20 @@ async function main() {
   const unsubscribe = agent
     .getEventStream()
     .subscribeToTypes(
-      [EventType.PLAN_START, EventType.PLAN_UPDATE, EventType.PLAN_FINISH],
-      (event: Event) => {
-        if (event.type === EventType.PLAN_START) {
+      ['plan_start', 'plan_update', 'plan_finish'],
+      (event: AgentEventStream.Event) => {
+        if (event.type === 'plan_start') {
           console.log('\n📝 Research plan started');
           console.log('--------------------------------------------');
-        } else if (event.type === EventType.PLAN_UPDATE) {
+        } else if (event.type === 'plan_update') {
           const planEvent = event as any;
           console.log('\n📋 Research plan updated:');
           console.log('--------------------------------------------');
-          planEvent.steps.forEach((step: PlanStep, index: number) => {
+          planEvent.steps.forEach((step: AgentEventStream.PlanStep, index: number) => {
             console.log(`  ${index + 1}. [${step.done ? '✓' : ' '}] ${step.content}`);
           });
           console.log('--------------------------------------------');
-        } else if (event.type === EventType.PLAN_FINISH) {
+        } else if (event.type === 'plan_finish') {
           const planEvent = event as any;
           console.log('\n🎉 Research plan completed!');
           console.log('--------------------------------------------');
@@ -76,11 +76,11 @@ async function main() {
   // Also subscribe to tool events for better visibility
   const toolUnsubscribe = agent
     .getEventStream()
-    .subscribeToTypes([EventType.TOOL_CALL, EventType.TOOL_RESULT], (event: Event) => {
-      if (event.type === EventType.TOOL_CALL) {
+    .subscribeToTypes(['tool_call', 'tool_result'], (event: AgentEventStream.Event) => {
+      if (event.type === 'tool_call') {
         const toolEvent = event as any;
         console.log(`\n🔧 Using research tool: ${toolEvent.name}`);
-      } else if (event.type === EventType.TOOL_RESULT) {
+      } else if (event.type === 'tool_result') {
         const resultEvent = event as any;
 
         // Show image extraction information if available
