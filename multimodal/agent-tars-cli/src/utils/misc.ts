@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { getLogger } from '@agent-tars/core';
 import {
   AgentTARSOptions,
   ModelProviderName,
   BrowserControlMode,
-  getLogger,
-} from '@agent-tars/core';
+  AgentTARSCLIArguments,
+} from '@agent-tars/interface';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -145,70 +146,6 @@ export async function renderImageInTerminal(
     console.error('Failed to render image:', error);
     return false;
   }
-}
-
-/**
- * Merges command line options into loaded config
- * Prioritizes command line options over config file values
- */
-export function mergeCommandLineOptions(
-  config: AgentTARSOptions,
-  options: Record<string, any>,
-): AgentTARSOptions {
-  // Create a copy of the config to avoid mutation
-  const mergedConfig: AgentTARSOptions = { ...config };
-
-  // Handle model configuration
-  if (options.provider || options.model || options.apiKey || options.baseURL) {
-    // Initialize model configuration if not present
-    if (!mergedConfig.model) {
-      mergedConfig.model = {};
-    }
-
-    // Set provider if specified
-    if (options.provider) {
-      mergedConfig.model.provider = options.provider as ModelProviderName;
-    }
-
-    // Set model if specified
-    if (options.model) {
-      mergedConfig.model.id = options.model as string;
-    }
-
-    // Set API key if specified (resolve environment variables)
-    if (options.apiKey) {
-      mergedConfig.model.apiKey = resolveValue(options.apiKey as string, 'API key');
-    }
-
-    // Set baseURL if specified (resolve environment variables)
-    if (options.baseURL) {
-      mergedConfig.model.baseURL = resolveValue(options.baseURL as string, 'base URL');
-    }
-  }
-
-  if (options.browserControl && typeof options.browserControl === 'string') {
-    if (!mergedConfig.browser) mergedConfig.browser = {};
-    mergedConfig.browser!.control = options.browserControl as BrowserControlMode;
-  }
-
-  // Handle planner configuration
-  if (options.planner === true) {
-    mergedConfig.planner = { enabled: true };
-  }
-
-  // Handle thinking (reasoning) configuration
-  if (options.thinking) {
-    mergedConfig.thinking = {
-      type: 'enabled',
-    };
-  }
-
-  // Handle prompt engineering tool call engine flag
-  if (options.pe) {
-    mergedConfig.toolCallEngine = 'prompt_engineering';
-  }
-
-  return mergedConfig;
 }
 
 /**

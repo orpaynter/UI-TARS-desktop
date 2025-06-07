@@ -24,6 +24,7 @@ import { resolveValue } from '../utils';
  * - Apply defaults where necessary
  * - Resolve environment variables
  * - Transform CLI-specific options into proper config structure
+ * - Support dot notation CLI arguments (e.g., --model.id -> config.model.id)
  */
 export class ConfigBuilder {
   /**
@@ -49,6 +50,9 @@ export class ConfigBuilder {
     this.applyThinkingConfig(config, cliArgs);
     this.applyToolCallEngineConfig(config, cliArgs);
     this.applyServerConfig(config, cliArgs);
+    this.applyShareConfig(config, cliArgs);
+    this.applyAgioConfig(config, cliArgs);
+    this.applySnapshotConfig(config, cliArgs);
 
     return config;
   }
@@ -80,25 +84,30 @@ export class ConfigBuilder {
     config: AgentTARSAppConfig,
     cliArgs: AgentTARSCLIArguments,
   ): void {
-    if (cliArgs.provider || cliArgs.model || cliArgs.apiKey || cliArgs.baseURL) {
+    if (
+      cliArgs['model.provider'] ||
+      cliArgs['model.id'] ||
+      cliArgs['model.apiKey'] ||
+      cliArgs['model.baseURL']
+    ) {
       if (!config.model) {
         config.model = {};
       }
 
-      if (cliArgs.provider) {
-        config.model.provider = cliArgs.provider as ModelProviderName;
+      if (cliArgs['model.provider']) {
+        config.model.provider = cliArgs['model.provider'] as ModelProviderName;
       }
 
-      if (cliArgs.model) {
-        config.model.id = cliArgs.model;
+      if (cliArgs['model.id']) {
+        config.model.id = cliArgs['model.id'];
       }
 
-      if (cliArgs.apiKey) {
-        config.model.apiKey = resolveValue(cliArgs.apiKey, 'API key');
+      if (cliArgs['model.apiKey']) {
+        config.model.apiKey = resolveValue(cliArgs['model.apiKey'], 'API key');
       }
 
-      if (cliArgs.baseURL) {
-        config.model.baseURL = resolveValue(cliArgs.baseURL, 'base URL');
+      if (cliArgs['model.baseURL']) {
+        config.model.baseURL = resolveValue(cliArgs['model.baseURL'], 'base URL');
       }
     }
   }
@@ -110,11 +119,11 @@ export class ConfigBuilder {
     config: AgentTARSAppConfig,
     cliArgs: AgentTARSCLIArguments,
   ): void {
-    if (cliArgs.workspace) {
+    if (cliArgs['workspace.workingDirectory']) {
       if (!config.workspace) {
         config.workspace = {};
       }
-      config.workspace.workingDirectory = cliArgs.workspace;
+      config.workspace.workingDirectory = cliArgs['workspace.workingDirectory'];
     }
   }
 
@@ -125,11 +134,11 @@ export class ConfigBuilder {
     config: AgentTARSAppConfig,
     cliArgs: AgentTARSCLIArguments,
   ): void {
-    if (cliArgs.browserControl && typeof cliArgs.browserControl === 'string') {
+    if (cliArgs['browser.control'] && typeof cliArgs['browser.control'] === 'string') {
       if (!config.browser) {
         config.browser = {};
       }
-      config.browser.control = cliArgs.browserControl as BrowserControlMode;
+      config.browser.control = cliArgs['browser.control'] as BrowserControlMode;
     }
   }
 
@@ -140,7 +149,7 @@ export class ConfigBuilder {
     config: AgentTARSAppConfig,
     cliArgs: AgentTARSCLIArguments,
   ): void {
-    if (cliArgs.planner === true) {
+    if (cliArgs['planner.enabled'] === true) {
       config.planner = { enabled: true };
     }
   }
@@ -152,9 +161,9 @@ export class ConfigBuilder {
     config: AgentTARSAppConfig,
     cliArgs: AgentTARSCLIArguments,
   ): void {
-    if (cliArgs.thinking) {
+    if (cliArgs['thinking.type']) {
       config.thinking = {
-        type: 'enabled',
+        type: cliArgs['thinking.type'] as 'enabled',
       };
     }
   }
@@ -166,8 +175,11 @@ export class ConfigBuilder {
     config: AgentTARSAppConfig,
     cliArgs: AgentTARSCLIArguments,
   ): void {
-    if (cliArgs.pe) {
-      config.toolCallEngine = 'prompt_engineering';
+    if (cliArgs.toolCallEngine) {
+      config.toolCallEngine = cliArgs.toolCallEngine as
+        | 'native'
+        | 'prompt_engineering'
+        | 'structured_outputs';
     }
   }
 
@@ -187,28 +199,57 @@ export class ConfigBuilder {
     if (cliArgs.port) {
       config.server.port = cliArgs.port;
     }
+  }
 
-    if (!config.share) {
-      config.share = {};
+  /**
+   * Apply share configuration from CLI arguments
+   */
+  private static applyShareConfig(
+    config: AgentTARSAppConfig,
+    cliArgs: AgentTARSCLIArguments,
+  ): void {
+    if (cliArgs['share.provider']) {
+      if (!config.share) {
+        config.share = {};
+      }
+      config.share.provider = cliArgs['share.provider'];
     }
+  }
 
-    if (cliArgs.shareProvider) {
-      config.share.provider = cliArgs.shareProvider;
+  /**
+   * Apply AGIO configuration from CLI arguments
+   */
+  private static applyAgioConfig(config: AgentTARSAppConfig, cliArgs: AgentTARSCLIArguments): void {
+    if (cliArgs['agio.provider']) {
+      if (!config.agio) {
+        config.agio = {};
+      }
+      config.agio.provider = cliArgs['agio.provider'];
     }
+  }
 
-    if (!config.agio) {
-      config.agio = {};
-    }
+  /**
+   * Apply snapshot configuration from CLI arguments
+   */
+  private static applySnapshotConfig(
+    config: AgentTARSAppConfig,
+    cliArgs: AgentTARSCLIArguments,
+  ): void {
+    if (cliArgs['snapshot.enable'] || cliArgs['snapshot.snapshotPath']) {
+      if (!config.snapshot) {
+        config.snapshot = {
+          enable: false,
+          snapshotPath: '',
+        };
+      }
 
-    if (cliArgs.agioProvider) {
-      config.agio.provider = cliArgs.agioProvider;
-    }
+      if (cliArgs['snapshot.enable']) {
+        config.snapshot.enable = true;
+      }
 
-    if (cliArgs.enableSnapshot) {
-      config.snapshot = {
-        enable: true,
-        snapshotPath: cliArgs.snapshotPath || '',
-      };
+      if (cliArgs['snapshot.snapshotPath']) {
+        config.snapshot.snapshotPath = cliArgs['snapshot.snapshotPath'];
+      }
     }
   }
 
