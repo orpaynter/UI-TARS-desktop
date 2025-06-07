@@ -210,6 +210,12 @@ export class ConfigBuilder {
       };
     }
 
+    if (!config.server.storage || !config.server.storage.type) {
+      config.server.storage = {
+        type: 'sqlite',
+      };
+    }
+
     if (serverOptions.port) {
       config.server.port = serverOptions.port;
     }

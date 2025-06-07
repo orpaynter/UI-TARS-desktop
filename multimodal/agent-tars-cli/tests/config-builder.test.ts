@@ -23,6 +23,7 @@ vi.mock('../src/utils', () => ({
  * 4. Configuration merging prioritizes CLI over user config
  * 5. CLI shortcuts (debug, quiet, port) work correctly
  * 6. Deprecated options are handled with appropriate warnings
+ * 7. Server storage defaults are applied correctly
  */
 describe('ConfigBuilder', () => {
   beforeEach(() => {
@@ -65,6 +66,9 @@ describe('ConfigBuilder', () => {
         },
         server: {
           port: 3000, // Applied from CLI
+          storage: {
+            type: 'sqlite',
+          },
         },
       });
     });
@@ -261,6 +265,9 @@ describe('ConfigBuilder', () => {
 
       expect(result.server).toEqual({
         port: 8888, // Default port
+        storage: {
+          type: 'sqlite',
+        },
       });
     });
 
@@ -279,6 +286,9 @@ describe('ConfigBuilder', () => {
 
       expect(result.server).toEqual({
         port: 3000, // CLI overrides user config
+        storage: {
+          type: 'sqlite',
+        },
       });
     });
 
@@ -319,6 +329,9 @@ describe('ConfigBuilder', () => {
 
       expect(result.server).toEqual({
         port: 8888, // Default port always added
+        storage: {
+          type: 'sqlite',
+        },
       });
     });
 
@@ -362,6 +375,9 @@ describe('ConfigBuilder', () => {
         },
         server: {
           port: 8888, // Default
+          storage: {
+            type: 'sqlite',
+          },
         },
       });
     });
@@ -516,6 +532,9 @@ describe('ConfigBuilder', () => {
         },
         server: {
           port: 8888,
+          storage: {
+            type: 'sqlite',
+          },
         },
       });
 
@@ -606,8 +625,8 @@ describe('ConfigBuilder', () => {
       });
 
       // Should not show any --model related deprecation warnings
-      const modelWarnings = mockWarn.mock.calls.filter(call => 
-        call[0].includes('--model is deprecated')
+      const modelWarnings = mockWarn.mock.calls.filter((call) =>
+        call[0].includes('--model is deprecated'),
       );
       expect(modelWarnings).toHaveLength(0);
     });
@@ -668,6 +687,252 @@ describe('ConfigBuilder', () => {
         provider: 'openai', // From deprecated option
         apiKey: 'existing-key', // Preserved from user config
         temperature: 0.7, // Preserved from user config
+      });
+    });
+
+    it('should apply default sqlite storage when no server config exists', () => {
+      const cliArgs: AgentTARSCLIArguments = {};
+      const userConfig: AgentTARSAppConfig = {};
+
+      const result = ConfigBuilder.buildAppConfig(cliArgs, userConfig);
+
+      expect(result.server).toEqual({
+        port: 8888, // Default port
+        storage: {
+          type: 'sqlite', // Default storage type
+        },
+      });
+    });
+
+    it('should preserve existing server storage configuration', () => {
+      const cliArgs: AgentTARSCLIArguments = {
+        port: 3000,
+      };
+
+      const userConfig: AgentTARSAppConfig = {
+        server: {
+          port: 8888,
+          storage: {
+            type: 'memory',
+            path: '/custom/path',
+          },
+        },
+      };
+
+      const result = ConfigBuilder.buildAppConfig(cliArgs, userConfig);
+
+      expect(result.server).toEqual({
+        port: 3000, // CLI overrides user config
+        storage: {
+          type: 'memory', // Preserved from user config
+          path: '/custom/path', // Preserved from user config
+        },
+      });
+    });
+
+    it('should add default storage when server exists but storage is missing', () => {
+      const cliArgs: AgentTARSCLIArguments = {};
+
+      const userConfig: AgentTARSAppConfig = {
+        server: {
+          port: 9000,
+          // storage is missing
+        },
+      };
+
+      const result = ConfigBuilder.buildAppConfig(cliArgs, userConfig);
+
+      expect(result.server).toEqual({
+        port: 9000, // From user config
+        storage: {
+          type: 'sqlite', // Added as default
+        },
+      });
+    });
+
+    it('should override server port when specified in CLI and preserve existing storage', () => {
+      const cliArgs: AgentTARSCLIArguments = {
+        port: 3000,
+      };
+
+      const userConfig: AgentTARSAppConfig = {
+        server: {
+          port: 8888,
+          storage: {
+            type: 'file',
+            path: '/data/storage',
+          },
+        },
+      };
+
+      const result = ConfigBuilder.buildAppConfig(cliArgs, userConfig);
+
+      expect(result.server).toEqual({
+        port: 3000, // CLI overrides user config
+        storage: {
+          type: 'file', // Preserved from user config
+          path: '/data/storage', // Preserved from user config
+        },
+      });
+    });
+
+    it('should handle partial storage configuration', () => {
+      const cliArgs: AgentTARSCLIArguments = {};
+
+      const userConfig: AgentTARSAppConfig = {
+        server: {
+          port: 8888,
+          storage: {
+            type: 'sqlite',
+            // type is missing, should be filled with default
+            path: '/custom/db/path',
+          },
+        },
+      };
+
+      const result = ConfigBuilder.buildAppConfig(cliArgs, userConfig);
+
+      expect(result.server).toEqual({
+        port: 8888,
+        storage: {
+          type: 'sqlite', // Should be added as default
+          path: '/custom/db/path', // Preserved from user config
+        },
+      });
+    });
+
+    it('should only create server config when needed and include storage defaults', () => {
+      const cliArgs: AgentTARSCLIArguments = {
+        model: {
+          provider: 'openai',
+        },
+      };
+
+      const result = ConfigBuilder.buildAppConfig(cliArgs, {});
+
+      expect(result.server).toEqual({
+        port: 8888, // Default port always added
+        storage: {
+          type: 'sqlite', // Default storage always added
+        },
+      });
+    });
+
+    it('should handle complex nested merging scenarios including server storage', () => {
+      const cliArgs: AgentTARSCLIArguments = {
+        model: {
+          provider: 'openai',
+        },
+        workspace: {
+          workingDirectory: '/cli/workspace',
+        },
+      };
+
+      const userConfig: AgentTARSAppConfig = {
+        model: {
+          id: 'user-model',
+          apiKey: 'user-key',
+        },
+        workspace: {
+          isolateSessions: true,
+        },
+        search: {
+          provider: 'browser_search',
+        },
+      };
+
+      const result = ConfigBuilder.buildAppConfig(cliArgs, userConfig);
+
+      expect(result).toEqual({
+        model: {
+          provider: 'openai', // From CLI
+          id: 'user-model', // From user config
+          apiKey: 'user-key', // From user config
+        },
+        workspace: {
+          workingDirectory: '/cli/workspace', // From CLI
+          isolateSessions: true, // From user config
+        },
+        search: {
+          provider: 'browser_search', // From user config
+        },
+        server: {
+          port: 8888, // Default
+          storage: {
+            type: 'sqlite', // Default storage
+          },
+        },
+      });
+    });
+  });
+
+  describe('server storage configuration', () => {
+    it('should apply default sqlite storage when no server config exists', () => {
+      const cliArgs: AgentTARSCLIArguments = {};
+      const userConfig: AgentTARSAppConfig = {};
+
+      const result = ConfigBuilder.buildAppConfig(cliArgs, userConfig);
+
+      expect(result.server?.storage).toEqual({
+        type: 'sqlite',
+      });
+    });
+
+    it('should not override existing storage configuration', () => {
+      const cliArgs: AgentTARSCLIArguments = {};
+      const userConfig: AgentTARSAppConfig = {
+        server: {
+          storage: {
+            type: 'memory',
+            maxSize: 1000,
+          },
+        },
+      };
+
+      const result = ConfigBuilder.buildAppConfig(cliArgs, userConfig);
+
+      expect(result.server?.storage).toEqual({
+        type: 'memory',
+        maxSize: 1000,
+      });
+    });
+
+    it('should merge CLI server options with existing storage config', () => {
+      const cliArgs: AgentTARSCLIArguments = {
+        port: 9999,
+      };
+      const userConfig: AgentTARSAppConfig = {
+        server: {
+          storage: {
+            type: 'file',
+            path: '/data/db',
+          },
+        },
+      };
+
+      const result = ConfigBuilder.buildAppConfig(cliArgs, userConfig);
+
+      expect(result.server).toEqual({
+        port: 9999,
+        storage: {
+          type: 'file',
+          path: '/data/db',
+        },
+      });
+    });
+
+    it('should handle empty storage object by adding default type', () => {
+      const cliArgs: AgentTARSCLIArguments = {};
+      const userConfig: AgentTARSAppConfig = {
+        server: {
+          storage: {} as any, // Empty storage object
+        },
+      };
+
+      const result = ConfigBuilder.buildAppConfig(cliArgs, userConfig);
+
+      expect(result.server?.storage).toEqual({
+        type: 'sqlite',
       });
     });
   });

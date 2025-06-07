@@ -33,9 +33,8 @@ export function createStorageProvider(options?: ServerStorageOptions): StoragePr
   }
 
   if (options.type === 'database') {
-    // Database storage not implemented yet
     throw new Error('Database storage not implemented');
   }
 
-  throw new Error(`Unknown storage type: ${(options as any).type}`);
+  throw new Error(`Unknown storage type: ${options.type}`);
 }
