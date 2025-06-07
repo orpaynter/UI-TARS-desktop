@@ -25,7 +25,7 @@ import {
 } from '@multimodal/model-provider/types';
 import { ToolCallResult } from './tool-call-engine';
 import { ResolvedModel } from '@multimodal/model-provider';
-import { AssistantMessageEvent, Event, EventStream } from './event-stream';
+import { AgentEventStream, IAgentEventStreamManager } from './agent-event-stream';
 
 /**
  * Core Agent interface defining the essential methods and behaviors
@@ -44,7 +44,7 @@ export interface IAgent<T extends AgentOptions = AgentOptions> {
    * @param input - String input for a basic text message
    * @returns The final response event from the agent
    */
-  run(input: string): Promise<AssistantMessageEvent>;
+  run(input: string): Promise<AgentEventStream.AssistantMessageEvent>;
 
   /**
    * Run the agent with additional configuration options
@@ -52,7 +52,9 @@ export interface IAgent<T extends AgentOptions = AgentOptions> {
    * @param options - Object with input and optional configuration
    * @returns The final response event from the agent
    */
-  run(options: AgentRunObjectOptions & { stream?: false }): Promise<AssistantMessageEvent>;
+  run(
+    options: AgentRunObjectOptions & { stream?: false },
+  ): Promise<AgentEventStream.AssistantMessageEvent>;
 
   /**
    * Run the agent in streaming mode
@@ -60,7 +62,7 @@ export interface IAgent<T extends AgentOptions = AgentOptions> {
    * @param options - Object with input and streaming enabled
    * @returns An async iterable of streaming events
    */
-  run(options: AgentRunStreamingOptions): Promise<AsyncIterable<Event>>;
+  run(options: AgentRunStreamingOptions): Promise<AsyncIterable<AgentEventStream.Event>>;
 
   /**
    * Abort the currently running agent task
@@ -81,7 +83,7 @@ export interface IAgent<T extends AgentOptions = AgentOptions> {
    *
    * @returns The event stream instance
    */
-  getEventStream(): EventStream;
+  getEventStream(): IAgentEventStreamManager;
 
   /**
    * Get the configured LLM client for making direct requests
@@ -209,7 +211,7 @@ export interface IAgent<T extends AgentOptions = AgentOptions> {
    */
   onBeforeLoopTermination(
     id: string,
-    finalEvent: AssistantMessageEvent,
+    finalEvent: AgentEventStream.AssistantMessageEvent,
   ): Promise<LoopTerminationCheckResult> | LoopTerminationCheckResult;
 
   /**

@@ -9,5 +9,5 @@ export * from './agent-run-options';
 export * from './agent-instance';
 export * from './tool';
 export * from './tool-call-engine';
-export * from './event-stream';
+export * from './agent-event-stream';
 export * from '@multimodal/model-provider/types';
