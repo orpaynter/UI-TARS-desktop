@@ -46,6 +46,7 @@ import {
 } from '@multimodal/model-provider';
 import { getLogger, LogLevel, rootLogger } from '../utils/logger';
 import { AgentExecutionController } from './execution-controller';
+import { getLLMClient } from './llm-client';
 
 /**
  * An event-stream driven agent framework for building effective multimodal Agents.
@@ -77,6 +78,7 @@ export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
   public isReplaySnapshot = false;
   private currentResolvedModel?: ResolvedModel;
   private shouldTerminateLoop = false;
+  private isCustomLLMClientSet = false; // Track if custom client was explicitly set
 
   /**
    * Creates a new Agent instance.
@@ -138,6 +140,10 @@ export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
 
     this.temperature = options.temperature ?? 0.7;
     this.reasoningOptions = options.thinking ?? { type: 'disabled' };
+
+    // Initialize the resolved model early if possible
+    this.initializeEarlyResolvedModel();
+
     // Initialize the runner with context options
     this.runner = new AgentRunner({
       instructions: this.instructions,
@@ -157,6 +163,26 @@ export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
   }
 
   /**
+   * Initialize early resolved model if model configuration is available
+   * This allows LLM client to be available immediately after instantiation
+   */
+  private initializeEarlyResolvedModel(): void {
+    try {
+      // Try to resolve with default selection
+      this.currentResolvedModel = this.modelResolver.resolve();
+
+      if (this.currentResolvedModel) {
+        this.logger.info(
+          `[Agent] Early model resolution successful | Provider: ${this.currentResolvedModel.provider} | Model: ${this.currentResolvedModel.id}`,
+        );
+      }
+    } catch (error) {
+      this.logger.debug(`[Agent] Early model resolution failed, will resolve during run: ${error}`);
+      // Not a critical error - model will be resolved during run
+    }
+  }
+
+  /**
    * Control the initialize process, you may need to perform some time-consuming
    * operations before starting here
    */
@@ -170,7 +196,11 @@ export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
    * @param customLLMClient - OpenAI-compatible llm client
    */
   public setCustomLLMClient(client: OpenAI): void {
+    this.customLLMClient = client;
+    this.isCustomLLMClientSet = true;
     this.runner.llmProcessor.setCustomLLMClient(client);
+
+    this.logger.info('[Agent] Custom LLM client set, will ignore model parameters in run()');
   }
 
   /**
@@ -337,18 +367,28 @@ Provide concise and accurate responses.`;
         `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
       // Resolve model before running
-      this.currentResolvedModel = this.modelResolver.resolve(
-        normalizedOptions.model,
-        normalizedOptions.provider,
-      );
+      // If custom LLM client is set, ignore model parameters and use existing resolved model
+      if (this.isCustomLLMClientSet && this.currentResolvedModel) {
+        this.logger.info(
+          `[Agent] Using existing resolved model with custom LLM client | Provider: ${this.currentResolvedModel.provider} | Model: ${this.currentResolvedModel.id}`,
+        );
+      } else {
+        // Normal model resolution
+        this.currentResolvedModel = this.modelResolver.resolve(
+          normalizedOptions.model,
+          normalizedOptions.provider,
+        );
+      }
 
       // Create and send agent run start event
       const startTime = Date.now();
       const runStartEvent = this.eventStream.createEvent(EventType.AGENT_RUN_START, {
         sessionId,
         runOptions: this.sanitizeRunOptions(normalizedOptions),
-        provider: normalizedOptions.provider,
-        model: normalizedOptions.model,
+        provider: this.isCustomLLMClientSet
+          ? this.currentResolvedModel.provider
+          : normalizedOptions.provider,
+        model: this.isCustomLLMClientSet ? this.currentResolvedModel.id : normalizedOptions.model,
       });
       this.eventStream.sendEvent(runStartEvent);
 
@@ -462,7 +502,34 @@ Provide concise and accurate responses.`;
    * @returns The configured OpenAI-compatible LLM client instance
    */
   public getLLMClient(): OpenAI | undefined {
-    return this.customLLMClient || this.runner?.llmProcessor.getCurrentLLMClient();
+    // If custom client is set, return it directly
+    if (this.customLLMClient) {
+      return this.customLLMClient;
+    }
+
+    // Try to get from runner if available
+    const runnerClient = this.runner?.llmProcessor.getCurrentLLMClient();
+    if (runnerClient) {
+      return runnerClient;
+    }
+
+    // If no client exists yet but we have a resolved model, create one
+    if (this.currentResolvedModel) {
+      try {
+        const newClient = getLLMClient(this.currentResolvedModel, this.reasoningOptions);
+
+        // Set it to the runner so it's available for future calls
+        if (this.runner?.llmProcessor) {
+          this.runner.llmProcessor.setCustomLLMClient(newClient);
+        }
+
+        return newClient;
+      } catch (error) {
+        this.logger.error(`[Agent] Failed to create LLM client: ${error}`);
+      }
+    }
+
+    return undefined;
   }
 
   /**

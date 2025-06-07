@@ -91,7 +91,7 @@ export class LLMProcessor {
       return;
     }
 
-    // Create llm client
+    // Create or reuse llm client
     if (!this.llmClient) {
       this.llmClient = getLLMClient(
         resolvedModel,
