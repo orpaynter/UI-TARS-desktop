@@ -5,12 +5,9 @@
  */
 
 import { createInterface } from 'readline';
-import fs from 'fs';
-import path from 'path';
 import { CodeActAgent, CodeActAgentOptions } from '..';
 import { CLIRenderer, ConfigInfo } from './cli-renderer';
 import { ensureWorkspace, toUserFriendlyPath, generateSessionId } from './utils';
-import { EventType } from '@multimodal/agent';
 import chalk from 'chalk';
 
 /**
