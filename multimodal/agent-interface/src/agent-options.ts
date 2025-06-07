@@ -7,7 +7,7 @@
 import { ToolCallEngineType } from './tool-call-engine';
 import { ToolDefinition } from './tool';
 import { ProviderOptions, LLMReasoningOptions } from '@multimodal/model-provider/types';
-import { AgentEventStreamOptions } from './agent-event-stream';
+import { AgentEventStream } from './agent-event-stream';
 import { LogLevel } from '@agent-infra/logger';
 
 export { LogLevel };
@@ -120,7 +120,7 @@ export interface AgentMemoryOptions {
   /**
    * Event stream options to configure the event stream behavior
    */
-  eventStreamOptions?: AgentEventStreamOptions;
+  eventStreamOptions?: AgentEventStream.ProcessorOptions;
 }
 
 /**

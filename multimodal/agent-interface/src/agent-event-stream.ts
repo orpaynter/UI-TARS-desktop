@@ -319,7 +319,7 @@ export namespace AgentEventStream {
     sessionId: string;
 
     /** Current plan steps with their completion status */
-    steps: PlanStep[];
+    steps: AgentEventStream.PlanStep[];
   }
 
   /**
@@ -407,82 +407,82 @@ export namespace AgentEventStream {
    * Event payload type - provides type safety for event creation
    */
   export type EventPayload<T extends EventType> = Extract<Event, { type: T }>;
-}
-
-/**
- * Event stream options for configuring the event stream behavior
- */
-export interface AgentEventStreamOptions {
-  /** Maximum number of events to keep in memory */
-  maxEvents?: number;
-
-  /** Whether to automatically trim old events */
-  autoTrim?: boolean;
-}
-
-/**
- * Event stream interface for manager agent events
- */
-export interface IAgentEventStreamManager {
-  /**
-   * Create a new event with the specified type and data
-   */
-  createEvent<T extends AgentEventStream.EventType>(
-    type: T,
-    data: Omit<AgentEventStream.EventPayload<T>, keyof AgentEventStream.BaseEvent>,
-  ): AgentEventStream.EventPayload<T>;
 
   /**
-   * Send an event to the stream
+   * Event stream options for configuring the event stream processor
    */
-  sendEvent(event: AgentEventStream.Event): void;
+  export interface ProcessorOptions {
+    /** Maximum number of events to keep in memory */
+    maxEvents?: number;
+
+    /** Whether to automatically trim old events */
+    autoTrim?: boolean;
+  }
 
   /**
-   * Get events from the stream with optional filtering
+   * Event stream interface for process agent events
    */
-  getEvents(filter?: AgentEventStream.EventType[], limit?: number): AgentEventStream.Event[];
+  export interface Processor {
+    /**
+     * Create a new event with the specified type and data
+     */
+    createEvent<T extends AgentEventStream.EventType>(
+      type: T,
+      data: Omit<AgentEventStream.EventPayload<T>, keyof AgentEventStream.BaseEvent>,
+    ): AgentEventStream.EventPayload<T>;
 
-  /**
-   * Get events by specific types
-   */
-  getEventsByType(types: AgentEventStream.EventType[], limit?: number): AgentEventStream.Event[];
+    /**
+     * Send an event to the stream
+     */
+    sendEvent(event: AgentEventStream.Event): void;
 
-  /**
-   * Clear all events from the stream
-   */
-  clear(): void;
+    /**
+     * Get events from the stream with optional filtering
+     */
+    getEvents(filter?: AgentEventStream.EventType[], limit?: number): AgentEventStream.Event[];
 
-  /**
-   * Subscribe to new events
-   */
-  subscribe(callback: (event: AgentEventStream.Event) => void): () => void;
+    /**
+     * Get events by specific types
+     */
+    getEventsByType(types: AgentEventStream.EventType[], limit?: number): AgentEventStream.Event[];
 
-  /**
-   * Subscribe to specific event types
-   */
-  subscribeToTypes(
-    types: AgentEventStream.EventType[],
-    callback: (event: AgentEventStream.Event) => void,
-  ): () => void;
+    /**
+     * Clear all events from the stream
+     */
+    clear(): void;
 
-  /**
-   * Subscribe to streaming events only
-   */
-  subscribeToStreamingEvents(
-    callback: (
-      event:
-        | AgentEventStream.AssistantStreamingMessageEvent
-        | AgentEventStream.AssistantStreamingThinkingMessageEvent,
-    ) => void,
-  ): () => void;
+    /**
+     * Subscribe to new events
+     */
+    subscribe(callback: (event: AgentEventStream.Event) => void): () => void;
 
-  /**
-   * Get the latest assistant response
-   */
-  getLatestAssistantResponse(): AgentSingleLoopReponse | null;
+    /**
+     * Subscribe to specific event types
+     */
+    subscribeToTypes(
+      types: AgentEventStream.EventType[],
+      callback: (event: AgentEventStream.Event) => void,
+    ): () => void;
 
-  /**
-   * Get tool call results since the last assistant message
-   */
-  getLatestToolResults(): { toolCallId: string; toolName: string; content: any }[];
+    /**
+     * Subscribe to streaming events only
+     */
+    subscribeToStreamingEvents(
+      callback: (
+        event:
+          | AgentEventStream.AssistantStreamingMessageEvent
+          | AgentEventStream.AssistantStreamingThinkingMessageEvent,
+      ) => void,
+    ): () => void;
+
+    /**
+     * Get the latest assistant response
+     */
+    getLatestAssistantResponse(): AgentSingleLoopReponse | null;
+
+    /**
+     * Get tool call results since the last assistant message
+     */
+    getLatestToolResults(): { toolCallId: string; toolName: string; content: any }[];
+  }
 }
