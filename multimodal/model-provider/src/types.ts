@@ -38,15 +38,15 @@ export interface ModelProviderServingConfig {
 }
 
 /**
- * Default model selection
+ * Default model selection configuration
  */
 export interface ModelDefaultSelection extends ModelProviderServingConfig {
   /**
-   * Default provider
+   * Default provider name
    */
   provider?: ModelProviderName;
   /**
-   * Default model
+   * Default model identifier
    */
   id?: string;
 }
@@ -59,25 +59,24 @@ export interface ModelProvider extends ModelProviderServingConfig {
    * Model provider name
    */
   name: ModelProviderName;
-
   /**
-   * Provider's supported model ids.
+   * Provider's supported model identifiers
    */
   models: string[];
 }
 
 /**
- * Configuration options for the LLM provider
+ * Configuration options for the model provider
  */
 export interface ProviderOptions extends ModelDefaultSelection {
   /**
-   * Pre-built Model Providers to be used during runtime
+   * Pre-configured model providers for runtime use
    */
   providers?: ModelProvider[];
 }
 
 /**
- * Result of model resolution
+ * Result of model resolution containing all necessary configuration
  */
 export interface ResolvedModel {
   /**
@@ -85,15 +84,15 @@ export interface ResolvedModel {
    */
   provider: ModelProviderName;
   /**
-   * The model id used to perform LLM request, not display name.
+   * The model identifier for LLM requests
    */
   id: string;
   /**
-   * Base URL for the provider (if specified)
+   * Base URL for the provider API
    */
   baseURL?: string;
   /**
-   * API key for the provider (if specified)
+   * API key for authentication
    */
   apiKey?: string;
   /**
@@ -103,7 +102,7 @@ export interface ResolvedModel {
 }
 
 /**
- * Provider configuration for specific model providers
+ * Provider configuration for extended providers
  */
 export interface ProviderConfig {
   /**
@@ -115,39 +114,37 @@ export interface ProviderConfig {
    */
   actual: ActualModelProviderName;
   /**
-   * Default base URL (if any)
+   * Default base URL
    */
   baseURL?: string;
   /**
-   * Default API key (if any)
+   * Default API key
    */
   apiKey?: string;
 }
 
 /**
- * LLM reasoning options
+ * LLM reasoning configuration options
  */
 export interface LLMReasoningOptions {
   /**
    * Whether to enable reasoning
    *
-   * @defaultValue {'disabled'}.
-   *
+   * @defaultValue 'disabled'
    * @compatibility Supported models: 'claude', 'doubao-1.5-thinking'
    */
   type?: 'disabled' | 'enabled';
 
   /**
-   * The `budgetTokens` parameter determines the maximum number of tokens
-   * Model is allowed to use for its internal reasoning process.
+   * Maximum tokens for internal reasoning process
    *
-   * @compatibility Supported models: 'claude'.
+   * @compatibility Supported models: 'claude'
    */
   budgetTokens?: number;
 }
 
 /**
- * Merged llm request, including reasoning parameters.
+ * Extended LLM request with reasoning parameters
  */
 export type LLMRequest = ChatCompletionMessageParam & {
   /**
