@@ -93,9 +93,7 @@ Return only a JSON object with a "slug" field.`,
     }
 
     const parsed = JSON.parse(content) as SlugResponse;
-    const generatedSlug = this.normalizeSlug(parsed.slug);
-
-    return this.isValidSlug(generatedSlug) ? generatedSlug : null;
+    return parsed.slug;
   }
 
   /**
@@ -117,33 +115,6 @@ Return only a JSON object with a "slug" field.`,
     // Take first few words if too long
     const words = normalized.split('-').filter((word) => word.length > 0);
     return words.slice(0, 4).join('-') || this.getDefaultSlug();
-  }
-
-  /**
-   * Normalize a slug string to ensure URL safety
-   */
-  private normalizeSlug(slug: string): string {
-    return slug
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '') // Remove special characters except hyphens and spaces
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Remove consecutive hyphens
-      .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
-      .substring(0, 60); // Limit length
-  }
-
-  /**
-   * Validate if a slug meets our requirements
-   */
-  private isValidSlug(slug: string): boolean {
-    if (!slug || slug.length === 0) {
-      return false;
-    }
-
-    // Check word count (3-5 words)
-    const words = slug.split('-').filter((word) => word.length > 0);
-    return words.length >= 3 && words.length <= 5;
   }
 
   /**
