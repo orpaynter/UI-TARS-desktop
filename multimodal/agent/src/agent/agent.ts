@@ -30,12 +30,20 @@ import {
   ChatCompletionMessageParam,
   LoopTerminationCheckResult,
   IAgent,
+  ChatCompletionCreateParams,
+  ChatCompletion,
 } from '@multimodal/agent-interface';
 
 import { AgentRunner } from './agent-runner';
 import { EventStream as EventStreamImpl } from '../stream/event-stream';
 import { ToolManager } from './tool-manager';
-import { ModelResolver, ResolvedModel, OpenAI } from '@multimodal/model-provider';
+import {
+  ModelResolver,
+  ResolvedModel,
+  OpenAI,
+  RequestOptions,
+  ChatCompletionChunk,
+} from '@multimodal/model-provider';
 import { getLogger, LogLevel, rootLogger } from '../utils/logger';
 import { AgentExecutionController } from './execution-controller';
 
@@ -736,5 +744,55 @@ Provide concise and accurate responses.`;
    */
   public getOptions(): T {
     return this.options as T;
+  }
+
+  // /multimodal/agent/src/agent/agent.ts
+  /**
+   * Convenient method to call the current selected LLM
+   * This method encapsulates the common pattern of getting the LLM client and resolved model,
+   * and provides better error handling when these are not available.
+   *
+   * @param params - ChatCompletion parameters (model will be automatically set from current resolved model)
+   * @param options - Optional request options (e.g., signal for abort)
+   * @returns Promise resolving to the LLM response with proper type inference based on stream parameter
+   * @throws Error if LLM client or resolved model is not available
+   */
+  public async callLLM(
+    params: Omit<ChatCompletionCreateParams, 'model'> & { stream?: false },
+    options?: RequestOptions,
+  ): Promise<ChatCompletion>;
+
+  public async callLLM(
+    params: Omit<ChatCompletionCreateParams, 'model'> & { stream: true },
+    options?: RequestOptions,
+  ): Promise<AsyncIterable<ChatCompletionChunk>>;
+
+  public async callLLM(
+    params: Omit<ChatCompletionCreateParams, 'model'>,
+    options?: RequestOptions,
+  ): Promise<ChatCompletion | AsyncIterable<ChatCompletionChunk>> {
+    const llmClient = this.getLLMClient();
+    if (!llmClient) {
+      throw new Error(
+        'LLM client is not available. Make sure the agent is properly initialized and a valid model provider is configured.',
+      );
+    }
+
+    const resolvedModel = this.getCurrentResolvedModel();
+    if (!resolvedModel) {
+      throw new Error(
+        'Resolved model is not available. Make sure the agent has been run at least once or a valid model configuration is provided.',
+      );
+    }
+
+    // Merge the resolved model ID with the provided parameters
+    const completeParams: ChatCompletionCreateParams = {
+      ...params,
+      model: resolvedModel.id,
+    };
+
+    // Call the LLM with the complete parameters
+    const response = await llmClient.chat.completions.create(completeParams, options);
+    return response;
   }
 }

@@ -15,7 +15,14 @@ import {
   LoopTerminationCheckResult,
 } from './agent-instance';
 import { AgentRunObjectOptions, AgentRunStreamingOptions } from './agent-run-options';
-import { ChatCompletionMessageToolCall, OpenAI } from '@multimodal/model-provider/types';
+import {
+  ChatCompletionMessageToolCall,
+  OpenAI,
+  ChatCompletionCreateParams,
+  ChatCompletion,
+  RequestOptions,
+  ChatCompletionChunk,
+} from '@multimodal/model-provider/types';
 import { ToolCallResult } from './tool-call-engine';
 import { ResolvedModel } from '@multimodal/model-provider';
 import { AssistantMessageEvent, Event, EventStream } from './event-stream';
@@ -232,4 +239,26 @@ export interface IAgent<T extends AgentOptions = AgentOptions> {
    * @returns The agent configuration options used during initialization
    */
   getOptions(): T;
+
+  /**
+   * Convenient method to call the current selected LLM with chat completion api.
+   *
+   * @param params - ChatCompletion parameters (without model, supports stream parameter for type inference)
+   * @param options - Optional request options (e.g., signal for abort)
+   * @returns Promise resolving to ChatCompletion for non-streaming, or AsyncIterable<ChatCompletionChunk> for streaming
+   */
+  callLLM(
+    params: Omit<ChatCompletionCreateParams, 'model'> & { stream?: false },
+    options?: RequestOptions,
+  ): Promise<ChatCompletion>;
+
+  callLLM(
+    params: Omit<ChatCompletionCreateParams, 'model'> & { stream: true },
+    options?: RequestOptions,
+  ): Promise<AsyncIterable<ChatCompletionChunk>>;
+
+  callLLM(
+    params: Omit<ChatCompletionCreateParams, 'model'>,
+    options?: RequestOptions,
+  ): Promise<ChatCompletion | AsyncIterable<ChatCompletionChunk>>;
 }
