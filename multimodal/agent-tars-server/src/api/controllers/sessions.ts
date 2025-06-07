@@ -7,7 +7,6 @@ import { Request, Response } from 'express';
 import { nanoid } from 'nanoid';
 import { AgentTARSServer } from '../../server';
 import { ensureWorkingDirectory } from '../../utils/workspace';
-import { EventType } from '@agent-tars/core';
 import { SessionMetadata } from '../../storage';
 import { AgentSession } from '../../core';
 import { ShareService } from '../../services';
@@ -33,9 +32,8 @@ export class SessionsController {
         // If no storage, return only active sessions
         const activeSessions = Object.keys(server.sessions).map((id) => ({
           id,
-          createdAt: Date.now(), // We don't know the actual time without storage
+          createdAt: Date.now(),
           updatedAt: Date.now(),
-          active: true,
         }));
         return res.status(200).json({ sessions: activeSessions });
       }
@@ -43,13 +41,7 @@ export class SessionsController {
       // Get all sessions from storage
       const sessions = await server.storageProvider.getAllSessions();
 
-      // Add 'active' flag to sessions
-      const enrichedSessions = sessions.map((session) => ({
-        ...session,
-        active: !!server.sessions[session.id],
-      }));
-
-      res.status(200).json({ sessions: enrichedSessions });
+      res.status(200).json({ sessions });
     } catch (error) {
       console.error('Failed to get sessions:', error);
       res.status(500).json({ error: 'Failed to get sessions' });
@@ -119,12 +111,8 @@ export class SessionsController {
       if (server.storageProvider) {
         const metadata = await server.storageProvider.getSessionMetadata(sessionId);
         if (metadata) {
-          // Session exists in storage
           return res.status(200).json({
-            session: {
-              ...metadata,
-              active: !!server.sessions[sessionId],
-            },
+            session: metadata,
           });
         }
       }
@@ -134,10 +122,9 @@ export class SessionsController {
         return res.status(200).json({
           session: {
             id: sessionId,
-            createdAt: Date.now(), // Placeholder since we don't have actual time
+            createdAt: Date.now(),
             updatedAt: Date.now(),
             workingDirectory: server.sessions[sessionId].agent.getWorkingDirectory(),
-            active: true,
           },
         });
       }
@@ -186,7 +173,38 @@ export class SessionsController {
 
     try {
       const server = req.app.locals.server as AgentTARSServer;
-      const session = server.sessions[sessionId];
+      let session = server.sessions[sessionId];
+
+      // If session not in memory but storage is available, try to restore it
+      if (!session && server.storageProvider) {
+        const metadata = await server.storageProvider.getSessionMetadata(sessionId);
+        if (metadata) {
+          try {
+            // Restore session from storage
+            session = new AgentSession(server, sessionId);
+            server.sessions[sessionId] = session;
+
+            const { storageUnsubscribe } = await session.initialize();
+
+            // Save unsubscribe function for cleanup
+            if (storageUnsubscribe) {
+              server.storageUnsubscribes[sessionId] = storageUnsubscribe;
+            }
+
+            console.log(`Session ${sessionId} restored from storage`);
+          } catch (error) {
+            console.error(`Failed to restore session ${sessionId}:`, error);
+            // Return session exists but not active status
+            return res.status(200).json({
+              sessionId,
+              status: {
+                isProcessing: false,
+                state: 'stored', // Special state indicating session exists in storage but not active
+              },
+            });
+          }
+        }
+      }
 
       if (!session) {
         return res.status(404).json({ error: 'Session not found' });
@@ -279,59 +297,6 @@ export class SessionsController {
     } catch (error) {
       console.error(`Error deleting session ${sessionId}:`, error);
       res.status(500).json({ error: 'Failed to delete session' });
-    }
-  }
-
-  /**
-   * Restore a session
-   */
-  async restoreSession(req: Request, res: Response) {
-    const { sessionId } = req.body;
-
-    if (!sessionId) {
-      return res.status(400).json({ error: 'Session ID is required' });
-    }
-
-    try {
-      const server = req.app.locals.server as AgentTARSServer;
-
-      // Check if session is already active
-      if (server.sessions[sessionId]) {
-        return res.status(400).json({ error: 'Session is already active' });
-      }
-
-      // Check if we have storage
-      if (!server.storageProvider) {
-        return res.status(404).json({ error: 'Storage not configured, cannot restore session' });
-      }
-
-      // Get session metadata from storage
-      const metadata = await server.storageProvider.getSessionMetadata(sessionId);
-      if (!metadata) {
-        return res.status(404).json({ error: 'Session not found in storage' });
-      }
-
-      // Create a new active session
-      const session = new AgentSession(server, sessionId);
-
-      server.sessions[sessionId] = session;
-      const { storageUnsubscribe } = await session.initialize();
-
-      // Save unsubscribe function
-      if (storageUnsubscribe) {
-        server.storageUnsubscribes[sessionId] = storageUnsubscribe;
-      }
-
-      res.status(200).json({
-        success: true,
-        session: {
-          ...metadata,
-          active: true,
-        },
-      });
-    } catch (error) {
-      console.error(`Error restoring session ${sessionId}:`, error);
-      res.status(500).json({ error: 'Failed to restore session' });
     }
   }
 

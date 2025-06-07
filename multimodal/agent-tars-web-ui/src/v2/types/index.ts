@@ -34,13 +34,6 @@ export interface SessionMetadata {
 }
 
 /**
- * Session information including active status
- */
-export interface SessionInfo extends SessionMetadata {
-  active?: boolean;
-}
-
-/**
  * Tool result type with categorization
  */
 export interface ToolResult {

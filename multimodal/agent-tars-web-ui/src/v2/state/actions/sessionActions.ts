@@ -57,7 +57,7 @@ export const createSessionAction = atom(null, async (get, set) => {
 
 /**
  * Set the active session
- * 修改加载逻辑以避免重复处理事件
+ * 简化加载逻辑，移除恢复会话的复杂性
  */
 export const setActiveSessionAction = atom(null, async (get, set, sessionId: string) => {
   try {
@@ -74,26 +74,19 @@ export const setActiveSessionAction = atom(null, async (get, set, sessionId: str
       console.log('Exiting replay mode due to session change');
       set(replayStateAtom, {
         isActive: false,
-
         isPaused: true,
         events: [],
         currentEventIndex: -1,
         startTimestamp: null,
         endTimestamp: null,
         playbackSpeed: 1,
-
         visibleTimeWindow: null,
         processedEvents: {},
       });
     }
 
-    // 检查会话是否处于活动状态，如果不是则恢复
-
+    // 直接获取会话详情，不需要检查 active 状态
     const sessionDetails = await apiService.getSessionDetails(sessionId);
-
-    if (!sessionDetails.active) {
-      await apiService.restoreSession(sessionId);
-    }
 
     // 获取当前会话状态以更新 isProcessing 状态
     try {

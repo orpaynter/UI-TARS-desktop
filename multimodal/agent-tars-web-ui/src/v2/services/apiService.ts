@@ -1,5 +1,5 @@
 import { API_BASE_URL, API_ENDPOINTS } from '../constants';
-import { Event, SessionInfo, SessionMetadata } from '../types';
+import { Event, SessionMetadata, SessionMetadata } from '../types';
 import { socketService } from './socketService';
 import { ChatCompletionContentPart } from '@multimodal/agent-interface';
 
@@ -40,7 +40,7 @@ class ApiService {
   /**
    * Create a new session
    */
-  async createSession(): Promise<SessionInfo> {
+  async createSession(): Promise<SessionMetadata> {
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CREATE_SESSION}`, {
         method: 'POST',
@@ -62,7 +62,7 @@ class ApiService {
   /**
    * Get all sessions
    */
-  async getSessions(): Promise<SessionInfo[]> {
+  async getSessions(): Promise<SessionMetadata[]> {
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SESSIONS}`, {
         method: 'GET',
@@ -84,7 +84,7 @@ class ApiService {
   /**
    * Get details for a specific session
    */
-  async getSessionDetails(sessionId: string): Promise<SessionInfo> {
+  async getSessionDetails(sessionId: string): Promise<SessionMetadata> {
     try {
       const response = await fetch(
         `${API_BASE_URL}${API_ENDPOINTS.SESSION_DETAILS}?sessionId=${sessionId}`,
@@ -165,7 +165,7 @@ class ApiService {
   async updateSessionMetadata(
     sessionId: string,
     updates: { name?: string; tags?: string[] },
-  ): Promise<SessionInfo> {
+  ): Promise<SessionMetadata> {
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.UPDATE_SESSION}`, {
         method: 'POST',
@@ -204,33 +204,6 @@ class ApiService {
       return success;
     } catch (error) {
       console.error(`Error deleting session (${sessionId}):`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Restore a session
-   */
-  async restoreSession(sessionId: string): Promise<SessionInfo> {
-    try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.RESTORE_SESSION}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to restore session: ${response.statusText}`);
-      }
-
-      const { success, session } = await response.json();
-      if (!success) {
-        throw new Error('Failed to restore session');
-      }
-
-      return session;
-    } catch (error) {
-      console.error(`Error restoring session (${sessionId}):`, error);
       throw error;
     }
   }

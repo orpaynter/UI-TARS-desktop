@@ -32,9 +32,6 @@ export function registerSessionRoutes(app: express.Application): void {
   // Delete a session
   app.post('/api/sessions/delete', sessionsController.deleteSession);
 
-  // Restore a session
-  app.post('/api/sessions/restore', sessionsController.restoreSession);
-
   // Generate summary for a session
   app.post('/api/sessions/generate-summary', sessionsController.generateSummary);
 
