@@ -5,7 +5,7 @@
 
 import readline from 'readline';
 import { renderImageInTerminal, isImageRenderingSupported } from '../utils';
-import { EventType, Event, ChatCompletionContentPart } from '@agent-tars/core';
+import { AgentEventStream, ChatCompletionContentPart } from '@agent-tars/core';
 import chalk from 'chalk';
 import boxen from 'boxen';
 import logUpdate from 'log-update';
@@ -710,9 +710,9 @@ export class CLIRenderer {
   /**
    * Process agent events for display
    */
-  async processAgentEvent(event: Event): Promise<void> {
+  async processAgentEvent(event: AgentEventStream.Event): Promise<void> {
     // Handle multimodal user message
-    if (event.type === EventType.USER_MESSAGE && Array.isArray(event.content)) {
+    if (event.type === 'user_message' && Array.isArray(event.content)) {
       this.clearLine();
       console.log(
         chalk.bold.blue(figures.arrowRight) + ' ' + chalk.white.bold('Multimodal message:'),
@@ -723,10 +723,10 @@ export class CLIRenderer {
 
     // Handle regular events with switch statement
     switch (event.type) {
-      case EventType.TOOL_CALL:
+      case 'tool_call':
         this.printToolExecution(event.toolCallId, event.name, event.arguments);
         break;
-      case EventType.TOOL_RESULT:
+      case 'tool_result':
         // Handle multimodal tool results
         if (event.content && typeof event.content === 'object' && event.content.type === 'image') {
           this.clearLine();
@@ -746,10 +746,10 @@ export class CLIRenderer {
           this.printToolResult(event.toolCallId, event.name, event.content, event.error);
         }
         break;
-      case EventType.SYSTEM:
+      case 'system':
         this.printSystemEvent(event.level, event.message);
         break;
-      case EventType.ASSISTANT_THINKING_MESSAGE:
+      case 'assistant_thinking_message':
         // Complete any active thinking steps if this is a final message
         if (event.isComplete) {
           const thinkingStep = this.steps.find(
@@ -763,10 +763,10 @@ export class CLIRenderer {
 
         this.updateThinking(event.content);
         break;
-      case EventType.ASSISTANT_STREAMING_THINKING_MESSAGE:
+      case 'assistant_streaming_thinking_message':
         this.updateThinking(event.content);
         break;
-      case EventType.ASSISTANT_STREAMING_MESSAGE:
+      case 'assistant_streaming_message':
         // Check for multimodal content in assistant streaming messages
         if (Array.isArray(event.content)) {
           await this.processMultimodalContent(event.content);

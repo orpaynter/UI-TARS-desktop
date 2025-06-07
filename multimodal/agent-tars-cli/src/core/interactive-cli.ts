@@ -4,7 +4,7 @@
  */
 
 import { createInterface } from 'readline';
-import { AgentTARS, AgentTARSAppConfig, EventType, LogLevel } from '@agent-tars/core';
+import { AgentTARS, AgentTARSAppConfig, LogLevel } from '@agent-tars/core';
 import { ensureWorkingDirectory } from '@agent-tars/server';
 import { CLIRenderer, ConfigInfo } from '../utils';
 import { toUserFriendlyPath, logger } from '../utils';
@@ -233,7 +233,7 @@ export async function startInteractiveCLI(
 
         // Process the stream events
         for await (const event of streamResponse) {
-          if (event.type === EventType.ASSISTANT_STREAMING_MESSAGE) {
+          if (event.type === 'assistant_streaming_message') {
             renderer!.updateAssistantResponseStreaming(event.content);
           }
         }
