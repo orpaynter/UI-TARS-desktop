@@ -15,7 +15,7 @@ import {
   LoopTerminationCheckResult,
 } from './agent-instance';
 import { AgentRunObjectOptions, AgentRunStreamingOptions } from './agent-run-options';
-import { ChatCompletionMessageToolCall } from '@multimodal/model-provider/types';
+import { ChatCompletionMessageToolCall, OpenAI } from '@multimodal/model-provider/types';
 import { ToolCallResult } from './tool-call-engine';
 import { ResolvedModel } from '@multimodal/model-provider';
 import { AssistantMessageEvent, Event, EventStream } from './event-stream';
@@ -75,6 +75,13 @@ export interface IAgent<T extends AgentOptions = AgentOptions> {
    * @returns The event stream instance
    */
   getEventStream(): EventStream;
+
+  /**
+   * Get the configured LLM client for making direct requests
+   *
+   * @returns The configured OpenAI-compatible LLM client instance or undefined if not available
+   */
+  getLLMClient(): OpenAI | undefined;
 
   /**
    * Generate a summary of conversation messages
