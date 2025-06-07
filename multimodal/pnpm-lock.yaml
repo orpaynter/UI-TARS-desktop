@@ -277,6 +277,9 @@ importers:
       '@multimodal/agent-snapshot':
         specifier: workspace:*
         version: link:../agent-snapshot
+      '@multimodal/agio':
+        specifier: workspace:*
+        version: link:../agio
       better-sqlite3:
         specifier: 11.7.2
         version: 11.7.2

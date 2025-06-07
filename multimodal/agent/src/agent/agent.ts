@@ -49,7 +49,7 @@ import { AgentExecutionController } from './execution-controller';
  * - Communication with multiple LLM providers
  * - Event stream management for tracking agent loop state
  */
-export class Agent implements IAgent {
+export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
   private instructions: string;
   private maxIterations: number;
   private maxTokens: number | undefined;
@@ -76,7 +76,7 @@ export class Agent implements IAgent {
    * @param options - Configuration options for the agent including instructions,
    * tools, model selection, and runtime parameters.
    */
-  constructor(private options: AgentOptions = {}) {
+  constructor(private options: T = {} as T) {
     this.instructions = options.instructions || this.getDefaultPrompt();
     this.maxIterations = options.maxIterations ?? 10;
     this.maxTokens = options.maxTokens;
@@ -730,10 +730,10 @@ Provide concise and accurate responses.`;
 
   /**
    * Get the agent's configuration options
-   * 
+   *
    * @returns The agent configuration options used during initialization
    */
-  public getOptions(): AgentOptions {
-    return { ...this.options };
+  public getOptions(): T {
+    return this.options;
   }
 }

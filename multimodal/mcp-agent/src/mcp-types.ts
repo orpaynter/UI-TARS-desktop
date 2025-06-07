@@ -11,7 +11,7 @@ export interface MCPAgentOptions extends AgentOptions {
   /**
    * Custom mcp servers.
    */
-  mcpServers: MCPServerRegistry;
+  mcpServers?: MCPServerRegistry;
   /**
    * Version of MCP client to use.
    * This is a config for test ONLY, DO NOT depends on it.

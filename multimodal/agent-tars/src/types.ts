@@ -176,7 +176,7 @@ export interface AgentTARSExperimentalOptions {
 /**
  * Common options interface for all Agent TARS implementations
  */
-export type AgentTARSOptions = Partial<MCPAgentOptions> & {
+export interface AgentTARSOptions extends MCPAgentOptions {
   /**
    * Workspace settings.
    */
@@ -218,4 +218,4 @@ export type AgentTARSOptions = Partial<MCPAgentOptions> & {
    * Experimental features configuration
    */
   experimental?: AgentTARSExperimentalOptions;
-};
+}

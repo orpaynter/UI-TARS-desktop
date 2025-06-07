@@ -19,7 +19,6 @@ import {
 } from '@multimodal/model-provider/types';
 import { EventStreamOptions } from './event-stream';
 import { LogLevel } from '@agent-infra/logger';
-import { AgioConfig } from '@multimodal/agio';
 
 /**
  * Agent execution status
