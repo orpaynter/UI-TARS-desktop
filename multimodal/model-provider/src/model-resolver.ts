@@ -39,11 +39,11 @@ export class ModelResolver {
    * Determines the default model selection based on configuration
    */
   private determineDefaultModelSelection(): ModelDefaultSelection {
-    const { providers, id, provider } = this.options;
+    const { providers, id, provider, apiKey, baseURL } = this.options;
 
     // Use explicit selection if provided
-    if (id && provider) {
-      return { id, provider };
+    if (id || provider || apiKey || baseURL) {
+      return { id, provider, apiKey, baseURL };
     }
 
     // Try to infer from provided providers
