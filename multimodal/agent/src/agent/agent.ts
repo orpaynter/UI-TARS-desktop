@@ -459,6 +459,7 @@ Provide concise and accurate responses.`;
 
   /**
    * Generate a summary of the provided conversation messages
+   * FIXME: using current event stream to generate summary.
    *
    * @param request The summary request containing messages and optional model settings
    * @returns Promise resolving to the summary response
