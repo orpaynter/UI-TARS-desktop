@@ -76,7 +76,7 @@ export class Agent<T extends AgentOptions = AgentOptions> implements IAgent<T> {
    * @param options - Configuration options for the agent including instructions,
    * tools, model selection, and runtime parameters.
    */
-  constructor(private options: T = {} as T) {
+  constructor(private options: AgentOptions) {
     this.instructions = options.instructions || this.getDefaultPrompt();
     this.maxIterations = options.maxIterations ?? 10;
     this.maxTokens = options.maxTokens;
@@ -734,6 +734,6 @@ Provide concise and accurate responses.`;
    * @returns The agent configuration options used during initialization
    */
   public getOptions(): T {
-    return this.options;
+    return this.options as T;
   }
 }

@@ -4,18 +4,17 @@
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { AgentOptions } from './agent-options';
 import {
   AgentStatus,
   LLMRequestHookPayload,
   LLMResponseHookPayload,
   LLMStreamingResponseHookPayload,
-  AgentRunObjectOptions,
-  AgentRunStreamingOptions,
   SummaryRequest,
   SummaryResponse,
   LoopTerminationCheckResult,
-  AgentOptions,
-} from './agent-options';
+} from './agent-instance';
+import { AgentRunObjectOptions, AgentRunStreamingOptions } from './agent-run-options';
 import { ChatCompletionMessageToolCall } from '@multimodal/model-provider/types';
 import { ToolCallResult } from './tool-call-engine';
 import { ResolvedModel } from '@multimodal/model-provider';
