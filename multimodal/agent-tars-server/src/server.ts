@@ -50,7 +50,7 @@ export class AgentTARSServer {
   constructor(appConfig: Required<AgentTARSAppConfig>) {
     // Initialize options
     this.appConfig = appConfig;
-    this.port = appConfig.server.port;
+    this.port = appConfig.server.port ?? 3000;
     this.workspacePath = appConfig.workspace?.workingDirectory;
     this.isDebug = appConfig.logLevel === LogLevel.DEBUG;
 
@@ -138,7 +138,7 @@ export class AgentTARSServer {
    * Generate share HTML content
    */
   generateShareHtml(events: Event[], metadata: SessionMetadata): string {
-    if (!this.appConfig.server.staticPath) {
+    if (!this.appConfig.ui.staticPath) {
       throw new Error('Cannot found static path.');
     }
 
@@ -147,12 +147,7 @@ export class AgentTARSServer {
       model: process.env.MODEL_NAME || this.appConfig?.model?.id || 'Default Model',
     };
 
-    return ShareUtils.generateShareHtml(
-      events,
-      metadata,
-      this.appConfig.server.staticPath,
-      modelInfo,
-    );
+    return ShareUtils.generateShareHtml(events, metadata, this.appConfig.ui.staticPath, modelInfo);
   }
 
   /**
@@ -164,7 +159,7 @@ export class AgentTARSServer {
     sessionId: string,
     metadata: SessionMetadata,
   ): Promise<string> {
-    if (!this.appConfig.server.shareProvider) {
+    if (!this.appConfig.share.provider) {
       throw new Error('Share provider not configured');
     }
 
@@ -202,7 +197,7 @@ export class AgentTARSServer {
       }
     }
 
-    return ShareUtils.uploadShareHtml(html, sessionId, this.appConfig.server.shareProvider, {
+    return ShareUtils.uploadShareHtml(html, sessionId, this.appConfig.share.provider, {
       metadata,
       slug: normalizedSlug,
       query: originalQuery,

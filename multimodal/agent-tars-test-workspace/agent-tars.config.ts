@@ -40,4 +40,7 @@ export default defineConfig({
     dumpMessageHistory: true,
   },
   toolCallEngine: 'prompt_engineering',
+  server: {
+    shareProvider: ''
+  }
 });

@@ -7,6 +7,4 @@
 import { AgentTARSOptions } from './core';
 import { AgentTARSServerOptions } from './server';
 
-export interface AgentTARSAppConfig extends AgentTARSOptions {
-  server?: AgentTARSServerOptions;
-}
+export interface AgentTARSAppConfig extends AgentTARSOptions, AgentTARSServerOptions {}

@@ -436,7 +436,7 @@ export class SessionsController {
         const shareHtml = server.generateShareHtml(keyFrameEvents, metadata);
 
         // 如果有配置分享提供者，则上传 HTML
-        if (upload && server.appConfig.server.shareProvider) {
+        if (upload && server.appConfig.share.provider) {
           try {
             const shareUrl = await server.uploadShareHtml(shareHtml, sessionId, metadata);
             return res.status(200).json({

@@ -21,8 +21,8 @@ export class ShareController {
     const server = req.app.locals.server as AgentTARSServer;
 
     res.status(200).json({
-      hasShareProvider: !!server.appConfig.server.shareProvider,
-      shareProvider: server.appConfig.server.shareProvider || null,
+      hasShareProvider: !!server.appConfig.share.provider,
+      shareProvider: server.appConfig.share.provider || null,
     });
   }
 }

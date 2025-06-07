@@ -188,16 +188,24 @@ export class ConfigBuilder {
       config.server.port = cliArgs.port;
     }
 
+    if (!config.share) {
+      config.share = {};
+    }
+
     if (cliArgs.shareProvider) {
-      config.server.shareProvider = cliArgs.shareProvider;
+      config.share.provider = cliArgs.shareProvider;
+    }
+
+    if (!config.agio) {
+      config.agio = {};
     }
 
     if (cliArgs.agioProvider) {
-      config.server.agioProvider = cliArgs.agioProvider;
+      config.agio.provider = cliArgs.agioProvider;
     }
 
     if (cliArgs.enableSnapshot) {
-      config.server.snapshot = {
+      config.snapshot = {
         enable: true,
         snapshotPath: cliArgs.snapshotPath || '',
       };

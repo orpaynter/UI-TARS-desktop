@@ -43,10 +43,9 @@ export class AgentSession {
     const agent = new AgentTARS(server.appConfig);
 
     // Initialize agent snapshot if enabled
-    if (appServerConfig.snapshot?.enable) {
+    if (appConfig.snapshot?.enable) {
       const snapshotPath =
-        appServerConfig.snapshot.snapshotPath ||
-        path.join(workspace!.workingDirectory!, 'snapshots');
+        appConfig.snapshot.snapshotPath || path.join(workspace!.workingDirectory!, 'snapshots');
       this.agent = new AgentSnapshot(agent, {
         snapshotPath,
         snapshotName: sessionId,
@@ -58,16 +57,10 @@ export class AgentSession {
     }
 
     // Initialize AGIO collector if provider URL is configured
-    if (appServerConfig.agioProvider) {
-      this.agioProvider = new AgioProvider(
-        appServerConfig.agioProvider,
-        sessionId,
-        agent.getOptions(),
-      );
+    if (appConfig.agio.provider) {
+      this.agioProvider = new AgioProvider(appConfig.agio.provider, sessionId, agent.getOptions());
 
-      agent.logger.debug(
-        `AGIO collector initialized with provider: ${appServerConfig.agioProvider}`,
-      );
+      agent.logger.debug(`AGIO collector initialized with provider: ${appConfig.agio.provider}`);
     }
   }
 

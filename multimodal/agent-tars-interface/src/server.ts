@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AgentTARSOptions } from './core';
-
 export interface ServerSnapshotOptions {
   /**
    * Whether to enable snapshots for agent sessions
@@ -37,7 +35,7 @@ export interface ServerStorageOptions {
 }
 
 /**
- * Agent TARS Server Options
+ * Options implemented by Agent TARS Server
  *
  * Defines all customizable aspects of the server including:
  * - Network configuration (port)
@@ -49,30 +47,50 @@ export interface ServerStorageOptions {
  */
 export interface AgentTARSServerOptions {
   /**
-   * Agent TARS Server port
+   * Server config
    */
-  port: number;
+  server?: {
+    /**
+     * Agent TARS Server port
+     */
+    port?: number;
+    /**
+     * Server Storage options.
+     */
+    storage?: ServerStorageOptions;
+  };
   /**
-   * Server Storage options.
+   * Share config
    */
-  storage?: ServerStorageOptions;
+  share?: {
+    /**
+     * Share provider base url
+     */
+    provider?: string;
+  };
   /**
-   * Share provider.
+   * Agio config
    */
-  shareProvider?: string;
+  agio?: {
+    /**
+     * AGIO provider URL for monitoring events
+     * When configured, the server will send standardized monitoring events
+     * to the specified endpoint for operational insights and analytics
+     */
+    provider?: string;
+  };
   /**
-   * Web UI path.
+   * web ui config
    */
-  staticPath?: string;
+  ui?: {
+    /**
+     * Web UI path.
+     */
+    staticPath?: string;
+  };
   /**
    * Configuration for agent snapshots
    * Controls whether to create and store snapshots of agent executions
    */
   snapshot?: ServerSnapshotOptions;
-  /**
-   * AGIO provider URL for monitoring events
-   * When configured, the server will send standardized monitoring events
-   * to the specified endpoint for operational insights and analytics
-   */
-  agioProvider?: string;
 }

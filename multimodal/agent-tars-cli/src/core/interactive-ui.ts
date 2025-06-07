@@ -47,8 +47,12 @@ export async function startInteractiveWebUI(options: UIServerOptions): Promise<h
     );
   }
 
+  if (!appConfig.ui) {
+    appConfig.ui = {};
+  }
+
   // Set static path in server config
-  appConfig.server.staticPath = staticPath;
+  appConfig.ui.staticPath = staticPath;
 
   // Create and start the server with config
   const tarsServer = new AgentTARSServer(appConfig as Required<AgentTARSAppConfig>);
@@ -58,7 +62,7 @@ export async function startInteractiveWebUI(options: UIServerOptions): Promise<h
   const app = tarsServer.getApp();
 
   // Set up interactive UI
-  setupUI(app, appConfig.server.port, isDebug, staticPath);
+  setupUI(app, appConfig.server.port!, isDebug, staticPath);
 
   return server;
 }
