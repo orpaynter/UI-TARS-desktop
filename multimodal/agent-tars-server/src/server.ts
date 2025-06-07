@@ -7,9 +7,9 @@ import express from 'express';
 import http from 'http';
 import { setupAPI } from './api';
 import { setupSocketIO } from './core/SocketHandlers';
-import { SessionMetadata, StorageProvider, createStorageProvider } from './storage';
+import { StorageProvider, createStorageProvider } from './storage';
 import { Server as SocketIOServer } from 'socket.io';
-import { Event, EventType, LogLevel } from '@agent-tars/core';
+import { LogLevel } from '@agent-tars/core';
 import type { AgentTARSAppConfig } from './types';
 import type { AgentSession } from './core';
 

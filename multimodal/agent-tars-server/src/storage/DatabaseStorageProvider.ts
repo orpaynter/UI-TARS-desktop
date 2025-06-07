@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Event } from '@agent-tars/core';
+import { AgentEventStream } from '@agent-tars/core';
 import { StorageProvider, SessionMetadata, ServerStorageOptions } from './types';
 
 /**
@@ -27,7 +27,7 @@ export abstract class DatabaseStorageProvider implements StorageProvider {
   abstract getSessionMetadata(sessionId: string): Promise<SessionMetadata | null>;
   abstract getAllSessions(): Promise<SessionMetadata[]>;
   abstract deleteSession(sessionId: string): Promise<boolean>;
-  abstract saveEvent(sessionId: string, event: Event): Promise<void>;
-  abstract getSessionEvents(sessionId: string): Promise<Event[]>;
+  abstract saveEvent(sessionId: string, event: AgentEventStream.Event): Promise<void>;
+  abstract getSessionEvents(sessionId: string): Promise<AgentEventStream.Event[]>;
   abstract close(): Promise<void>;
 }

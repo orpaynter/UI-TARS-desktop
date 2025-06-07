@@ -7,7 +7,7 @@ import path from 'path';
 import fs from 'fs';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
-import { Event } from '@agent-tars/core';
+import { AgentEventStream } from '@agent-tars/core';
 import { StorageProvider, SessionMetadata } from './types';
 
 /**
@@ -15,7 +15,7 @@ import { StorageProvider, SessionMetadata } from './types';
  */
 interface DbSchema {
   sessions: Record<string, SessionMetadata>;
-  events: Record<string, Event[]>;
+  events: Record<string, AgentEventStream.Event[]>;
 }
 
 /**
@@ -122,7 +122,7 @@ export class FileStorageProvider implements StorageProvider {
     return true;
   }
 
-  async saveEvent(sessionId: string, event: Event): Promise<void> {
+  async saveEvent(sessionId: string, event: AgentEventStream.Event): Promise<void> {
     await this.ensureInitialized();
 
     if (!this.db.data.sessions[sessionId]) {
@@ -141,7 +141,7 @@ export class FileStorageProvider implements StorageProvider {
     await this.db.write();
   }
 
-  async getSessionEvents(sessionId: string): Promise<Event[]> {
+  async getSessionEvents(sessionId: string): Promise<AgentEventStream.Event[]> {
     await this.ensureInitialized();
 
     if (!this.db.data.sessions[sessionId]) {

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AgentTARS, Event, AgentStatus } from '@agent-tars/core';
+import { AgentTARS, AgentEventStream, AgentStatus } from '@agent-tars/core';
 import { AgentSnapshot } from '@multimodal/agent-snapshot';
 import { EventStreamBridge } from '../utils/event-stream';
 import { AgioProvider } from './AgioProvider';
@@ -88,7 +88,7 @@ export class AgentSession {
     const agentEventStream = this.agent.getEventStream();
 
     // Create an event handler that saves events to storage and processes AGIO events
-    const handleEvent = async (event: Event) => {
+    const handleEvent = async (event: AgentEventStream.Event) => {
       // If we have storage, save the event
       if (this.server.storageProvider) {
         try {
@@ -133,7 +133,7 @@ export class AgentSession {
     }
   }
 
-  async runQueryStreaming(query: string): Promise<AsyncIterable<Event>> {
+  async runQueryStreaming(query: string): Promise<AsyncIterable<AgentEventStream.Event>> {
     try {
       // Run agent in streaming mode
       return await this.agent.run({

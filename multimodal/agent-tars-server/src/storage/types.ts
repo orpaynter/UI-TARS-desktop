@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Event } from '@agent-tars/core';
+import { AgentEventStream } from '@agent-tars/core';
 export { ServerStorageOptions } from '../types';
 
 /**
@@ -71,13 +71,13 @@ export interface StorageProvider {
    * @param sessionId Session ID
    * @param event Event to save
    */
-  saveEvent(sessionId: string, event: Event): Promise<void>;
+  saveEvent(sessionId: string, event: AgentEventStream.Event): Promise<void>;
 
   /**
    * Get all events for a session
    * @param sessionId Session ID
    */
-  getSessionEvents(sessionId: string): Promise<Event[]>;
+  getSessionEvents(sessionId: string): Promise<AgentEventStream.Event[]>;
 
   /**
    * Close the storage provider

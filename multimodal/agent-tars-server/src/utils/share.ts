@@ -8,7 +8,7 @@ import path from 'path';
 import os from 'os';
 import axios from 'axios';
 import FormData from 'form-data';
-import { Event } from '@agent-tars/core';
+import { AgentEventStream } from '@agent-tars/core';
 import { SessionMetadata } from '../storage';
 
 /**
@@ -28,7 +28,7 @@ export class ShareUtils {
    * @returns Generated HTML content
    */
   static generateShareHtml(
-    events: Event[],
+    events: AgentEventStream.Event[],
     metadata: SessionMetadata,
     staticPath: string,
     modelInfo: { provider: string; model: string },

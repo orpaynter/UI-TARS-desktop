@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Event } from '@agent-tars/core';
+import { AgentEventStream } from '@agent-tars/core';
 import { StorageProvider, SessionMetadata } from './types';
 
 /**
@@ -14,7 +14,7 @@ import { StorageProvider, SessionMetadata } from './types';
  */
 export class MemoryStorageProvider implements StorageProvider {
   private sessions: Map<string, SessionMetadata> = new Map();
-  private events: Map<string, Event[]> = new Map();
+  private events: Map<string, AgentEventStream.Event[]> = new Map();
 
   async initialize(): Promise<void> {
     // No initialization needed for memory storage
@@ -63,7 +63,7 @@ export class MemoryStorageProvider implements StorageProvider {
     return deleted;
   }
 
-  async saveEvent(sessionId: string, event: Event): Promise<void> {
+  async saveEvent(sessionId: string, event: AgentEventStream.Event): Promise<void> {
     if (!this.sessions.has(sessionId)) {
       throw new Error(`Session not found: ${sessionId}`);
     }
@@ -76,7 +76,7 @@ export class MemoryStorageProvider implements StorageProvider {
     await this.updateSessionMetadata(sessionId, { updatedAt: Date.now() });
   }
 
-  async getSessionEvents(sessionId: string): Promise<Event[]> {
+  async getSessionEvents(sessionId: string): Promise<AgentEventStream.Event[]> {
     if (!this.sessions.has(sessionId)) {
       throw new Error(`Session not found: ${sessionId}`);
     }

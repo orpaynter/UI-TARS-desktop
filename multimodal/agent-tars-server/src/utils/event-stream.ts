@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Event, EventType, EventStream } from '@agent-tars/core';
+import { AgentEventStream } from '@agent-tars/core';
 
 /**
  * Implement event stream bridging to forward Agent's native events to the client
@@ -44,29 +44,29 @@ export class EventStreamBridge {
    * @param agentEventStream Agent's event stream manager
    * @returns Unsubscribe function
    */
-  connectToAgentEventStream(agentEventStream: EventStream): () => void {
-    const handleEvent = (event: Event) => {
+  connectToAgentEventStream(agentEventStream: AgentEventStream.Processor): () => void {
+    const handleEvent = (event: AgentEventStream.Event) => {
       // Mapping event types to socket.io-friendly events
       switch (event.type) {
-        case EventType.AGENT_RUN_START:
+        case 'agent_run_start':
           // 确保明确发送processing状态
           this.emit('agent-status', { isProcessing: true, state: 'executing' });
           break;
 
-        case EventType.AGENT_RUN_END:
+        case 'agent_run_end':
           // 确保明确发送完成状态
           this.emit('agent-status', { isProcessing: false, state: event.status || 'idle' });
           break;
 
-        case EventType.USER_MESSAGE:
+        case 'user_message':
           // 用户消息时明确设置处理中状态
           this.emit('agent-status', { isProcessing: true, state: 'processing' });
           this.emit('query', { text: event.content });
           break;
-        case EventType.ASSISTANT_MESSAGE:
+        case 'assistant_message':
           this.emit('answer', { text: event.content });
           break;
-        case EventType.TOOL_CALL:
+        case 'tool_call':
           this.emit('event', {
             type: 'tool_call',
             name: event.name,
@@ -74,7 +74,7 @@ export class EventStreamBridge {
             arguments: event.arguments,
           });
           break;
-        case EventType.TOOL_RESULT:
+        case 'tool_result':
           this.emit('event', {
             type: 'tool_result',
             name: event.name,
@@ -83,7 +83,7 @@ export class EventStreamBridge {
             error: event.error,
           });
           break;
-        case EventType.SYSTEM:
+        case 'system':
           this.emit(event.level, { message: event.message });
           break;
         default:
@@ -91,14 +91,14 @@ export class EventStreamBridge {
       }
 
       // 特别处理中止事件
-      if (event.type === EventType.SYSTEM && event.message?.includes('aborted')) {
+      if (event.type === 'system' && event.message?.includes('aborted')) {
         this.emit('aborted', { message: event.message });
         // 中止后明确设置非处理状态
         this.emit('agent-status', { isProcessing: false, state: 'idle' });
       }
 
       // Add handling for status events
-      if (event.type === EventType.SYSTEM && event.message?.includes('status')) {
+      if (event.type === 'system' && event.message?.includes('status')) {
         this.emit('status', { message: event.message });
       }
     };

@@ -6,17 +6,7 @@
 
 import axios from 'axios';
 import { AgioEvent } from '@multimodal/agio';
-import {
-  Event,
-  EventType,
-  AgentTARSOptions,
-  AgentRunStartEvent,
-  AgentRunEndEvent,
-  AssistantStreamingMessageEvent,
-  AssistantMessageEvent,
-  ToolCallEvent,
-  ToolResultEvent,
-} from '@agent-tars/core';
+import { AgentTARSOptions, AgentEventStream } from '@agent-tars/core';
 
 /**
  * AgioProvider - Collects and sends AGIO monitoring events to configured providers
@@ -90,34 +80,34 @@ export class AgioProvider {
    * Process internal agent events and convert to AGIO events
    * This is the main entry point for event processing
    */
-  async processAgentEvent(event: Event): Promise<void> {
+  async processAgentEvent(event: AgentEventStream.Event): Promise<void> {
     try {
       switch (event.type) {
-        case EventType.AGENT_RUN_START:
+        case 'agent_run_start':
           await this.handleRunStart(event);
           break;
 
-        case EventType.AGENT_RUN_END:
+        case 'agent_run_end':
           await this.handleRunEnd(event);
           break;
 
-        case EventType.ASSISTANT_STREAMING_MESSAGE:
+        case 'assistant_streaming_message':
           await this.handleFirstToken(event);
           break;
 
-        case EventType.TOOL_CALL:
+        case 'tool_call':
           await this.handleToolCall(event);
           break;
 
-        case EventType.TOOL_RESULT:
+        case 'tool_result':
           await this.handleToolResult(event);
           break;
 
-        case EventType.USER_MESSAGE:
+        case 'user_message':
           await this.handleLoopStart();
           break;
 
-        case EventType.ASSISTANT_MESSAGE:
+        case 'assistant_message':
           await this.handleLoopEnd(event);
           break;
 
@@ -134,7 +124,7 @@ export class AgioProvider {
   /**
    * Handle agent run start events
    */
-  private async handleRunStart(event: AgentRunStartEvent): Promise<void> {
+  private async handleRunStart(event: AgentEventStream.AgentRunStartEvent): Promise<void> {
     this.runId = event.sessionId || `run_${Date.now()}`;
     this.runStartTime = Date.now();
     this.firstTokenTime = undefined;
@@ -156,7 +146,7 @@ export class AgioProvider {
   /**
    * Handle agent run end events
    */
-  private async handleRunEnd(event: AgentRunEndEvent): Promise<void> {
+  private async handleRunEnd(event: AgentEventStream.AgentRunEndEvent): Promise<void> {
     if (!this.runStartTime || !this.runId) return;
 
     const executionTimeMs = Date.now() - this.runStartTime;
@@ -182,7 +172,9 @@ export class AgioProvider {
   /**
    * Handle first token detection for TTFT measurement
    */
-  private async handleFirstToken(event: AssistantStreamingMessageEvent): Promise<void> {
+  private async handleFirstToken(
+    event: AgentEventStream.AssistantStreamingMessageEvent,
+  ): Promise<void> {
     if (!this.firstTokenTime && this.runStartTime && event.content) {
       this.firstTokenTime = Date.now();
       const ttftMs = this.firstTokenTime - this.runStartTime;
@@ -202,7 +194,7 @@ export class AgioProvider {
   /**
    * Handle tool call events
    */
-  private async handleToolCall(event: ToolCallEvent): Promise<void> {
+  private async handleToolCall(event: AgentEventStream.ToolCallEvent): Promise<void> {
     // Sanitize arguments to remove sensitive data
     const sanitizedArgs = this.sanitizeArguments(event.arguments);
 
@@ -224,7 +216,7 @@ export class AgioProvider {
   /**
    * Handle tool result events
    */
-  private async handleToolResult(event: ToolResultEvent): Promise<void> {
+  private async handleToolResult(event: AgentEventStream.ToolResultEvent): Promise<void> {
     const agioEvent: AgioEvent.ToolResultEvent = {
       type: 'tool_result',
       timestamp: event.timestamp,
@@ -262,7 +254,7 @@ export class AgioProvider {
   /**
    * Handle loop end events
    */
-  private async handleLoopEnd(event: AssistantMessageEvent): Promise<void> {
+  private async handleLoopEnd(event: AgentEventStream.AssistantMessageEvent): Promise<void> {
     const startTime = this.loopStartTimes.get(this.currentIteration);
     if (!startTime) return;
 

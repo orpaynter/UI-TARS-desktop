@@ -6,7 +6,7 @@
 import path from 'path';
 import fs from 'fs';
 import Database from 'better-sqlite3';
-import { Event, EventType } from '@agent-tars/core';
+import { AgentEventStream } from '@agent-tars/core';
 import { StorageProvider, SessionMetadata } from './types';
 
 // Define row types for better type safety
@@ -289,7 +289,7 @@ export class SQLiteStorageProvider implements StorageProvider {
     }
   }
 
-  async saveEvent(sessionId: string, event: Event): Promise<void> {
+  async saveEvent(sessionId: string, event: AgentEventStream.Event): Promise<void> {
     await this.ensureInitialized();
 
     try {
@@ -333,7 +333,7 @@ export class SQLiteStorageProvider implements StorageProvider {
     }
   }
 
-  async getSessionEvents(sessionId: string): Promise<Event[]> {
+  async getSessionEvents(sessionId: string): Promise<AgentEventStream.Event[]> {
     await this.ensureInitialized();
 
     try {
@@ -358,14 +358,14 @@ export class SQLiteStorageProvider implements StorageProvider {
 
       return rows.map((row) => {
         try {
-          return JSON.parse(row.eventData) as Event;
+          return JSON.parse(row.eventData) as AgentEventStream.Event;
         } catch (error) {
           console.error(`Failed to parse event data: ${row.eventData}`);
           return {
-            type: EventType.SYSTEM,
+            type: 'system',
             message: 'Failed to parse event data',
             timestamp: Date.now(),
-          } as Event;
+          } as AgentEventStream.Event;
         }
       });
     } catch (error) {

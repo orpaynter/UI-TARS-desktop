@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Event, EventType } from '@agent-tars/core';
+import { AgentEventStream } from '@agent-tars/core';
 import { SessionMetadata, StorageProvider } from '../storage';
 import { ShareUtils } from '../utils/share';
 import { SlugGenerator } from '../utils/slug-generator';
@@ -60,9 +60,9 @@ export class ShareService {
       // Filter key frame events, exclude streaming messages
       const keyFrameEvents = events.filter(
         (event) =>
-          event.type !== EventType.ASSISTANT_STREAMING_MESSAGE &&
-          event.type !== EventType.ASSISTANT_STREAMING_THINKING_MESSAGE &&
-          event.type !== EventType.FINAL_ANSWER_STREAMING,
+          event.type !== 'assistant_streaming_message' &&
+          event.type !== 'assistant_streaming_thinking_message' &&
+          event.type !== 'final_answer_streaming',
       );
 
       // Generate HTML content
@@ -96,7 +96,7 @@ export class ShareService {
   /**
    * Generate shareable HTML content
    */
-  private generateShareHtml(events: Event[], metadata: SessionMetadata): string {
+  private generateShareHtml(events: AgentEventStream.Event[], metadata: SessionMetadata): string {
     if (!this.appConfig.ui.staticPath) {
       throw new Error('Cannot found static path.');
     }
@@ -129,7 +129,7 @@ export class ShareService {
     if (this.storageProvider && agent) {
       try {
         const events = await this.storageProvider.getSessionEvents(sessionId);
-        const firstUserMessage = events.find((e) => e.type === EventType.USER_MESSAGE);
+        const firstUserMessage = events.find((e) => e.type === 'user_message');
 
         if (firstUserMessage && firstUserMessage.content) {
           originalQuery =
