@@ -5,6 +5,7 @@
 
 import { Request, Response } from 'express';
 import { AgentTARSServer } from '../../server';
+import { ShareService } from '../../services';
 
 /**
  * ShareController - Handles sharing-related API endpoints
@@ -19,11 +20,8 @@ export class ShareController {
    */
   getShareConfig(req: Request, res: Response) {
     const server = req.app.locals.server as AgentTARSServer;
-
-    res.status(200).json({
-      hasShareProvider: !!server.appConfig.share.provider,
-      shareProvider: server.appConfig.share.provider || null,
-    });
+    const shareService = new ShareService(server.appConfig, server.storageProvider);
+    res.status(200).json(shareService.getShareConfig());
   }
 }
 

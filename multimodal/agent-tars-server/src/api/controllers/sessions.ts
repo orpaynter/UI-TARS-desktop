@@ -10,6 +10,7 @@ import { ensureWorkingDirectory } from '../../utils/workspace';
 import { EventType } from '@agent-tars/core';
 import { SessionMetadata } from '../../storage';
 import { AgentSession } from '../../core';
+import { ShareService } from '../../services';
 
 /**
  * SessionsController - Handles all session-related API endpoints
@@ -415,54 +416,18 @@ export class SessionsController {
 
     try {
       const server = req.app.locals.server as AgentTARSServer;
+      const shareService = new ShareService(server.appConfig, server.storageProvider);
 
-      // 验证会话存在于存储中
-      if (server.storageProvider) {
-        const metadata = await server.storageProvider.getSessionMetadata(sessionId);
-        if (!metadata) {
-          return res.status(404).json({ error: 'Session not found' });
-        }
-
-        // 获取会话事件
-        const events = await server.storageProvider.getSessionEvents(sessionId);
-
-        // 过滤出关键帧事件，排除流式消息
-        const keyFrameEvents = events.filter(
-          (event) =>
-            event.type !== EventType.ASSISTANT_STREAMING_MESSAGE &&
-            event.type !== EventType.ASSISTANT_STREAMING_THINKING_MESSAGE &&
-            event.type !== EventType.FINAL_ANSWER_STREAMING,
-        );
-
-        // 生成 HTML 内容
-        const shareHtml = server.generateShareHtml(keyFrameEvents, metadata);
-
-        // 如果有配置分享提供者，则上传 HTML
-        if (upload && server.appConfig.share.provider) {
-          try {
-            const shareUrl = await server.uploadShareHtml(shareHtml, sessionId, metadata);
-            return res.status(200).json({
-              success: true,
-              url: shareUrl,
-              sessionId,
-            });
-          } catch (uploadError) {
-            return res.status(500).json({
-              error: 'Failed to upload share HTML',
-              message: uploadError instanceof Error ? uploadError.message : String(uploadError),
-            });
-          }
-        }
-
-        // 如果没有上传或没有配置分享提供者，则返回 HTML 内容
-        return res.status(200).json({
-          success: true,
-          html: shareHtml,
-          sessionId,
+      // Get agent instance if session is active (for slug generation)
+      const agent = server.sessions[sessionId]?.agent;
+      const result = await shareService.shareSession(sessionId, upload, agent);
+      if (result.success) {
+        return res.status(200).json(result);
+      } else {
+        return res.status(500).json({
+          error: result.error || 'Failed to share session',
         });
       }
-
-      return res.status(404).json({ error: 'Storage not configured, cannot share session' });
     } catch (error) {
       console.error(`Error sharing session ${sessionId}:`, error);
       return res.status(500).json({ error: 'Failed to share session' });

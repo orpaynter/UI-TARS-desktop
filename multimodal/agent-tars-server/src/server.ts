@@ -8,7 +8,6 @@ import http from 'http';
 import { setupAPI } from './api';
 import { setupSocketIO } from './core/SocketHandlers';
 import { SessionMetadata, StorageProvider, createStorageProvider } from './storage';
-import { ShareUtils } from './utils/share';
 import { Server as SocketIOServer } from 'socket.io';
 import { Event, EventType, LogLevel } from '@agent-tars/core';
 import type { AgentTARSAppConfig } from './types';
@@ -132,76 +131,6 @@ export class AgentTARSServer {
     return {
       type: this.storageProvider.constructor.name.replace('StorageProvider', '').toLowerCase(),
     };
-  }
-
-  /**
-   * Generate share HTML content
-   */
-  generateShareHtml(events: Event[], metadata: SessionMetadata): string {
-    if (!this.appConfig.ui.staticPath) {
-      throw new Error('Cannot found static path.');
-    }
-
-    const modelInfo = {
-      provider: process.env.MODEL_PROVIDER || this.appConfig?.model?.provider || 'Default Provider',
-      model: process.env.MODEL_NAME || this.appConfig?.model?.id || 'Default Model',
-    };
-
-    return ShareUtils.generateShareHtml(events, metadata, this.appConfig.ui.staticPath, modelInfo);
-  }
-
-  /**
-   * Upload share HTML to provider
-   */
-
-  async uploadShareHtml(
-    html: string,
-    sessionId: string,
-    metadata: SessionMetadata,
-  ): Promise<string> {
-    if (!this.appConfig.share.provider) {
-      throw new Error('Share provider not configured');
-    }
-
-    // Extract first user query to generate a normalized slug if available
-    let normalizedSlug = '';
-    let originalQuery = '';
-
-    if (this.storageProvider) {
-      try {
-        // Get events to find the first user message
-        const events = await this.storageProvider.getSessionEvents(sessionId);
-        const firstUserMessage = events.find((e) => e.type === EventType.USER_MESSAGE);
-
-        if (firstUserMessage && firstUserMessage.content) {
-          // Handle both string and array content types
-          originalQuery =
-            typeof firstUserMessage.content === 'string'
-              ? firstUserMessage.content
-              : firstUserMessage.content.find((c) => c.type === 'text')?.text || '';
-
-          // Create a normalized slug from the query
-          if (originalQuery) {
-            normalizedSlug = originalQuery
-              .toLowerCase()
-              .replace(/[^\w\s-]/g, '') // Remove special characters
-              .replace(/\s+/g, '-') // Replace spaces with hyphens
-              .replace(/-+/g, '-') // Remove consecutive hyphens
-              .substring(0, 60) // Limit length
-              .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to extract query for normalized slug:', error);
-        // Continue without normalized slug if extraction fails
-      }
-    }
-
-    return ShareUtils.uploadShareHtml(html, sessionId, this.appConfig.share.provider, {
-      metadata,
-      slug: normalizedSlug,
-      query: originalQuery,
-    });
   }
 
   /**
