@@ -1,11 +1,15 @@
-import { AgentTARS, EventType, Event, AgentTARSOptions, AgentStatus } from '@agent-tars/core';
-import { AgentSnapshot } from '@multimodal/agent-snapshot';
-import { EventStreamBridge } from '../event-stream';
-import { StorageProvider } from '../storage';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/*
+ * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-import { AgioProvider } from '../agio/agio-provider';
+import { AgentTARS, Event, AgentStatus } from '@agent-tars/core';
+import { AgentSnapshot } from '@multimodal/agent-snapshot';
+import { EventStreamBridge } from '../utils/event-stream';
+import { AgioProvider } from './AgioProvider';
 import path from 'path';
-import { ServerSnapshotOptions } from './ServerOptions';
+import type { AgentTARSServer } from '../server';
 
 /**
  * AgentSession - Represents a single agent execution context
@@ -23,54 +27,47 @@ export class AgentSession {
   agent: AgentTARS;
   eventBridge: EventStreamBridge;
   private unsubscribe: (() => void) | null = null;
-  private isDebug: boolean;
-  private storageProvider: StorageProvider | null = null;
   private agioProvider?: AgioProvider;
 
   constructor(
+    private server: AgentTARSServer,
     sessionId: string,
-    workingDirectory: string,
-    config: AgentTARSOptions = {},
-    isDebug = false,
-    storageProvider: StorageProvider | null = null,
-    snapshotOptions?: ServerSnapshotOptions,
-    agioProviderUrl?: string,
   ) {
     this.id = sessionId;
     this.eventBridge = new EventStreamBridge();
-    this.isDebug = isDebug;
-    this.storageProvider = storageProvider;
+
+    const { appConfig } = server;
+    const { workspace, server: appServerConfig } = appConfig;
 
     // Initialize agent with merged config
-    const agent = new AgentTARS({
-      ...config,
-      workspace: {
-        ...(config.workspace || {}),
-        workingDirectory,
-      },
-    });
+    const agent = new AgentTARS(server.appConfig);
 
     // Initialize agent snapshot if enabled
-    if (snapshotOptions?.enable) {
-      const snapshotPath = snapshotOptions.snapshotPath || path.join(workingDirectory, 'snapshots');
+    if (appServerConfig.snapshot?.enable) {
+      const snapshotPath =
+        appServerConfig.snapshot.snapshotPath ||
+        path.join(workspace!.workingDirectory!, 'snapshots');
       this.agent = new AgentSnapshot(agent, {
         snapshotPath,
         snapshotName: sessionId,
       }) as unknown as AgentTARS;
 
-      if (this.isDebug) {
-        console.log(`AgentSnapshot initialized with path: ${snapshotPath}`);
-      }
+      agent.logger.debug(`AgentSnapshot initialized with path: ${snapshotPath}`);
     } else {
       this.agent = agent;
     }
 
     // Initialize AGIO collector if provider URL is configured
-    if (agioProviderUrl) {
-      this.agioProvider = new AgioProvider(agioProviderUrl, sessionId, agent.getOptions());
-      if (this.isDebug) {
-        console.log(`AGIO collector initialized with provider: ${agioProviderUrl}`);
-      }
+    if (appServerConfig.agioProvider) {
+      this.agioProvider = new AgioProvider(
+        appServerConfig.agioProvider,
+        sessionId,
+        agent.getOptions(),
+      );
+
+      agent.logger.debug(
+        `AGIO collector initialized with provider: ${appServerConfig.agioProvider}`,
+      );
     }
   }
 
@@ -100,9 +97,9 @@ export class AgentSession {
     // Create an event handler that saves events to storage and processes AGIO events
     const handleEvent = async (event: Event) => {
       // If we have storage, save the event
-      if (this.storageProvider) {
+      if (this.server.storageProvider) {
         try {
-          await this.storageProvider.saveEvent(this.id, event);
+          await this.server.storageProvider.saveEvent(this.id, event);
         } catch (error) {
           console.error(`Failed to save event to storage: ${error}`);
         }

@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@agent-tars/core": "workspace:*",
+    "@agent-tars/interface": "workspace:*",
     "@multimodal/agent-snapshot": "workspace:*",
     "@multimodal/agio": "workspace:*",
     "cors": "^2.8.5",

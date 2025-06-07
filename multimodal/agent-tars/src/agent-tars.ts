@@ -17,7 +17,7 @@ import {
   ConsoleLogger,
   AssistantMessageEvent,
   LoopTerminationCheckResult,
-} from '@multimodal/mcp-agent';
+} from '@mcp-agent/core';
 import {
   InMemoryMCPModule,
   AgentTARSOptions,

@@ -10,6 +10,8 @@ import { ProviderOptions, LLMReasoningOptions } from '@multimodal/model-provider
 import { EventStreamOptions } from './event-stream';
 import { LogLevel } from '@agent-infra/logger';
 
+export { LogLevel };
+
 /**
  * Base configuration options for agent identity and behavior
  */

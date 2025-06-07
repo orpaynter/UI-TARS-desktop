@@ -1,7 +1,7 @@
 {
-  "name": "@mcp-agent/core",
+  "name": "@mcp-agent/interface",
   "version": "0.1.7",
-  "description": "An event-stream driven MCP Agent Framework for building effective multimodal Agents.",
+  "description": "Standard protocol, types design, api design for `@mcp-agent/core`.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -25,11 +25,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@multimodal/agent": "workspace:*",
-    "@mcp-agent/interface": "workspace:*",
-    "@agent-infra/mcp-client": "1.1.6-beta.3",
-    "@modelcontextprotocol/sdk": "^1.12.1",
-    "@agent-infra/logger": "0.0.2-beta.2"
+    "@multimodal/agent-interface": "workspace:*"
   },
   "devDependencies": {
     "@rslib/core": "0.5.4",

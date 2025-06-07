@@ -6,38 +6,16 @@
 
 import { Command } from 'cac';
 import path from 'path';
-import { AgentTARSOptions, LogLevel, BrowserControlMode } from '@agent-tars/core';
+import {
+  AgentTARSOptions,
+  LogLevel,
+  BrowserControlMode,
+  AgentTARSCLIArguments,
+} from '@agent-tars/interface';
 import { mergeCommandLineOptions, logger } from '../utils';
 import { loadTarsConfig } from '../config/loader';
 
 export const DEFAULT_PORT = 8888;
-
-/**
- * Common interface for command options
- * Used to define the shape of options shared between CLI commands
- */
-export interface CommonCommandOptions {
-  port?: number;
-  config?: string[];
-  logLevel?: string;
-  debug?: boolean;
-  quiet?: boolean;
-  provider?: string;
-  model?: string;
-  apiKey?: string;
-  baseURL?: string;
-  stream?: boolean;
-  thinking?: boolean;
-  pe?: boolean;
-  workspace?: string;
-  browserControl?: string;
-  planner?: boolean;
-  shareProvider?: string;
-  agioProvider?: string;
-  enableSnapshot?: boolean;
-  snapshotPath?: string;
-  [key: string]: any; // Allow additional properties
-}
 
 /**
  * Helper to convert string log level to enum
@@ -127,7 +105,7 @@ export function addCommonOptions(command: Command): Command {
  * Process common command options and prepare configuration
  * Handles option parsing, config loading, and merging for reuse across commands
  */
-export async function processCommonOptions(options: CommonCommandOptions): Promise<{
+export async function processCommonOptions(options: AgentTARSCLIArguments): Promise<{
   mergedConfig: AgentTARSOptions;
   isDebug: boolean;
   agioProvider?: string;

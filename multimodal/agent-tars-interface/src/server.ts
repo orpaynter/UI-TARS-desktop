@@ -1,6 +1,10 @@
-import { AgentTARSOptions } from '@agent-tars/core';
-import cors from 'cors';
-import { StorageOptions } from '../storage';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/*
+ * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { AgentTARSOptions } from './core';
 
 export interface ServerSnapshotOptions {
   /**
@@ -17,42 +21,41 @@ export interface ServerSnapshotOptions {
 }
 
 /**
- * ServerOptions - Configuration options for the AgentTARSServer
+ * Storage configuration options
+ */
+export interface ServerStorageOptions {
+  /** Storage type: 'memory', 'file', 'sqlite', or 'database' */
+  type: 'memory' | 'file' | 'sqlite' | 'database';
+  /** File path for file-based storage or SQLite database */
+  path?: string;
+  /** Database connection configuration for database storage */
+  database?: {
+    url: string;
+    name?: string;
+    [key: string]: any;
+  };
+}
+
+/**
+ * Agent TARS Server Options
  *
  * Defines all customizable aspects of the server including:
  * - Network configuration (port)
  * - Agent configuration
  * - File system paths
- * - Security settings (CORS)
  * - Storage configuration
  * - Sharing capabilities
  * - AGIO monitoring integration
  */
-export interface ServerOptions {
+export interface AgentTARSServerOptions {
   /**
    * Agent TARS Server port
    */
   port: number;
   /**
-   * Workspace path
+   * Server Storage options.
    */
-  workspacePath?: string;
-  /**
-   * Agent TARS Server options
-   */
-  config?: AgentTARSOptions;
-  /**
-   * CORS options
-   */
-  corsOptions?: cors.CorsOptions;
-  /**
-   * Is debug mode.
-   */
-  isDebug?: boolean;
-  /**
-   * Storage config.
-   */
-  storage?: StorageOptions;
+  storage?: ServerStorageOptions;
   /**
    * Share provider.
    */
@@ -73,23 +76,3 @@ export interface ServerOptions {
    */
   agioProvider?: string;
 }
-
-/**
- * Get default CORS options if none are provided
- */
-export function getDefaultCorsOptions(): cors.CorsOptions {
-  return {
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  };
-}
-
-/**
- * Get effective CORS options (user provided or defaults)
- */
-export function getEffectiveCorsOptions(options: ServerOptions): cors.CorsOptions {
-  return options.corsOptions || getDefaultCorsOptions();
-}
-
-export default ServerOptions;
