@@ -16,18 +16,18 @@ import { AgentTARS, AgentEventStream, AgentTARSAppConfig } from '@agent-tars/cor
  * - user_feedback
  */
 export class AgioProvider implements AgioEvent.AgioProvider {
-  private runId?: string;
-  private runStartTime?: number;
-  private firstTokenTime?: number;
-  private loopStartTimes: Map<number, number> = new Map();
-  private currentIteration = 0;
-  private hasInitialized = false;
+  protected runId?: string;
+  protected runStartTime?: number;
+  protected firstTokenTime?: number;
+  protected loopStartTimes: Map<number, number> = new Map();
+  protected currentIteration = 0;
+  protected hasInitialized = false;
 
   constructor(
-    private providerUrl: string,
-    private appConfig: AgentTARSAppConfig,
-    private sessionId: string,
-    private agent: AgentTARS,
+    protected providerUrl: string,
+    protected appConfig: AgentTARSAppConfig,
+    protected sessionId: string,
+    protected agent: AgentTARS,
   ) {
     this.sessionId = sessionId;
     this.agent = agent;
@@ -259,7 +259,8 @@ export class AgioProvider implements AgioEvent.AgioProvider {
   /**
    * Send an AGIO event to the configured provider
    */
-  private async sendEvent(event: AgioEvent.ExtendedEvent): Promise<void> {
+
+  protected async sendEvent(event: AgioEvent.ExtendedEvent): Promise<void> {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
