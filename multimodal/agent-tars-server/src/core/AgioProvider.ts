@@ -50,10 +50,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
 
     const resolvedModel = this.agent.getCurrentResolvedModel();
 
-    const event: AgioEvent.AgentInitializedEvent = {
-      type: 'agent_initialized',
-      timestamp: Date.now(),
-      sessionId: this.sessionId,
+    const event = AgioEvent.createEvent('agent_initialized', this.sessionId, {
       config: {
         modelProvider: resolvedModel?.provider,
         modelName: resolvedModel?.id,
@@ -78,7 +75,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
         osVersion: process.version,
         nodeVersion: process.version,
       },
-    };
+    });
 
     await this.sendEvent(event);
   }
@@ -138,14 +135,11 @@ export class AgioProvider implements AgioEvent.AgioProvider {
     this.currentIteration = 0;
     this.loopStartTimes.clear();
 
-    const agioEvent: AgioEvent.AgentRunStartEvent = {
-      type: 'agent_run_start',
-      timestamp: event.timestamp,
-      sessionId: this.sessionId,
+    const agioEvent = AgioEvent.createEvent('agent_run_start', this.sessionId, {
       runId: this.runId,
       content: event.runOptions?.input || '',
       streaming: Boolean(event.runOptions?.stream),
-    };
+    });
 
     await this.sendEvent(agioEvent);
   }
@@ -158,16 +152,13 @@ export class AgioProvider implements AgioEvent.AgioProvider {
 
     const executionTimeMs = Date.now() - this.runStartTime;
 
-    const agioEvent: AgioEvent.AgentRunEndEvent = {
-      type: 'agent_run_end',
-      timestamp: event.timestamp,
-      sessionId: this.sessionId,
+    const agioEvent = AgioEvent.createEvent('agent_run_end', this.sessionId, {
       runId: this.runId,
       executionTimeMs,
       loopCount: event.iterations || this.currentIteration,
       successful: event.status !== 'error',
       error: event.status === 'error' ? { message: 'Agent execution failed' } : undefined,
-    };
+    });
 
     await this.sendEvent(agioEvent);
 
@@ -186,13 +177,10 @@ export class AgioProvider implements AgioEvent.AgioProvider {
       this.firstTokenTime = Date.now();
       const ttftMs = this.firstTokenTime - this.runStartTime;
 
-      const agioEvent: AgioEvent.TTFTEvent = {
-        type: 'agent_ttft',
-        timestamp: event.timestamp,
-        sessionId: this.sessionId,
+      const agioEvent = AgioEvent.createEvent('agent_ttft', this.sessionId, {
         runId: this.runId,
         ttftMs,
-      };
+      });
 
       await this.sendEvent(agioEvent);
     }
@@ -205,17 +193,14 @@ export class AgioProvider implements AgioEvent.AgioProvider {
     // Sanitize arguments to remove sensitive data
     const sanitizedArgs = this.sanitizeArguments(event.arguments);
 
-    const agioEvent: AgioEvent.ToolCallEvent = {
-      type: 'tool_call',
-      timestamp: event.timestamp,
-      sessionId: this.sessionId,
+    const agioEvent = AgioEvent.createEvent('tool_call', this.sessionId, {
       runId: this.runId,
       toolName: event.name,
       toolCallId: event.toolCallId,
       arguments: sanitizedArgs,
       isCustomTool: !this.isBuiltInTool(event.name),
       mcpServer: this.extractMCPServer(event.name),
-    };
+    });
 
     await this.sendEvent(agioEvent);
   }
@@ -224,10 +209,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
    * Handle tool result events
    */
   private async handleToolResult(event: AgentEventStream.ToolResultEvent): Promise<void> {
-    const agioEvent: AgioEvent.ToolResultEvent = {
-      type: 'tool_result',
-      timestamp: event.timestamp,
-      sessionId: this.sessionId,
+    const agioEvent = AgioEvent.createEvent('tool_result', this.sessionId, {
       runId: this.runId,
       toolName: event.name,
       toolCallId: event.toolCallId,
@@ -235,7 +217,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
       successful: !event.error,
       resultSize: this.calculateResultSize(event.content),
       contentType: this.determineContentType(event.content),
-    };
+    });
 
     await this.sendEvent(agioEvent);
   }
@@ -247,13 +229,10 @@ export class AgioProvider implements AgioEvent.AgioProvider {
     this.currentIteration++;
     this.loopStartTimes.set(this.currentIteration, Date.now());
 
-    const agioEvent: AgioEvent.LoopStartEvent = {
-      type: 'agent_loop_start',
-      timestamp: Date.now(),
-      sessionId: this.sessionId,
+    const agioEvent = AgioEvent.createEvent('agent_loop_start', this.sessionId, {
       runId: this.runId,
       iteration: this.currentIteration,
-    };
+    });
 
     await this.sendEvent(agioEvent);
   }
@@ -267,14 +246,11 @@ export class AgioProvider implements AgioEvent.AgioProvider {
 
     const durationMs = Date.now() - startTime;
 
-    const agioEvent: AgioEvent.LoopEndEvent = {
-      type: 'agent_loop_end',
-      timestamp: event.timestamp,
-      sessionId: this.sessionId,
+    const agioEvent = AgioEvent.createEvent('agent_loop_end', this.sessionId, {
       runId: this.runId,
       iteration: this.currentIteration,
       durationMs,
-    };
+    });
 
     await this.sendEvent(agioEvent);
     this.loopStartTimes.delete(this.currentIteration);
@@ -283,7 +259,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
   /**
    * Send an AGIO event to the configured provider
    */
-  private async sendEvent(event: AgioEvent.Event): Promise<void> {
+  private async sendEvent(event: AgioEvent.ExtendedEvent): Promise<void> {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout

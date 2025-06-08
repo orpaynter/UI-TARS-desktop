@@ -347,10 +347,10 @@ export namespace AgioEvent {
 
   /**
    * Extension interface for custom Agio event types
-   * 
+   *
    * This allows third-party libraries to extend the Agio protocol with their own event types
    * while maintaining type safety and consistency with the core schema.
-   * 
+   *
    * @example
    * ```typescript
    * // Define custom events
@@ -362,14 +362,14 @@ export namespace AgioEvent {
    *     unit: string;
    *   };
    * }
-   * 
+   *
    * // Extend the namespace
    * declare module '@multimodal/agio' {
    *   namespace AgioEvent {
    *     interface Extensions extends CustomAgioEvents {}
    *   }
    * }
-   * 
+   *
    * // Now you can use the extended types
    * const customEvent: AgioEvent.ExtendedEvent = {
    *   type: 'custom_metric',
@@ -396,10 +396,98 @@ export namespace AgioEvent {
   /**
    * Type-safe payload extraction for extended events
    */
-  export type ExtendedEventPayload<T extends ExtendedEventType> = 
-    T extends EventType 
-      ? EventPayload<T>
-      : T extends keyof Extensions
-        ? Extensions[T] & BaseEvent
-        : never;
+  export type ExtendedEventPayload<T extends ExtendedEventType> = T extends EventType
+    ? EventPayload<T>
+    : T extends keyof Extensions
+      ? Extensions[T] & BaseEvent
+      : never;
+
+  /**
+   * Create a type-safe Agio event with automatic timestamp and proper typing
+   * Supports both core events and extended custom events
+   *
+   * @template T The event type (core or extended)
+   * @param type The event type identifier
+   * @param sessionId The session identifier
+   * @param payload The event-specific payload (excluding type, timestamp, sessionId)
+   * @returns A complete, type-safe Agio event
+   *
+   * @example
+   * ```typescript
+   * // Core event
+   * const ttftEvent = createEvent('agent_ttft', 'session-123', {
+   *   runId: 'run-456',
+   *   ttftMs: 150
+   * });
+   *
+   * // Extended event (if Extensions are declared)
+   * const customEvent = createEvent('custom_metric', 'session-123', {
+   *   metricName: 'quality',
+   *   value: 0.95,
+   *   unit: 'score'
+   * });
+   * ```
+   */
+  export function createEvent<T extends AgioEvent.ExtendedEventType>(
+    type: T,
+    sessionId: string,
+    payload: Omit<AgioEvent.ExtendedEventPayload<T>, 'type' | 'timestamp' | 'sessionId'>,
+  ): AgioEvent.ExtendedEventPayload<T> {
+    return {
+      type,
+      timestamp: Date.now(),
+      sessionId,
+      ...payload,
+    } as AgioEvent.ExtendedEventPayload<T>;
+  }
+
+  /**
+   * Create multiple events at once with the same session ID
+   * Useful for batch event creation
+   *
+   * @param sessionId The session identifier for all events
+   * @param events Array of event definitions with type and payload
+   * @returns Array of complete, type-safe Agio events
+   *
+   * @example
+   * ```typescript
+   * const events = createEvents('session-123', [
+   *   { type: 'agent_run_start', payload: { content: 'Hello', streaming: false } },
+   *   { type: 'agent_ttft', payload: { ttftMs: 150 } }
+   * ]);
+   * ```
+   */
+  export function createEvents<T extends AgioEvent.ExtendedEventType>(
+    sessionId: string,
+    events: Array<{
+      type: T;
+      payload: Omit<AgioEvent.ExtendedEventPayload<T>, 'type' | 'timestamp' | 'sessionId'>;
+    }>,
+  ): Array<AgioEvent.ExtendedEventPayload<T>> {
+    return events.map(({ type, payload }) => createEvent(type, sessionId, payload));
+  }
+
+  /**
+   * Utility function to check if an event is of a specific type
+   * Provides type narrowing for event processing
+   *
+   * @template T The event type to check for
+   * @param event The event to check
+   * @param type The expected event type
+   * @returns Type predicate indicating if event matches the type
+   *
+   * @example
+   * ```typescript
+   * if (isEventType(event, 'agent_ttft')) {
+   *   // event is now typed as TTFTEvent
+   *   console.log(event.ttftMs);
+   * }
+   * ```
+   */
+  export function isEventType<T extends AgioEvent.ExtendedEventType>(
+    event: AgioEvent.ExtendedEvent,
+    type: T,
+  ): event is AgioEvent.ExtendedEventPayload<T> {
+    return event.type === type;
+  }
 }
