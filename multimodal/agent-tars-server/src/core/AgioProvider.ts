@@ -8,18 +8,7 @@ import { AgioEvent } from '@multimodal/agio';
 import { AgentTARS, AgentEventStream, AgentTARSAppConfig } from '@agent-tars/core';
 
 /**
- * AgioProvider - Collects and sends AGIO monitoring events to configured providers
- *
- * This class implements the AGIO (Agent Insights and Observations) protocol
- * for server-side monitoring of agent operations. It transforms internal
- * agent events into standardized AGIO events and sends them to configured
- * monitoring endpoints.
- *
- * Key responsibilities:
- * - Convert Agent Event Stream events to AGIO monitoring events
- * - Handle event buffering and reliable delivery
- * - Manage provider communication and error handling
- * - Ensure privacy by sanitizing sensitive data
+ * AgioProvider, default impl
  *
  * FIXME: we do not implement following events for now:
  * - agent_cleanup
