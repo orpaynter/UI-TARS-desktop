@@ -344,4 +344,62 @@ export namespace AgioEvent {
      */
     processAgentEvent(event: AgentEventStream.Event): Promise<void>;
   }
+
+  /**
+   * Extension interface for custom Agio event types
+   * 
+   * This allows third-party libraries to extend the Agio protocol with their own event types
+   * while maintaining type safety and consistency with the core schema.
+   * 
+   * @example
+   * ```typescript
+   * // Define custom events
+   * interface CustomAgioEvents {
+   *   'custom_metric': {
+   *     type: 'custom_metric';
+   *     metricName: string;
+   *     value: number;
+   *     unit: string;
+   *   };
+   * }
+   * 
+   * // Extend the namespace
+   * declare module '@multimodal/agio' {
+   *   namespace AgioEvent {
+   *     interface Extensions extends CustomAgioEvents {}
+   *   }
+   * }
+   * 
+   * // Now you can use the extended types
+   * const customEvent: AgioEvent.ExtendedEvent = {
+   *   type: 'custom_metric',
+   *   timestamp: Date.now(),
+   *   sessionId: 'session-123',
+   *   metricName: 'response_quality',
+   *   value: 0.95,
+   *   unit: 'score'
+   * };
+   * ```
+   */
+  export interface Extensions {}
+
+  /**
+   * Extended event type that includes both core and custom events
+   */
+  export type ExtendedEvent = Event | (Extensions[keyof Extensions] & BaseEvent);
+
+  /**
+   * Extended event type union for type guards and filtering
+   */
+  export type ExtendedEventType = EventType | keyof Extensions;
+
+  /**
+   * Type-safe payload extraction for extended events
+   */
+  export type ExtendedEventPayload<T extends ExtendedEventType> = 
+    T extends EventType 
+      ? EventPayload<T>
+      : T extends keyof Extensions
+        ? Extensions[T] & BaseEvent
+        : never;
 }
