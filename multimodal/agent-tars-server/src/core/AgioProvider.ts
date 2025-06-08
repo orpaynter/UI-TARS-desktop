@@ -42,6 +42,9 @@ export class AgioProvider {
   ) {
     this.sessionId = sessionId;
     this.agent = agent;
+    // Since Options are transparent in the entire architecture and gradually shrink downward,
+    // this method is the safest way to get Options with default values ​​processed by each layer.
+    this.appConfig = agent.getOptions();
   }
 
   /**
