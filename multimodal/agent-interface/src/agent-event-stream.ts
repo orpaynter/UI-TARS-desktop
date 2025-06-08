@@ -23,16 +23,17 @@ import { AgentSingleLoopReponse } from './agent-instance';
  * - Hierarchical categorization of events by functional area
  * - Strict typing for all event payloads
  * - Support for both real-time streaming and batch processing scenarios
+ * - Extensible through module augmentation for custom events
  */
 export namespace AgentEventStream {
   /**
-   * Event type categories for the Agent framework's internal event stream
+   * Core event type categories for the Agent framework's internal event stream
    *
    * These events track the detailed conversation flow and state changes
    * within individual agent sessions, providing granular visibility into
    * the agent's reasoning and execution process.
    */
-  export type EventType =
+  export type CoreEventType =
     /**
      * Conversation flow events - track the primary dialogue between user and assistant
      */
@@ -81,7 +82,7 @@ export namespace AgentEventStream {
     id: string;
 
     /** The type of event */
-    type: EventType;
+    type: string;
 
     /** Timestamp when the event was created */
     timestamp: number;
@@ -383,30 +384,60 @@ export namespace AgentEventStream {
   }
 
   /**
-   * Union of all event types in the Agent event stream
+   * Core event mappings for built-in event types
    */
-  export type Event =
-    | UserMessageEvent
-    | AssistantMessageEvent
-    | AssistantThinkingMessageEvent
-    | ToolCallEvent
-    | ToolResultEvent
-    | SystemEvent
-    | AssistantStreamingMessageEvent
-    | AssistantStreamingThinkingMessageEvent
-    | AgentRunStartEvent
-    | AgentRunEndEvent
-    | EnvironmentInputEvent
-    | PlanStartEvent
-    | PlanUpdateEvent
-    | PlanFinishEvent
-    | FinalAnswerEvent
-    | FinalAnswerStreamingEvent;
+  export interface CoreEventMapping {
+    user_message: UserMessageEvent;
+    assistant_message: AssistantMessageEvent;
+    assistant_thinking_message: AssistantThinkingMessageEvent;
+    assistant_streaming_message: AssistantStreamingMessageEvent;
+    assistant_streaming_thinking_message: AssistantStreamingThinkingMessageEvent;
+    tool_call: ToolCallEvent;
+    tool_result: ToolResultEvent;
+    system: SystemEvent;
+    agent_run_start: AgentRunStartEvent;
+    agent_run_end: AgentRunEndEvent;
+    environment_input: EnvironmentInputEvent;
+    plan_start: PlanStartEvent;
+    plan_update: PlanUpdateEvent;
+    plan_finish: PlanFinishEvent;
+    final_answer: FinalAnswerEvent;
+    final_answer_streaming: FinalAnswerStreamingEvent;
+  }
+
+  /**
+   * Extended event mapping interface for module augmentation
+   * Third-party modules can extend this interface to add custom event mappings
+   */
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  export interface ExtendedEventMapping {
+    // This interface is intentionally empty and serves as an extension point
+  }
+
+  /**
+   * Combined event mapping that includes both core and extended events
+   */
+  export type EventMapping = CoreEventMapping & ExtendedEventMapping;
+
+  /**
+   * Combined event type that includes both core and extended event types
+   * Derived from the keys of EventMapping for single source of truth
+   */
+  export type EventType = keyof EventMapping;
+
+  /**
+   * Union of all event types in the Agent event stream
+   * Now supports both core and extended events through module augmentation
+   */
+  export type Event = EventMapping[EventType];
 
   /**
    * Event payload type - provides type safety for event creation
+   * Now supports extended event types through module augmentation
    */
-  export type EventPayload<T extends EventType> = Extract<Event, { type: T }>;
+  export type EventPayload<T extends EventType> = T extends keyof EventMapping
+    ? EventMapping[T]
+    : never;
 
   /**
    * Event stream options for configuring the event stream processor
