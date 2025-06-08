@@ -4,6 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { AgioEvent } from '@multimodal/agio';
+import { AgentTARSAppConfig } from './config';
+import { IAgent } from '@mcp-agent/interface';
+
 export interface ServerSnapshotOptions {
   /**
    * Whether to enable snapshots for agent sessions
@@ -94,3 +98,10 @@ export interface AgentTARSServerOptions {
    */
   snapshot?: ServerSnapshotOptions;
 }
+
+export type TConstructor<T, U extends unknown[] = unknown[]> = new (...args: U) => T;
+
+export type AgioProviderImpl = TConstructor<
+  AgioEvent.AgioProvider,
+  [string, AgentTARSAppConfig, string, IAgent]
+>;

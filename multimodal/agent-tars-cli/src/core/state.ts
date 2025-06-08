@@ -1,7 +1,9 @@
-import { AgioEvent } from '@multimodal/agio';
+import { AgioProviderImpl } from '@agent-tars/interface';
+
+export type TConstructor<T, U extends unknown[] = unknown[]> = new (...args: U) => T;
 
 export interface BootstrapCliOptions {
-  agioProvider?: AgioEvent.AgioProvider;
+  agioProvider?: AgioProviderImpl;
   remoteConfig?: string;
 }
 

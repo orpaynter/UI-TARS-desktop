@@ -280,6 +280,9 @@ importers:
       '@mcp-agent/interface':
         specifier: workspace:*
         version: link:../mcp-agent-interface
+      '@multimodal/agio':
+        specifier: workspace:*
+        version: link:../agio
     devDependencies:
       '@rslib/core':
         specifier: 0.5.4

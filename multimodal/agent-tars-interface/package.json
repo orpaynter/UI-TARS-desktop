@@ -25,7 +25,8 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@mcp-agent/interface": "workspace:*"
+    "@mcp-agent/interface": "workspace:*",
+    "@multimodal/agio": "workspace:*"
   },
   "devDependencies": {
     "@rslib/core": "0.5.4",

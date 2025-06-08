@@ -11,7 +11,7 @@ import { StorageProvider, createStorageProvider } from './storage';
 import { Server as SocketIOServer } from 'socket.io';
 import { LogLevel } from '@agent-tars/core';
 import { AgioEvent } from '@multimodal/agio';
-import type { AgentTARSAppConfig } from './types';
+import type { AgentTARSAppConfig, AgioProviderImpl } from './types';
 import type { AgentSession } from './core';
 
 export { express };
@@ -21,7 +21,7 @@ export { express };
  */
 export interface ServerInjectionOptions {
   /** Custom AGIO provider implementation */
-  agioProvider?: AgioEvent.AgioProvider;
+  agioProvider?: AgioProviderImpl;
 }
 
 /**
@@ -49,7 +49,7 @@ export class AgentTARSServer {
   public storageUnsubscribes: Record<string, () => void> = {};
 
   // Dependency injection
-  private customAgioProvider?: AgioEvent.AgioProvider;
+  private customAgioProvider?: AgioProviderImpl;
 
   // Configuration
   public readonly port: number;
@@ -91,7 +91,7 @@ export class AgentTARSServer {
    * Get the custom AGIO provider if injected
    * @returns Custom AGIO provider or undefined
    */
-  getCustomAgioProvider(): AgioEvent.AgioProvider | undefined {
+  getCustomAgioProvider(): AgioProviderImpl | undefined {
     return this.customAgioProvider;
   }
 
