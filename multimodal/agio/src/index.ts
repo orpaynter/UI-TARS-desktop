@@ -45,7 +45,6 @@ export namespace AgioEvent {
     | 'agent_initialized'
     | 'agent_run_start'
     | 'agent_run_end'
-    | 'agent_cleanup'
 
     /**
      * Performance metrics - for monitoring service quality

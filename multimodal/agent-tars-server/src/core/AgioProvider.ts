@@ -11,7 +11,6 @@ import { AgentTARS, AgentEventStream, AgentTARSAppConfig } from '@agent-tars/cor
  * AgioProvider, default impl
  *
  * FIXME: we do not implement following events for now:
- * - agent_cleanup
  * - agent_tps
  * - user_feedback
  */

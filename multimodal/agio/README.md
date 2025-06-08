@@ -304,7 +304,6 @@ Agio provides standardized events for:
 - `agent_initialized` - Agent session creation with configuration details
 - `agent_run_start` - Task initiation with user input
 - `agent_run_end` - Task completion with execution metrics
-- `agent_cleanup` - Session cleanup and resource deallocation
 
 ### Performance Metrics
 - `agent_ttft` - Time To First Token (critical UX metric)
