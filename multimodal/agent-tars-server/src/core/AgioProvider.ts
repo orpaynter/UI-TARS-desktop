@@ -5,12 +5,7 @@
  */
 
 import { AgioEvent } from '@multimodal/agio';
-import {
-  AgentTARSOptions,
-  AgentTARS,
-  AgentEventStream,
-  AgentTARSAppConfig,
-} from '@agent-tars/core';
+import { AgentTARS, AgentEventStream, AgentTARSAppConfig } from '@agent-tars/core';
 
 /**
  * AgioProvider - Collects and sends AGIO monitoring events to configured providers
@@ -25,6 +20,11 @@ import {
  * - Handle event buffering and reliable delivery
  * - Manage provider communication and error handling
  * - Ensure privacy by sanitizing sensitive data
+ *
+ * FIXME: we do not implement following events for now:
+ * - agent_cleanup
+ * - agent_tps
+ * - user_feedback
  */
 export class AgioProvider {
   private runId?: string;
