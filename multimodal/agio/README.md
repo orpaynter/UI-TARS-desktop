@@ -68,6 +68,105 @@ const initEvent: AgioEvent.AgentInitializedEvent = {
 yourMonitoringSystem.track(initEvent);
 ```
 
+### Type-Safe Event Creation with Utility Functions
+
+Agio provides convenient utility functions for creating events with automatic timestamp generation and type safety:
+
+#### Creating Single Events
+
+```typescript
+import { AgioEvent } from '@multimodal/agio';
+
+// Create a TTFT event with automatic timestamp
+const ttftEvent = AgioEvent.createEvent('agent_ttft', 'session-123', {
+  runId: 'run-456',
+  ttftMs: 150
+});
+
+// Create a tool call event
+const toolCallEvent = AgioEvent.createEvent('tool_call', 'session-123', {
+  runId: 'run-456',
+  toolName: 'web_search',
+  toolCallId: 'call-789',
+  isCustomTool: false,
+  mcpServer: 'search-server'
+});
+
+// Create an agent run end event with comprehensive metrics
+const runEndEvent = AgioEvent.createEvent('agent_run_end', 'session-123', {
+  runId: 'run-456',
+  executionTimeMs: 5000,
+  loopCount: 3,
+  successful: true,
+  tokenUsage: {
+    input: 150,
+    output: 75,
+    total: 225
+  }
+});
+```
+
+#### Creating Multiple Events
+
+For batch event creation, use `createEvents` to generate multiple events with the same session ID:
+
+```typescript
+import { AgioEvent } from '@multimodal/agio';
+
+// Create multiple events at once
+const events = AgioEvent.createEvents('session-123', [
+  {
+    type: 'agent_run_start',
+    payload: {
+      runId: 'run-456',
+      content: 'Please help me analyze this data',
+      streaming: false
+    }
+  },
+  {
+    type: 'agent_ttft',
+    payload: {
+      runId: 'run-456',
+      ttftMs: 150
+    }
+  },
+  {
+    type: 'agent_tps',
+    payload: {
+      runId: 'run-456',
+      tps: 25.5,
+      tokenCount: 100,
+      durationMs: 4000,
+      modelName: 'gpt-4'
+    }
+  }
+]);
+
+// Send all events to your monitoring system
+events.forEach(event => yourMonitoringSystem.track(event));
+```
+
+#### Type Checking Events
+
+Use the `isEventType` utility for type-safe event processing:
+
+```typescript
+import { AgioEvent } from '@multimodal/agio';
+
+function processEvent(event: AgioEvent.ExtendedEvent) {
+  if (AgioEvent.isEventType(event, 'agent_ttft')) {
+    // event is now typed as TTFTEvent
+    console.log(`TTFT: ${event.ttftMs}ms`);
+  } else if (AgioEvent.isEventType(event, 'tool_call')) {
+    // event is now typed as ToolCallEvent
+    console.log(`Tool called: ${event.toolName}`);
+  } else if (AgioEvent.isEventType(event, 'agent_run_end')) {
+    // event is now typed as AgentRunEndEvent
+    console.log(`Run completed in ${event.executionTimeMs}ms`);
+  }
+}
+```
+
 ### Implementing an Agio Provider
 
 ```typescript
@@ -88,31 +187,6 @@ class MyAgioProvider implements AgioEvent.AgioProvider {
     }
   }
 }
-```
-
-### Type-Safe Event Creation
-
-```typescript
-import { AgioEvent } from '@multimodal/agio';
-
-// Type-safe event payload creation
-function createEvent<T extends AgioEvent.EventType>(
-  type: T,
-  sessionId: string,
-  payload: Omit<AgioEvent.EventPayload<T>, 'type' | 'timestamp' | 'sessionId'>
-): AgioEvent.EventPayload<T> {
-  return {
-    type,
-    timestamp: Date.now(),
-    sessionId,
-    ...payload,
-  } as AgioEvent.EventPayload<T>;
-}
-
-// Usage
-const ttftEvent = createEvent('agent_ttft', 'session-123', {
-  ttftMs: 150,
-});
 ```
 
 ## Extending Agio
@@ -148,20 +222,38 @@ declare module '@multimodal/agio' {
 }
 
 // 3. Use your custom events with full type safety
-const customEvent: AgioEvent.ExtendedEvent = {
-  type: 'custom_performance_metric',
-  timestamp: Date.now(),
-  sessionId: 'session-123',
+const customEvent: AgioEvent.ExtendedEvent = AgioEvent.createEvent('custom_performance_metric', 'session-123', {
   metricName: 'response_quality',
   value: 0.95,
   unit: 'score',
   category: 'quality'
-};
+});
 
 // 4. Type-safe event filtering
 function isCustomEvent(event: AgioEvent.ExtendedEvent): event is AgioEvent.ExtendedEventPayload<'custom_performance_metric'> {
-  return event.type === 'custom_performance_metric';
+  return AgioEvent.isEventType(event, 'custom_performance_metric');
 }
+
+// 5. Create multiple custom events
+const customEvents = AgioEvent.createEvents('session-123', [
+  {
+    type: 'custom_performance_metric',
+    payload: {
+      metricName: 'response_quality',
+      value: 0.95,
+      unit: 'score',
+      category: 'quality'
+    }
+  },
+  {
+    type: 'business_event',
+    payload: {
+      eventName: 'feature_used',
+      properties: { feature: 'advanced_search' },
+      userId: 'user-456'
+    }
+  }
+]);
 ```
 
 ### Best Practices for Extensions
@@ -236,55 +328,6 @@ The complete JSON schema is available for validation and integration with monito
 - Validate events before sending to analytics systems
 - Generate documentation for your monitoring infrastructure
 - Ensure compliance with the Agio standard in your implementations
-
-## Integration Examples
-
-### With Analytics Systems
-
-```typescript
-// Example integration with analytics platform
-class AnalyticsAgioProvider implements AgioEvent.AgioProvider {
-  constructor(private analytics: AnalyticsClient) {}
-
-  async sendAgentInitialized(): Promise<void> {
-    const event: AgioEvent.AgentInitializedEvent = {
-      type: 'agent_initialized',
-      timestamp: Date.now(),
-      sessionId: this.sessionId,
-      config: this.getAgentConfig(),
-      system: this.getSystemInfo(),
-    };
-    
-    await this.analytics.track('agio_event', event);
-  }
-
-  async processAgentEvent(event: AgentEventStream.Event): Promise<void> {
-    // Transform and forward to analytics
-    const agioEvent = this.transformEvent(event);
-    await this.analytics.track('agio_event', agioEvent);
-  }
-}
-```
-
-### With Custom Monitoring
-
-```typescript
-// Example custom monitoring implementation
-class CustomMonitoringProvider implements AgioEvent.AgioProvider {
-  async sendAgentInitialized(): Promise<void> {
-    // Send to custom monitoring endpoint
-    await fetch('/api/monitoring/agio', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(event),
-    });
-  }
-
-  async processAgentEvent(event: AgentEventStream.Event): Promise<void> {
-    // Custom processing logic
-  }
-}
-```
 
 ## Contributing
 
