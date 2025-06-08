@@ -71,7 +71,7 @@ export namespace AgioEvent {
    */
   export interface BaseEvent {
     /** Event type */
-    type: EventType;
+    type: EventType | string;
 
     /** Timestamp when the event was created */
     timestamp: number;
@@ -386,7 +386,7 @@ export namespace AgioEvent {
   /**
    * Extended event type that includes both core and custom events
    */
-  export type ExtendedEvent = Event | (Extensions[keyof Extensions] & BaseEvent);
+  export type ExtendedEvent = Event | Extensions[keyof Extensions];
 
   /**
    * Extended event type union for type guards and filtering
@@ -399,7 +399,7 @@ export namespace AgioEvent {
   export type ExtendedEventPayload<T extends ExtendedEventType> = T extends EventType
     ? EventPayload<T>
     : T extends keyof Extensions
-      ? Extensions[T] & BaseEvent
+      ? Extensions[T]
       : never;
 
   /**
@@ -428,17 +428,17 @@ export namespace AgioEvent {
    * });
    * ```
    */
-  export function createEvent<T extends AgioEvent.ExtendedEventType>(
+  export function createEvent<T extends ExtendedEventType>(
     type: T,
     sessionId: string,
-    payload: Omit<AgioEvent.ExtendedEventPayload<T>, 'type' | 'timestamp' | 'sessionId'>,
-  ): AgioEvent.ExtendedEventPayload<T> {
+    payload: Omit<ExtendedEventPayload<T>, 'type' | 'timestamp' | 'sessionId'>,
+  ): ExtendedEventPayload<T> {
     return {
       type,
       timestamp: Date.now(),
       sessionId,
       ...payload,
-    } as AgioEvent.ExtendedEventPayload<T>;
+    } as ExtendedEventPayload<T>;
   }
 
   /**
@@ -457,13 +457,13 @@ export namespace AgioEvent {
    * ]);
    * ```
    */
-  export function createEvents<T extends AgioEvent.ExtendedEventType>(
+  export function createEvents<T extends ExtendedEventType>(
     sessionId: string,
     events: Array<{
       type: T;
-      payload: Omit<AgioEvent.ExtendedEventPayload<T>, 'type' | 'timestamp' | 'sessionId'>;
+      payload: Omit<ExtendedEventPayload<T>, 'type' | 'timestamp' | 'sessionId'>;
     }>,
-  ): Array<AgioEvent.ExtendedEventPayload<T>> {
+  ): Array<ExtendedEventPayload<T>> {
     return events.map(({ type, payload }) => createEvent(type, sessionId, payload));
   }
 
@@ -484,10 +484,10 @@ export namespace AgioEvent {
    * }
    * ```
    */
-  export function isEventType<T extends AgioEvent.ExtendedEventType>(
-    event: AgioEvent.ExtendedEvent,
+  export function isEventType<T extends ExtendedEventType>(
+    event: ExtendedEvent,
     type: T,
-  ): event is AgioEvent.ExtendedEventPayload<T> {
+  ): event is ExtendedEventPayload<T> {
     return event.type === type;
   }
 }
