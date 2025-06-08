@@ -219,6 +219,9 @@ importers:
       '@agent-tars/web-ui':
         specifier: workspace:*
         version: link:../agent-tars-web-ui
+      '@multimodal/agio':
+        specifier: workspace:*
+        version: link:../agio
       '@multimodal/config-loader':
         specifier: workspace:*
         version: link:../config-loader
