@@ -93,7 +93,7 @@ function isUrl(str: string): boolean {
  * When multiple configurations are provided, they are merged sequentially with
  * later configs taking precedence over earlier ones.
  *
- * @param configPath Path(s) to config files or URL(s), can be a string array
+ * @param configPaths Path(s) to config files or URL(s), can be a string array
  * @param isDebug Whether to output debug information
  * @returns Merged configuration object
  *
@@ -117,11 +117,11 @@ function isUrl(str: string): boolean {
  * ]);
  */
 export async function loadTarsConfig(
-  configPath?: string[],
+  configPaths?: string[],
   isDebug = false,
 ): Promise<AgentTARSAppConfig> {
   // Handle no config case - try to load from default locations
-  if (!configPath || configPath.length === 0) {
+  if (!configPaths || configPaths.length === 0) {
     try {
       const { content, filePath } = await loadConfig<AgentTARSAppConfig>({
         cwd: process.cwd(),
@@ -146,7 +146,7 @@ export async function loadTarsConfig(
   let mergedConfig: AgentTARSAppConfig = {};
 
   // Process each config path in order, merging sequentially
-  for (const path of configPath) {
+  for (const path of configPaths) {
     let config: AgentTARSAppConfig = {};
 
     if (isUrl(path)) {

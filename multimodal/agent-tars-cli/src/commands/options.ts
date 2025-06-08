@@ -3,6 +3,7 @@ import { AgentTARSCLIArguments, AgentTARSAppConfig } from '@agent-tars/interface
 import { logger } from '../utils';
 import { loadTarsConfig } from '../config/loader';
 import { ConfigBuilder } from '../config/builder';
+import { getBootstrapCliOptions } from '../core/state';
 
 export type { AgentTARSCLIArguments };
 
@@ -129,13 +130,19 @@ export async function processCommonOptions(options: AgentTARSCLIArguments): Prom
   appConfig: AgentTARSAppConfig;
   isDebug: boolean;
 }> {
-  const { config: configPath, debug } = options;
+  const bootstrapCliOptions = getBootstrapCliOptions();
+  const configPaths = options.config ?? [];
 
   // Set debug mode flag
-  const isDebug = !!debug;
+  const isDebug = !!options.debug;
+
+  // bootstrapCliOptions has lowest priority
+  if (bootstrapCliOptions.remoteConfig) {
+    configPaths.unshift(bootstrapCliOptions.remoteConfig);
+  }
 
   // Load user config from file
-  const userConfig = await loadTarsConfig(configPath, isDebug);
+  const userConfig = await loadTarsConfig(configPaths, isDebug);
 
   // Build complete application configuration
   const appConfig = ConfigBuilder.buildAppConfig(options, userConfig);

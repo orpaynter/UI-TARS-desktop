@@ -9,6 +9,7 @@ import http from 'http';
 import { AgentTARSAppConfig } from '@agent-tars/interface';
 import { AgentTARSServer, express } from '@agent-tars/server';
 import { logger } from '../utils';
+import { getBootstrapCliOptions } from './state';
 
 interface UIServerOptions {
   appConfig: AgentTARSAppConfig;
@@ -55,7 +56,9 @@ export async function startInteractiveWebUI(options: UIServerOptions): Promise<h
   appConfig.ui.staticPath = staticPath;
 
   // Create and start the server with config
-  const tarsServer = new AgentTARSServer(appConfig as Required<AgentTARSAppConfig>);
+  const tarsServer = new AgentTARSServer(appConfig as Required<AgentTARSAppConfig>, {
+    agioProvider: getBootstrapCliOptions().agioProvider,
+  });
   const server = await tarsServer.start();
 
   // Get the Express app instance directly from the server

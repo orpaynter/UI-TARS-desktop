@@ -13,6 +13,7 @@ import { startInteractiveWebUI } from '../core/interactive-ui';
 export function registerServeCommand(cli: CAC): void {
   const serveCommand = cli.command('serve', 'Launch a headless Agent TARS Server.');
 
+  // FIXME: correct to real headless mode.
   // Use the common options function to add shared options
   addCommonOptions(serveCommand).action(async (options: AgentTARSCLIArguments = {}) => {
     try {

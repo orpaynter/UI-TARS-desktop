@@ -6,10 +6,14 @@
 import cac from 'cac';
 import { printWelcomeLogo } from './utils';
 import { registerCommands } from './commands';
+import { setBootstrapCliOptions, BootstrapCliOptions } from './core/state';
 
-export function bootstrapCli() {
+export function bootstrapCli(options: BootstrapCliOptions = {}) {
   // Display ASCII art LOGO immediately at program entry
   printWelcomeLogo();
+
+  // Set bootstrap cli options
+  setBootstrapCliOptions(options);
 
   // Create CLI with custom styling
   const cli = cac('tars');
