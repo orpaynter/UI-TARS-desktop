@@ -15,7 +15,7 @@ import { AgentTARS, AgentEventStream, AgentTARSAppConfig } from '@agent-tars/cor
  * - agent_tps
  * - user_feedback
  */
-export class AgioProvider {
+export class AgioProvider implements AgioEvent.AgioProvider {
   private runId?: string;
   private runStartTime?: number;
   private firstTokenTime?: number;

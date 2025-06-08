@@ -29,7 +29,7 @@
  * monitoring infrastructure rather than designing data schemas.
  */
 
-import { ChatCompletionContentPart } from '@multimodal/agent-interface';
+import { AgentEventStream, ChatCompletionContentPart } from '@multimodal/agent-interface';
 
 export namespace AgioEvent {
   /**
@@ -328,4 +328,20 @@ export namespace AgioEvent {
    * Event payload type - provides type safety for event creation
    */
   export type EventPayload<T extends EventType> = Extract<Event, { type: T }>;
+
+  /**
+   * AgioProvider - Standard interface for manage Agio events
+   */
+  export interface AgioProvider {
+    /**
+     * Send agent initialization event
+     * Called when an agent session is created
+     */
+    sendAgentInitialized(): Promise<void>;
+
+    /**
+     * Process agent stream events and convert to AGIO events
+     */
+    processAgentEvent(event: AgentEventStream.Event): Promise<void>;
+  }
 }
