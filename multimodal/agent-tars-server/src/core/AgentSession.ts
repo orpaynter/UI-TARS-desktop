@@ -7,9 +7,10 @@
 import { AgentTARS, AgentEventStream, AgentStatus } from '@agent-tars/core';
 import { AgentSnapshot } from '@multimodal/agent-snapshot';
 import { EventStreamBridge } from '../utils/event-stream';
-import { AgioProvider } from './AgioProvider';
+import { AgioProvider as DefaultAgioProviderImpl } from './AgioProvider';
 import path from 'path';
 import type { AgentTARSServer } from '../server';
+import { AgioEvent } from '@multimodal/agio';
 
 /**
  * AgentSession - Represents a single agent execution context
@@ -27,11 +28,12 @@ export class AgentSession {
   agent: AgentTARS;
   eventBridge: EventStreamBridge;
   private unsubscribe: (() => void) | null = null;
-  private agioProvider?: AgioProvider;
+  private agioProvider?: AgioEvent.AgioProvider;
 
   constructor(
     private server: AgentTARSServer,
     sessionId: string,
+    agioProvider?: AgioEvent.AgioProvider,
   ) {
     this.id = sessionId;
     this.eventBridge = new EventStreamBridge();
@@ -58,8 +60,17 @@ export class AgentSession {
 
     // Initialize AGIO collector if provider URL is configured
     if (appConfig.agio?.provider) {
-      this.agioProvider = new AgioProvider(appConfig.agio?.provider, appConfig, sessionId, agent);
-      agent.logger.debug(`AGIO collector initialized with provider: ${appConfig.agio.provider}`);
+      if (agioProvider) {
+        this.agioProvider = agioProvider;
+      } else {
+        this.agioProvider = new DefaultAgioProviderImpl(
+          appConfig.agio?.provider,
+          appConfig,
+          sessionId,
+          agent,
+        );
+        agent.logger.debug(`AGIO collector initialized with provider: ${appConfig.agio.provider}`);
+      }
     }
   }
 

@@ -10,10 +10,19 @@ import { setupSocketIO } from './core/SocketHandlers';
 import { StorageProvider, createStorageProvider } from './storage';
 import { Server as SocketIOServer } from 'socket.io';
 import { LogLevel } from '@agent-tars/core';
+import { AgioEvent } from '@multimodal/agio';
 import type { AgentTARSAppConfig } from './types';
 import type { AgentSession } from './core';
 
 export { express };
+
+/**
+ * Server injection options for dependency injection
+ */
+export interface ServerInjectionOptions {
+  /** Custom AGIO provider implementation */
+  agioProvider?: AgioEvent.AgioProvider;
+}
 
 /**
  * AgentTARSServer - Main server class for Agent TARS
@@ -39,6 +48,9 @@ export class AgentTARSServer {
   public sessions: Record<string, AgentSession> = {};
   public storageUnsubscribes: Record<string, () => void> = {};
 
+  // Dependency injection
+  private customAgioProvider?: AgioEvent.AgioProvider;
+
   // Configuration
   public readonly port: number;
   public readonly workspacePath?: string;
@@ -46,12 +58,15 @@ export class AgentTARSServer {
   public readonly storageProvider: StorageProvider | null = null;
   public readonly appConfig: Required<AgentTARSAppConfig>;
 
-  constructor(appConfig: Required<AgentTARSAppConfig>) {
+  constructor(appConfig: Required<AgentTARSAppConfig>, injectionOptions?: ServerInjectionOptions) {
     // Initialize options
     this.appConfig = appConfig;
     this.port = appConfig.server.port ?? 3000;
     this.workspacePath = appConfig.workspace?.workingDirectory;
     this.isDebug = appConfig.logLevel === LogLevel.DEBUG;
+
+    // Store injection options
+    this.customAgioProvider = injectionOptions?.agioProvider;
 
     // Initialize Express app and HTTP server
     this.app = express();
@@ -70,6 +85,14 @@ export class AgentTARSServer {
 
     // Make server instance available to request handlers
     this.app.locals.server = this;
+  }
+
+  /**
+   * Get the custom AGIO provider if injected
+   * @returns Custom AGIO provider or undefined
+   */
+  getCustomAgioProvider(): AgioEvent.AgioProvider | undefined {
+    return this.customAgioProvider;
   }
 
   /**

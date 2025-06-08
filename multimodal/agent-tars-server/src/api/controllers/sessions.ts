@@ -65,7 +65,8 @@ export class SessionsController {
         isolateSessions,
       );
 
-      const session = new AgentSession(server, sessionId);
+      // Pass custom AGIO provider if available
+      const session = new AgentSession(server, sessionId, server.getCustomAgioProvider());
       server.sessions[sessionId] = session;
 
       const { storageUnsubscribe } = await session.initialize();
@@ -180,8 +181,8 @@ export class SessionsController {
         const metadata = await server.storageProvider.getSessionMetadata(sessionId);
         if (metadata) {
           try {
-            // Restore session from storage
-            session = new AgentSession(server, sessionId);
+            // Restore session from storage with custom AGIO provider
+            session = new AgentSession(server, sessionId, server.getCustomAgioProvider());
             server.sessions[sessionId] = session;
 
             const { storageUnsubscribe } = await session.initialize();
