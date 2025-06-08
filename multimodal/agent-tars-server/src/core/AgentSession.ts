@@ -59,7 +59,6 @@ export class AgentSession {
     // Initialize AGIO collector if provider URL is configured
     if (appConfig.agio?.provider) {
       this.agioProvider = new AgioProvider(appConfig.agio?.provider, appConfig, sessionId, agent);
-
       agent.logger.debug(`AGIO collector initialized with provider: ${appConfig.agio.provider}`);
     }
   }

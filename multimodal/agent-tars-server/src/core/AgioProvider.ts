@@ -32,6 +32,7 @@ export class AgioProvider {
   private firstTokenTime?: number;
   private loopStartTimes: Map<number, number> = new Map();
   private currentIteration = 0;
+  private hasInitialized = false;
 
   constructor(
     private providerUrl: string,
@@ -48,6 +49,13 @@ export class AgioProvider {
    * Called when an agent session is created
    */
   async sendAgentInitialized(): Promise<void> {
+    // Avoid duplicate initialization event
+    if (this.hasInitialized) {
+      return;
+    }
+
+    this.hasInitialized = true;
+
     const resolvedModel = this.agent.getCurrentResolvedModel();
 
     const event: AgioEvent.AgentInitializedEvent = {
