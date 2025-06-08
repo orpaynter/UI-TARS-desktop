@@ -1,4 +1,5 @@
 {
+  "$ref": "#/definitions/AgioEvent.Event",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
     "AgioEvent.AgentInitializedEvent": {
@@ -231,34 +232,6 @@
       ],
       "type": "object"
     },
-    "AgioEvent.BaseEvent": {
-      "additionalProperties": false,
-      "description": "Base event interface that all monitoring events extend",
-      "properties": {
-        "runId": {
-          "description": "Unique identifier for the task/run within a session",
-          "type": "string"
-        },
-        "sessionId": {
-          "description": "Unique identifier for the agent session",
-          "type": "string"
-        },
-        "timestamp": {
-          "description": "Timestamp when the event was created",
-          "type": "number"
-        },
-        "type": {
-          "$ref": "#/definitions/AgioEvent.EventType",
-          "description": "Event type"
-        }
-      },
-      "required": [
-        "type",
-        "timestamp",
-        "sessionId"
-      ],
-      "type": "object"
-    },
     "AgioEvent.Event": {
       "anyOf": [
         {
@@ -293,23 +266,6 @@
         }
       ],
       "description": "Union type for all Agio monitoring events"
-    },
-    "AgioEvent.EventType": {
-      "description": "Supported event types for Agio server monitoring protocol\n\nUnlike Agent Event Stream events which track individual interactions, these events focus on operational metrics and service health",
-      "enum": [
-        "agent_initialized",
-        "agent_run_start",
-        "agent_run_end",
-        "agent_cleanup",
-        "agent_ttft",
-        "agent_tps",
-        "agent_loop_start",
-        "agent_loop_end",
-        "tool_call",
-        "tool_result",
-        "user_feedback"
-      ],
-      "type": "string"
     },
     "AgioEvent.LoopEndEvent": {
       "additionalProperties": false,
