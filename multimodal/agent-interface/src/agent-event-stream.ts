@@ -10,6 +10,7 @@ import {
   ChatCompletionMessageToolCall,
 } from '@multimodal/model-provider/types';
 import { AgentSingleLoopReponse } from './agent-instance';
+import { AgentRunObjectOptions, AgentRunOptions } from './agent-run-options';
 
 /**
  * AgentEventStream namespace - Defines all event types and structures for the Agent framework's internal event stream
@@ -245,7 +246,7 @@ export namespace AgentEventStream {
     sessionId: string;
 
     /** Runtime options for this execution */
-    runOptions: Record<string, any>;
+    runOptions: AgentRunObjectOptions;
 
     /** Model provider being used */
     provider?: string;

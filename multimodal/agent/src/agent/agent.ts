@@ -435,7 +435,7 @@ Provide concise and accurate responses.`;
    * @returns A safe version of run options for including in events
    * @private
    */
-  private sanitizeRunOptions(options: AgentRunObjectOptions): Record<string, any> {
+  private sanitizeRunOptions(options: AgentRunObjectOptions): AgentRunObjectOptions {
     // Create a copy of the options
     const sanitized = { ...options };
 

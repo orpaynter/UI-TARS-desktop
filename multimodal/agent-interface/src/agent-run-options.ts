@@ -48,15 +48,14 @@ export interface AgentRunBaseOptions {
 /**
  * Object options for running agent in non-streaming mode
  */
-export type AgentRunNonStreamingOptions = AgentRunBaseOptions & { stream?: false };
+export interface AgentRunNonStreamingOptions extends AgentRunBaseOptions {
+  stream?: false;
+}
 
 /**
  * Object options for running agent in streaming mode
  */
 export interface AgentRunStreamingOptions extends AgentRunBaseOptions {
-  /**
-   * Enable streaming mode to receive incremental responses
-   */
   stream: true;
 }
 
