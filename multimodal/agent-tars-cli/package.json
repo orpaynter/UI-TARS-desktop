@@ -31,7 +31,7 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "dependencies": {
+  "devDependencies": {
     "@agent-tars/core": "workspace:*",
     "@agent-tars/server": "workspace:*",
     "@agent-tars/web-ui": "workspace:*",
@@ -47,9 +47,7 @@
     "log-update": "^6.0.0",
     "ora": "^7.0.1",
     "string-width": "^7.0.0",
-    "node-fetch": "2.7.0"
-  },
-  "devDependencies": {
+    "node-fetch": "2.7.0",
     "@yao-pkg/pkg": "6.5.1",
     "vitest": "^3.0.8",
     "@rslib/core": "0.5.4",
