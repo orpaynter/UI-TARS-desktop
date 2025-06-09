@@ -38,7 +38,11 @@ export class AgioProvider implements AgioEvent.AgioProvider {
   /**
    * Calculate actual counts from the agent instance
    */
-  private calculateCounts(): { mcpServersCount: number; toolsCount: number; modelProvidersCount: number } {
+  private calculateCounts(): {
+    mcpServersCount: number;
+    toolsCount: number;
+    modelProvidersCount: number;
+  } {
     // Get tools count from agent
     const toolsCount = this.agent.getTools().length;
 
@@ -77,7 +81,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
         modelProvider: resolvedModel?.provider,
         modelName: resolvedModel?.id,
         toolCallEngine: this.appConfig.toolCallEngine,
-        maxTokens: this.appConfig.maxTokens,
+        maxTokens: this.appConfig.maxTokens!,
         temperature: this.appConfig.temperature,
         maxIterations: this.appConfig.maxIterations,
         browserControl: this.appConfig.browser?.control,
@@ -95,11 +99,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
           this.appConfig.mcpServers && Object.keys(this.appConfig.mcpServers).length > 0,
         ),
       },
-      system: {
-        platform: process.platform,
-        osVersion: process.version,
-        nodeVersion: process.version,
-      },
+
       count: counts,
     });
 

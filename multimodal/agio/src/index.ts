@@ -44,6 +44,11 @@ export namespace AgioEvent {
    */
   export type EventType =
     /**
+     * Agent exectution envinroment
+     */
+    | 'agent_exectution_env'
+
+    /**
      * Agent lifecycle events - track service-level operations
      */
     | 'agent_initialized'
@@ -132,18 +137,6 @@ export namespace AgioEvent {
 
       /** Whether to add some custom MCP servers */
       customMcpServers?: boolean;
-    };
-
-    /** System information for environment tracking */
-    system?: {
-      /** Operating system platform */
-      platform: string;
-
-      /** OS version */
-      osVersion: string;
-
-      /** Node.js version */
-      nodeVersion: string;
     };
 
     count?: {
