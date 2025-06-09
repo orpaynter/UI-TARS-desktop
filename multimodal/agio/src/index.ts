@@ -200,6 +200,9 @@ export namespace AgioEvent {
   export interface TTFTEvent extends BaseEvent {
     type: 'agent_ttft';
 
+    /** Current model name */
+    modelName?: string;
+
     /** Time in milliseconds until first token was received */
     ttftMs: number;
   }

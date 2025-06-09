@@ -21,6 +21,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
   protected loopStartTimes: Map<number, number> = new Map();
   protected currentIteration = 0;
   protected hasInitialized = false;
+  protected modelName?: string;
 
   constructor(
     protected providerUrl: string,
@@ -75,6 +76,8 @@ export class AgioProvider implements AgioEvent.AgioProvider {
 
     const resolvedModel = this.agent.getCurrentResolvedModel();
     const counts = this.calculateCounts();
+
+    this.modelName = resolvedModel?.id;
 
     const event = AgioEvent.createEvent('agent_initialized', this.sessionId, {
       config: {
@@ -239,6 +242,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
 
       const agioEvent = AgioEvent.createEvent('agent_ttft', this.sessionId, {
         runId: this.runId,
+        modelName: this.modelName,
         ttftMs,
       });
 
