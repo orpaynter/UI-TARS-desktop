@@ -10,7 +10,6 @@ import { setupSocketIO } from './core/SocketHandlers';
 import { StorageProvider, createStorageProvider } from './storage';
 import { Server as SocketIOServer } from 'socket.io';
 import { LogLevel } from '@agent-tars/core';
-import { AgioEvent } from '@multimodal/agio';
 import type { AgentTARSAppConfig, AgioProviderImpl } from './types';
 import type { AgentSession } from './core';
 

@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import path from 'path';
 import { AgentTARS, AgentEventStream, AgentStatus, AgioProviderImpl } from '@agent-tars/core';
 import { AgentSnapshot } from '@multimodal/agent-snapshot';
 import { EventStreamBridge } from '../utils/event-stream';
 import { AgioProvider as DefaultAgioProviderImpl } from './AgioProvider';
-import path from 'path';
 import type { AgentTARSServer } from '../server';
 import { AgioEvent } from '@multimodal/agio';
 
@@ -64,6 +64,8 @@ export class AgentSession {
       this.agioProvider = new impl(appConfig.agio?.provider, appConfig, sessionId, agent);
       agent.logger.debug(`AGIO collector initialized with provider: ${appConfig.agio.provider}`);
     }
+
+    agent.logger.info('Agent Config', JSON.stringify(agent.getOptions(), null, 2));
   }
 
   /**
