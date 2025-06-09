@@ -44,11 +44,6 @@ export namespace AgioEvent {
    */
   export type EventType =
     /**
-     * Agent exectution envinroment
-     */
-    | 'agent_exectution_env'
-
-    /**
      * Agent lifecycle events - track service-level operations
      */
     | 'agent_initialized'
