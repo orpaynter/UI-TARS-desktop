@@ -77,6 +77,9 @@ export class AgioProvider implements AgioEvent.AgioProvider {
         modelProvider: resolvedModel?.provider,
         modelName: resolvedModel?.id,
         toolCallEngine: this.appConfig.toolCallEngine,
+        maxTokens: this.appConfig.maxTokens,
+        temperature: this.appConfig.temperature,
+        maxIterations: this.appConfig.maxIterations,
         browserControl: this.appConfig.browser?.control,
         plannerEnabled:
           typeof this.appConfig.planner === 'object'

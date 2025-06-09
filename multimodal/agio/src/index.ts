@@ -29,7 +29,11 @@
  * monitoring infrastructure rather than designing data schemas.
  */
 
-import { AgentEventStream, ChatCompletionContentPart, ToolCallEngineType } from '@multimodal/agent-interface';
+import {
+  AgentEventStream,
+  ChatCompletionContentPart,
+  ToolCallEngineType,
+} from '@multimodal/agent-interface';
 
 export namespace AgioEvent {
   /**
@@ -91,14 +95,25 @@ export namespace AgioEvent {
 
     /** Agent configuration details */
     config: {
+      // LLM Start
       /** The provider of the model */
       modelProvider?: string;
 
       /** The name of the model */
       modelName?: string;
 
+      /** Max tokens */
+      maxTokens?: number;
+
+      /** Remperature */
+      temperature?: number;
+
+      // Agent Start
       /** Tool call engine type */
       toolCallEngine?: ToolCallEngineType;
+
+      /** Max iterations for agent */
+      maxIterations?: number;
 
       /** Browser control mode */
       browserControl?: string;
