@@ -20,16 +20,9 @@ export default defineConfig({
     },
   },
   lib: [
-    // {
-    //   format: 'esm',
-    //   syntax: 'es2021',
-    //   bundle: true,
-    //   dts: true,
-    //   banner: { js: BANNER },
-    // },
     {
       format: 'cjs',
-      syntax: 'es2021',
+      syntax: 'esnext',
       bundle: true,
       dts: true,
       autoExternal: {
@@ -43,6 +36,6 @@ export default defineConfig({
   output: {
     target: 'node',
     cleanDistPath: false,
-    sourceMap: true,
+    sourceMap: false,
   },
 });
