@@ -377,11 +377,12 @@ export class AgioProvider implements AgioEvent.AgioProvider {
 
   /**
    * Extract MCP server name from tool name
+   * FIXME: using a better solution to detect mcp server name.
    */
   private extractMCPServer(toolName: string): string | undefined {
     if (toolName.startsWith('browser_')) return 'browser';
     if (toolName.startsWith('filesystem_')) return 'filesystem';
-    if (toolName.startsWith('search_')) return 'search';
+    if (toolName === 'web_search') return 'search';
     if (toolName.startsWith('commands_')) return 'commands';
     return undefined;
   }
