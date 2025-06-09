@@ -6,6 +6,7 @@
 
 import { AgioEvent } from '@multimodal/agio';
 import { AgentTARS, AgentEventStream, AgentTARSAppConfig, AgentStatus } from '@agent-tars/core';
+import { AgioBatchProcessor } from './AgioBatchProcessor';
 
 /**
  * AgioProvider, default impl
@@ -22,6 +23,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
   protected currentIteration = 0;
   protected hasInitialized = false;
   protected modelName?: string;
+  private batchProcessor: AgioBatchProcessor;
 
   constructor(
     protected providerUrl: string,
@@ -34,6 +36,12 @@ export class AgioProvider implements AgioEvent.AgioProvider {
     // Since Options are transparent in the entire architecture and gradually shrink downward,
     // this method is the safest way to get Options with default values ​​processed by each layer.
     this.appConfig = agent.getOptions();
+
+    // Initialize the batch processor for sending events efficiently.
+    this.batchProcessor = new AgioBatchProcessor({
+      providerUrl: this.providerUrl,
+      maxBatchSize: 3,
+    });
   }
 
   /**
@@ -106,7 +114,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
       count: counts,
     });
 
-    await this.sendEvent(event);
+    await this.queueEvent(event);
   }
 
   /**
@@ -199,7 +207,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
       streaming: Boolean(event.runOptions?.stream),
     });
 
-    await this.sendEvent(agioEvent);
+    await this.queueEvent(agioEvent);
   }
 
   /**
@@ -223,7 +231,8 @@ export class AgioProvider implements AgioEvent.AgioProvider {
       error: isError ? 'AgentRunError' : '',
     });
 
-    await this.sendEvent(agioEvent);
+    await this.queueEvent(agioEvent);
+    await this.batchProcessor.flush();
 
     // Reset run state
     this.runId = undefined;
@@ -246,7 +255,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
         ttftMs,
       });
 
-      await this.sendEvent(agioEvent);
+      await this.queueEvent(agioEvent);
     }
   }
 
@@ -266,7 +275,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
       mcpServer: this.extractMCPServer(event.name),
     });
 
-    await this.sendEvent(agioEvent);
+    await this.queueEvent(agioEvent);
   }
 
   /**
@@ -283,7 +292,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
       contentType: this.determineContentType(event.content),
     });
 
-    await this.sendEvent(agioEvent);
+    await this.queueEvent(agioEvent);
   }
 
   /**
@@ -298,7 +307,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
       iteration: this.currentIteration,
     });
 
-    await this.sendEvent(agioEvent);
+    await this.queueEvent(agioEvent);
   }
 
   /**
@@ -316,42 +325,17 @@ export class AgioProvider implements AgioEvent.AgioProvider {
       durationMs,
     });
 
-    await this.sendEvent(agioEvent);
+    await this.queueEvent(agioEvent);
     this.loopStartTimes.delete(this.currentIteration);
   }
 
   /**
-   * Send an AGIO event to the configured provider
+   * Queues an AGIO event for batch sending.
+   * The actual sending is handled by the AgioBatchProcessor.
+   * @param event The AGIO event to queue.
    */
-
-  protected async sendEvent(event: AgioEvent.ExtendedEvent): Promise<void> {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-      const response = await fetch(this.providerUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-
-        body: JSON.stringify(event),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.error(`AGIO event request to ${this.providerUrl} timed out`);
-      } else {
-        console.error(`Failed to send AGIO event to ${this.providerUrl}:`, error);
-      }
-      // Don't throw to avoid disrupting agent operation
-    }
+  protected queueEvent(event: AgioEvent.ExtendedEvent): void {
+    this.batchProcessor.addEvent(event);
   }
 
   /**
@@ -413,5 +397,13 @@ export class AgioProvider implements AgioEvent.AgioProvider {
     if (Array.isArray(content)) return 'array';
     if (typeof content === 'object') return 'object';
     return 'unknown';
+  }
+
+  /**
+   * Flushes any buffered events to the provider.
+   * This should be called during cleanup to ensure no events are lost.
+   */
+  public async cleanup(): Promise<void> {
+    await this.batchProcessor.flush();
   }
 }

@@ -412,6 +412,10 @@
       "additionalProperties": false,
       "description": "Agent TTFT (Time To First Token) event Critical performance metric for user experience monitoring",
       "properties": {
+        "modelName": {
+          "description": "Current model name",
+          "type": "string"
+        },
         "runId": {
           "description": "Unique identifier for the task/run within a session",
           "type": "string"

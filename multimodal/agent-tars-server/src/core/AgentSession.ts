@@ -180,6 +180,12 @@ export class AgentSession {
 
     // Clean up agent resources
     await this.agent.cleanup();
+
+    if (this.agioProvider) {
+      // This ensures that all buffered analytics events are sent before the session is terminated.
+      await this.agioProvider.cleanup?.();
+    }
+
     this.eventBridge.emit('closed', { sessionId: this.id });
   }
 }

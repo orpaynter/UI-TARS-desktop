@@ -356,6 +356,11 @@ export namespace AgioEvent {
      * Process agent stream events and convert to AGIO events
      */
     processAgentEvent(event: AgentEventStream.Event): Promise<void>;
+
+    /**
+     * cleanup
+     */
+    cleanup(): Promise<void>;
   }
 
   /**
