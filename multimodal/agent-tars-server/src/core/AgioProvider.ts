@@ -5,7 +5,7 @@
  */
 
 import { AgioEvent } from '@multimodal/agio';
-import { AgentTARS, AgentEventStream, AgentTARSAppConfig } from '@agent-tars/core';
+import { AgentTARS, AgentEventStream, AgentTARSAppConfig, AgentStatus } from '@agent-tars/core';
 
 /**
  * AgioProvider, default impl
@@ -152,6 +152,31 @@ export class AgioProvider implements AgioEvent.AgioProvider {
   }
 
   /**
+   * Helper method to determine if input is multimodal
+   */
+  private isInputMultimodal(input: string | any[]): boolean {
+    // If input is not an array, it's just text
+    if (!Array.isArray(input)) {
+      return false;
+    }
+
+    // Check if any content part is non-text (image, etc.)
+    return input.some((part) => {
+      if (typeof part === 'object' && part !== null) {
+        // Check for image_url type (multimodal content part)
+        if (part.type === 'image_url' || part.type === 'image') {
+          return true;
+        }
+        // Check for other non-text types that might be added in the future
+        if (part.type && part.type !== 'text') {
+          return true;
+        }
+      }
+      return false;
+    });
+  }
+
+  /**
    * Handle agent run start events
    */
   private async handleRunStart(event: AgentEventStream.AgentRunStartEvent): Promise<void> {
@@ -161,9 +186,13 @@ export class AgioProvider implements AgioEvent.AgioProvider {
     this.currentIteration = 0;
     this.loopStartTimes.clear();
 
+    // Determine if input is multimodal based on actual input content
+    const isMultimodalInput = this.isInputMultimodal(event.runOptions?.input || '');
+
     const agioEvent = AgioEvent.createEvent('agent_run_start', this.sessionId, {
       runId: this.runId,
-      content: event.runOptions?.input || '',
+      input: event.runOptions?.input || '',
+      isMultimodalInput,
       streaming: Boolean(event.runOptions?.stream),
     });
 

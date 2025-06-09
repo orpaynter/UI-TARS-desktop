@@ -159,7 +159,10 @@ export namespace AgioEvent {
     type: 'agent_run_start';
 
     /** User input that initiated the run (can be text or multimodal content) */
-    content: string | ChatCompletionContentPart[];
+    input: string | ChatCompletionContentPart[];
+
+    /** Is it multimodal input */
+    isMultimodalInput: boolean;
 
     /** Whether streaming mode is enabled */
     streaming: boolean;
