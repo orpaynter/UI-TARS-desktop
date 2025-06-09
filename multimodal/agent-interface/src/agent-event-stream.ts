@@ -9,7 +9,7 @@ import {
   ChatCompletionContentPart,
   ChatCompletionMessageToolCall,
 } from '@multimodal/model-provider/types';
-import { AgentSingleLoopReponse } from './agent-instance';
+import { AgentSingleLoopReponse, AgentStatus } from './agent-instance';
 import { AgentRunObjectOptions, AgentRunOptions } from './agent-run-options';
 
 /**
@@ -271,7 +271,7 @@ export namespace AgentEventStream {
     elapsedMs: number;
 
     /** Final execution status */
-    status: string;
+    status: AgentStatus;
   }
 
   /**
