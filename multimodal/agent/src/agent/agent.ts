@@ -156,6 +156,7 @@ export class Agent<T extends AgentOptions = AgentOptions>
 
     // Initialize execution controller
     this.executionController = new AgentExecutionController();
+    console.log('options', JSON.stringify(options, null, 2));
   }
 
   /**
