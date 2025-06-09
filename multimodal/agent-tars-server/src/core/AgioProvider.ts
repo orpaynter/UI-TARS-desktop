@@ -207,13 +207,17 @@ export class AgioProvider implements AgioEvent.AgioProvider {
 
     const executionTimeMs = Date.now() - this.runStartTime;
 
+    const successful = event.status !== AgentStatus.ERROR;
+    const isError = event.status === AgentStatus.ERROR;
+
     // FIXME: add token usage count
     const agioEvent = AgioEvent.createEvent('agent_run_end', this.sessionId, {
       runId: this.runId,
       executionTimeMs,
       loopCount: event.iterations || this.currentIteration,
-      successful: event.status !== 'error',
-      error: event.status === 'error' ? { message: 'Agent execution failed' } : undefined,
+      successful,
+      // FIXME: catch all errors
+      error: isError ? 'AgentRunError' : '',
     });
 
     await this.sendEvent(agioEvent);

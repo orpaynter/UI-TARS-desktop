@@ -195,10 +195,7 @@ export namespace AgioEvent {
     successful: boolean;
 
     /** Error information if run failed */
-    error?: {
-      message: string;
-      code?: string;
-    };
+    error?: string;
   }
 
   /**
