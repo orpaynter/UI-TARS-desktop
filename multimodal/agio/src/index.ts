@@ -222,9 +222,6 @@ export namespace AgioEvent {
     /** Total tokens in this measurement */
     tokenCount: number;
 
-    /** Duration in milliseconds for this measurement */
-    durationMs: number;
-
     /** Model name for this measurement */
     modelName?: string;
   }
