@@ -175,6 +175,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
 
     const executionTimeMs = Date.now() - this.runStartTime;
 
+    // FIXME: add token usage count
     const agioEvent = AgioEvent.createEvent('agent_run_end', this.sessionId, {
       runId: this.runId,
       executionTimeMs,
