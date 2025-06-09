@@ -24,6 +24,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
   protected hasInitialized = false;
   protected modelName?: string;
   private batchProcessor: AgioBatchProcessor;
+  private agentInitializedEvent: AgioEvent.ExtendedEvent | null = null;
 
   constructor(
     protected providerUrl: string,
@@ -114,7 +115,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
       count: counts,
     });
 
-    await this.queueEvent(event);
+    this.agentInitializedEvent = event;
   }
 
   /**
@@ -191,6 +192,13 @@ export class AgioProvider implements AgioEvent.AgioProvider {
    * Handle agent run start events
    */
   private async handleRunStart(event: AgentEventStream.AgentRunStartEvent): Promise<void> {
+    // Send the deferred agent_initialized event if it exists
+    if (this.agentInitializedEvent) {
+      await this.queueEvent(this.agentInitializedEvent);
+      // Clear the event to ensure it's only sent once per session
+      this.agentInitializedEvent = null;
+    }
+
     this.runId = event.sessionId;
     this.runStartTime = Date.now();
     this.firstTokenTime = undefined;
