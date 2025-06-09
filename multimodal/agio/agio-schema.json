@@ -49,6 +49,29 @@
           },
           "type": "object"
         },
+        "count": {
+          "additionalProperties": false,
+          "properties": {
+            "mcpServersCount": {
+              "description": "MCP Servers count",
+              "type": "number"
+            },
+            "modelProvidersCount": {
+              "description": "Model provider count",
+              "type": "number"
+            },
+            "toolsCount": {
+              "description": "Tool count",
+              "type": "number"
+            }
+          },
+          "required": [
+            "modelProvidersCount",
+            "toolsCount",
+            "mcpServersCount"
+          ],
+          "type": "object"
+        },
         "runId": {
           "description": "Unique identifier for the task/run within a session",
           "type": "string"
@@ -451,9 +474,9 @@
           "description": "Arguments passed to the tool (sanitized to remove sensitive data)",
           "type": "object"
         },
-        "isCustomTool": {
-          "description": "Whether this is a custom tool",
-          "type": "boolean"
+        "argumentsSize": {
+          "description": "Arguments size, used for agent to optimize memory",
+          "type": "number"
         },
         "mcpServer": {
           "description": "MCP server name if applicable",
@@ -486,7 +509,6 @@
         }
       },
       "required": [
-        "isCustomTool",
         "sessionId",
         "timestamp",
         "toolCallId",
