@@ -36,6 +36,28 @@ export class AgioProvider implements AgioEvent.AgioProvider {
   }
 
   /**
+   * Calculate actual counts from the agent instance
+   */
+  private calculateCounts(): { mcpServersCount: number; toolsCount: number; modelProvidersCount: number } {
+    // Get tools count from agent
+    const toolsCount = this.agent.getTools().length;
+
+    // Get model providers count from agent options
+    const modelProviders = this.appConfig.model?.providers;
+    const modelProvidersCount = Array.isArray(modelProviders) ? modelProviders.length : 1;
+
+    // Get MCP servers count from config
+    const mcpServersConfig = this.appConfig.mcpServers || {};
+    const mcpServersCount = Object.keys(mcpServersConfig).length;
+
+    return {
+      mcpServersCount,
+      toolsCount,
+      modelProvidersCount,
+    };
+  }
+
+  /**
    * Send agent initialization event
    * Called when an agent session is created
    */
@@ -48,6 +70,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
     this.hasInitialized = true;
 
     const resolvedModel = this.agent.getCurrentResolvedModel();
+    const counts = this.calculateCounts();
 
     const event = AgioEvent.createEvent('agent_initialized', this.sessionId, {
       config: {
@@ -74,6 +97,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
         osVersion: process.version,
         nodeVersion: process.version,
       },
+      count: counts,
     });
 
     await this.sendEvent(event);

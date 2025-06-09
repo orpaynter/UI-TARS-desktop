@@ -130,6 +130,17 @@ export namespace AgioEvent {
       /** Node.js version */
       nodeVersion: string;
     };
+
+    count?: {
+      /** Model provider count */
+      modelProvidersCount: number;
+
+      /** Tool count */
+      toolsCount: number;
+
+      /** MCP Servers count */
+      mcpServersCount: number;
+    };
   }
 
   /**
