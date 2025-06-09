@@ -8,6 +8,8 @@ import { bootstrapCli } from './index';
 
 export { bootstrapCli };
 
-if (require.main === module) {
+// @ts-expect-error The `require` object is modified by Rspack here,
+// so we use the deprecated api `process.mainModule` and it's stable.
+if (process.mainModule.filename === __filename) {
   bootstrapCli();
 }
