@@ -136,8 +136,6 @@ export async function processCommonOptions(options: AgentTARSCLIArguments): Prom
   // Set debug mode flag
   const isDebug = !!options.debug;
 
-  console.log('bootstrapCliOptions', bootstrapCliOptions);
-
   // bootstrapCliOptions has lowest priority
   if (bootstrapCliOptions.remoteConfig) {
     configPaths.unshift(bootstrapCliOptions.remoteConfig);
