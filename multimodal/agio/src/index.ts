@@ -269,8 +269,8 @@ export namespace AgioEvent {
     /** Arguments passed to the tool (sanitized to remove sensitive data) */
     arguments?: Record<string, any>;
 
-    /** Whether this is a custom tool */
-    isCustomTool: boolean;
+    /** Arguments size, used for agent to optimize memory */
+    argumentsSize?: number;
 
     /** MCP server name if applicable */
     mcpServer?: string;

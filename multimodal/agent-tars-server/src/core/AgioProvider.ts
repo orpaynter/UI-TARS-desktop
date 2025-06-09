@@ -221,7 +221,7 @@ export class AgioProvider implements AgioEvent.AgioProvider {
       toolName: event.name,
       toolCallId: event.toolCallId,
       arguments: sanitizedArgs,
-      isCustomTool: !this.isBuiltInTool(event.name),
+      argumentsSize: JSON.stringify(event.arguments).length,
       mcpServer: this.extractMCPServer(event.name),
     });
 
@@ -336,14 +336,6 @@ export class AgioProvider implements AgioEvent.AgioProvider {
     }
 
     return sanitized;
-  }
-
-  /**
-   * Check if a tool is a built-in tool
-   */
-  private isBuiltInTool(toolName: string): boolean {
-    const builtInPrefixes = ['browser_', 'filesystem_', 'search_', 'commands_'];
-    return builtInPrefixes.some((prefix) => toolName.startsWith(prefix));
   }
 
   /**
