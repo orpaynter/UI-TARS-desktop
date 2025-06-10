@@ -4,6 +4,7 @@
  */
 
 import path from 'path';
+import { exec } from 'child_process';
 import fs from 'fs';
 import http from 'http';
 import { AgentTARSAppConfig, LogLevel } from '@agent-tars/interface';
@@ -17,6 +18,7 @@ import { getBootstrapCliOptions } from './state';
 interface UIServerOptions {
   appConfig: AgentTARSAppConfig;
   isDebug?: boolean;
+  open?: boolean;
 }
 
 /**
@@ -98,6 +100,23 @@ export async function startInteractiveWebUI(options: UIServerOptions): Promise<h
         dimBorder: true,
       }),
     );
+
+    if (options.open) {
+      const url = `http://localhost:${port}`;
+
+      // A simple cross-platform way to open a URL
+      const command =
+        process.platform === 'darwin'
+          ? 'open'
+          : process.platform === 'win32'
+            ? 'start'
+            : 'xdg-open';
+      exec(`${command} ${url}`, (err) => {
+        if (err) {
+          console.error(`Failed to open browser: ${err.message}`);
+        }
+      });
+    }
   }
 
   return server;
