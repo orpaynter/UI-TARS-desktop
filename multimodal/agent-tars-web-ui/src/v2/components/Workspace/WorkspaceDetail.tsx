@@ -83,6 +83,26 @@ export const WorkspaceDetail: React.FC = () => {
       ];
     }
 
+    // Handle array of content parts from environment_input
+    if (Array.isArray(source) && source.some((part) => part.type === 'image_url')) {
+      const imagePart = source.find((part) => part.type === 'image_url');
+      if (imagePart && imagePart.image_url && imagePart.image_url.url) {
+        const imgSrc = imagePart.image_url.url;
+        if (imgSrc.startsWith('data:image/')) {
+          const [mimeTypePrefix, base64Data] = imgSrc.split(',');
+          const mimeType = mimeTypePrefix.split(':')[1].split(';')[0];
+          return [
+            {
+              type: 'image',
+              imageData: base64Data,
+              mimeType,
+              name: activePanelContent.title,
+            },
+          ];
+        }
+      }
+    }
+
     // Based on tool type, convert to standardized format
     switch (type) {
       case 'image':
