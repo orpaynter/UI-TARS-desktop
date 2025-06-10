@@ -85,7 +85,7 @@ export async function startInteractiveWebUI(options: UIServerOptions): Promise<h
       brandGradient.multiline('Agent TARS Server is ready!', { interpolation: 'hsv' }),
       '',
 
-      `🎉 Interactive UI is available at: ${chalk.underline(brandGradient(serverUrl))}`,
+      `🎉 Agent TARS is available at: ${chalk.underline(brandGradient(serverUrl))}`,
     ].join('\n');
 
     console.log(
