@@ -202,6 +202,31 @@ export const WorkspaceDetail: React.FC = () => {
         ];
 
       case 'browser':
+        const toolName = title?.toLowerCase() || '';
+
+        if (toolName.includes('navigate')) {
+          let textContent = '';
+          if (typeof source === 'string') {
+            textContent = source;
+          } else if (Array.isArray(source)) {
+            textContent = source
+              .filter((p) => p.type === 'text')
+              .map((p) => p.text)
+              .join('\n');
+          } else if (typeof source === 'object' && source !== null) {
+            textContent = source.content || source.text || JSON.stringify(source, null, 2);
+          }
+
+          return [
+            {
+              type: 'text',
+              name: title,
+              text: textContent,
+              showAsRawMarkdown: true,
+            },
+          ];
+        }
+
         // Browser results
         if (Array.isArray(source) && source.some((item) => item.type === 'text')) {
           // 处理数组格式的浏览器结果
