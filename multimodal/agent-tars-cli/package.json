@@ -13,8 +13,8 @@
     }
   },
   "bin": {
-    "agent-tars": "dist/cli.js",
-    "at": "dist/cli.js"
+    "agent-tars": "bin/cli.js",
+    "at": "bin/cli.js"
   },
   "publishConfig": {
     "access": "public",
