@@ -31,7 +31,7 @@ export function createNavigationTools(logger: ConsoleLogger, browserGUIAgent: Br
         const page = await browserGUIAgent.getPage();
 
         // FIXME: Error: Navigating frame was detached
-        await page.goto(url, { waitUntil: 'domcontentloaded' });
+        await page.goto(url);
 
         return {
           status: 'success',
