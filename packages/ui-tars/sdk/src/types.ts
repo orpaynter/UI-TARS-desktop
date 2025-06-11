@@ -26,7 +26,7 @@ export interface ExecuteParams {
   /** Device DPR */
   scaleFactor: number;
   /** model coordinates scaling factor [widthFactor, heightFactor] */
-  factors: Factors;
+  factors?: Factors;
 }
 
 export type ExecuteOutput = { status: StatusEnum } & (object | void);

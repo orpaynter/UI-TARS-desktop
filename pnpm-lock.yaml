@@ -1572,6 +1572,43 @@ importers:
         specifier: ^3.0.2
         version: 3.0.8(@types/debug@4.1.12)(@types/node@22.13.10)(happy-dom@17.1.1)(jiti@2.4.2)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(lightningcss@1.29.2)(msw@2.7.0(@types/node@22.13.10)(typescript@5.7.3))(sass-embedded@1.83.4)(sass@1.85.1)(tsx@4.19.3)(yaml@2.7.0)
 
+  packages/ui-tars/mcp-servers/nut-js:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.12.1
+        version: 1.12.1
+      '@ui-tars/operator-nut-js':
+        specifier: workspace:*
+        version: link:../../operators/nut-js
+      mcp-http-server:
+        specifier: ^1.1.5
+        version: 1.1.5
+    devDependencies:
+      '@rslib/core':
+        specifier: 0.5.3
+        version: 0.5.3(typescript@5.7.3)
+      '@types/node':
+        specifier: ^20.11.24
+        version: 20.14.8
+      commander:
+        specifier: ^13.1.0
+        version: 13.1.0
+      shx:
+        specifier: ^0.3.4
+        version: 0.3.4
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
+      typescript:
+        specifier: ^5.7.3
+        version: 5.7.3
+      vitest:
+        specifier: ^3.0.7
+        version: 3.0.8(@types/debug@4.1.12)(@types/node@20.14.8)(happy-dom@17.1.1)(jiti@2.4.2)(jsdom@26.0.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(lightningcss@1.29.2)(msw@2.7.0(@types/node@20.14.8)(typescript@5.7.3))(sass-embedded@1.83.4)(sass@1.85.1)(tsx@4.19.3)(yaml@2.7.0)
+      zod:
+        specifier: ^3.23.8
+        version: 3.24.2
+
   packages/ui-tars/operators/adb:
     dependencies:
       '@ui-tars/shared':
@@ -9753,6 +9790,9 @@ packages:
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
+
+  mcp-http-server@1.1.5:
+    resolution: {integrity: sha512-bmKEo88wtJ88GSHrBd6zmjM19HU00c4FZ5YRt61nhHzpQjiryvRwmhNsKvbDwapBq94F7EePH9BJehBjXh17Bg==}
 
   mcp-proxy@3.0.3:
     resolution: {integrity: sha512-awolv2Jkq9fl6QkLFHApTdy6veSuhzN0KA8AF2Ea6H58yBRAJyLf2Eavm08XU1bTn0ydfmTSGfyL2VMzxAHPFQ==}
@@ -23603,6 +23643,13 @@ snapshots:
     optional: true
 
   math-intrinsics@1.1.0: {}
+
+  mcp-http-server@1.1.5:
+    dependencies:
+      '@modelcontextprotocol/sdk': 1.12.1
+      express: 5.1.0
+    transitivePeerDependencies:
+      - supports-color
 
   mcp-proxy@3.0.3:
     dependencies:
