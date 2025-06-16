@@ -4,7 +4,7 @@
  */
 
 import { MCPAgent } from '../../src';
-import { MCPAgentOptions } from 'mcp-agent-interface/dist';
+import { LogLevel, MCPAgentOptions } from '@mcp-agent/interface';
 import { join } from 'path';
 
 export const commonOptions: MCPAgentOptions = {
@@ -46,6 +46,7 @@ export const commonOptions: MCPAgentOptions = {
     },
   },
   toolCallEngine: 'structured_outputs',
+  logLevel: LogLevel.DEBUG,
 };
 
 export const runOptions = {

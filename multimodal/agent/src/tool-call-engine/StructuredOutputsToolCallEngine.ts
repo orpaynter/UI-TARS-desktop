@@ -25,6 +25,18 @@ import { buildToolCallResultMessages } from './utils';
 import { jsonrepair } from 'jsonrepair';
 
 /**
+ * Interface for parsed structured output from LLM response
+ */
+interface ParsedStructuredOutput {
+  content?: string;
+  finalAnswer?: string;
+  toolCall?: {
+    name: string;
+    args: Record<string, any>;
+  };
+}
+
+/**
  * StructuredOutputsToolCallEngine - Uses structured outputs (JSON Schema) for tool calls
  *
  * This approach instructs the model to return a structured JSON response
@@ -32,7 +44,7 @@ import { jsonrepair } from 'jsonrepair';
  * tool call markers from text content.
  */
 export class StructuredOutputsToolCallEngine implements ToolCallEngine {
-  private logger = getLogger('StructuredOutputsToolCallEngine');
+  private logger = getLogger('[StructuredOutputsToolCallEngine]');
 
   /**
    * Prepare the system prompt with tool definitions
@@ -73,9 +85,15 @@ When you need to use a tool:
 }
 IMPORTANT: Always include both "content" and "toolCall" when using a tool. The "content" should be brief but informative.
 
+BAD EXAMPLE - DO NOT DO THIS:
+{
+  "content": "I'll search for information about recent climate agreements."
+}
+This is incorrect because it only has "content" without a "toolCall", so I won't know which tool to use or what arguments to pass.
+
 If you want to provide a final answer without calling a tool:
 {
-  "content": "Your complete and helpful response to the user"
+  "finalAnswer": "Your complete and helpful response to the user"
 }`;
 
     // Combine everything
@@ -94,33 +112,6 @@ ${structuredOutputInstructions}`;
    * @returns ChatCompletionCreateParams with structured outputs configuration
    */
   prepareRequest(context: PrepareRequestContext): ChatCompletionCreateParams {
-    // Define the schema for structured outputs
-    const responseSchema = {
-      type: 'object',
-      properties: {
-        content: {
-          type: 'string',
-          description: 'Your response text to the user',
-        },
-        toolCall: {
-          type: 'object',
-          properties: {
-            name: {
-              type: 'string',
-              description: 'The exact name of the tool to call',
-            },
-            args: {
-              type: 'object',
-              description: 'The arguments for the tool call',
-            },
-          },
-          required: ['name', 'args'],
-        },
-      },
-      // At least one of these fields must be present
-      anyOf: [{ required: ['content'] }, { required: ['toolCall'] }],
-    };
-
     // Basic parameters
     const params: ChatCompletionCreateParams = {
       messages: context.messages,
@@ -131,14 +122,8 @@ ${structuredOutputInstructions}`;
 
     // Add tools if available
     if (context.tools && context.tools.length > 0) {
-      // Use JSON Schema response format where supported
       params.response_format = {
-        type: 'json_schema',
-        json_schema: {
-          name: 'agent_response_schema',
-          strict: true,
-          schema: responseSchema,
-        },
+        type: 'json_object',
       };
     }
 
@@ -197,18 +182,22 @@ ${structuredOutputInstructions}`;
         try {
           // Try to repair and parse the potentially incomplete JSON
           const repairedJson = jsonrepair(state.contentBuffer);
-          const parsed = JSON.parse(repairedJson);
+          const parsed = JSON.parse(repairedJson) as ParsedStructuredOutput;
 
-          // If we have a valid JSON with content field
-          if (parsed && typeof parsed.content === 'string') {
+          // Check for finalAnswer or content field (for backwards compatibility)
+          const extractedContent = parsed.finalAnswer || parsed.content;
+
+          if (parsed && typeof extractedContent === 'string') {
             // Calculate only the new incremental content
-            const newExtractedContent = parsed.content.slice(state.lastParsedContent?.length || 0);
+            const newExtractedContent = extractedContent.slice(
+              state.lastParsedContent?.length || 0,
+            );
 
             // Only send if we have new incremental content
             if (newExtractedContent) {
               content = newExtractedContent;
               // Update the last parsed content to the full content
-              state.lastParsedContent = parsed.content;
+              state.lastParsedContent = extractedContent;
             }
 
             // Check for tool call
@@ -252,10 +241,11 @@ ${structuredOutputInstructions}`;
    * Finalize the stream processing and extract the final response
    */
   finalizeStreamProcessing(state: StreamProcessingState): ParsedModelResponse {
+    this.logger.infoWithData(`finalizeStreamProcessing`, state.contentBuffer, JSON.stringify);
     // One final attempt to parse JSON
     try {
       const repairedJson = jsonrepair(state.contentBuffer);
-      const parsed = JSON.parse(repairedJson);
+      const parsed = JSON.parse(repairedJson) as ParsedStructuredOutput;
 
       if (parsed) {
         if (parsed.toolCall) {
@@ -280,9 +270,13 @@ ${structuredOutputInstructions}`;
           } else {
             state.contentBuffer = '';
           }
-        } else if (parsed.content) {
-          // No tool call, just content
-          state.contentBuffer = parsed.content;
+        } else {
+          // Check for finalAnswer field first (preferred) then content field (backward compatibility)
+          if (parsed.finalAnswer !== undefined) {
+            state.contentBuffer = parsed.finalAnswer;
+          } else if (parsed.content !== undefined) {
+            state.contentBuffer = parsed.content;
+          }
         }
       }
     } catch (e) {
@@ -306,40 +300,6 @@ ${structuredOutputInstructions}`;
   private mightBeCollectingJson(text: string): boolean {
     // If it contains an opening brace but not a balancing number of closing braces
     return text.includes('{');
-  }
-
-  /**
-   * Check if the text looks like it's likely to be JSON
-   * This helps us avoid showing partial JSON to users
-   */
-  private isLikelyJson(text: string): boolean {
-    // If it starts with whitespace followed by {, it's likely JSON
-    const trimmed = text.trim();
-    return (
-      trimmed.startsWith('{') ||
-      // Has JSON field patterns
-      trimmed.includes('"content":') ||
-      trimmed.includes('"toolCall":')
-    );
-  }
-
-  /**
-   * Try to parse JSON from a string, handling partial/invalid JSON
-   */
-  private tryParseJson(text: string): any {
-    try {
-      // Clean the text by finding the first '{' and last '}'
-      const startIdx = text.indexOf('{');
-      const endIdx = text.lastIndexOf('}');
-
-      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-        const jsonText = text.substring(startIdx, endIdx + 1);
-        return JSON.parse(jsonText);
-      }
-    } catch (e) {
-      // Not valid JSON yet
-    }
-    return null;
   }
 
   /**

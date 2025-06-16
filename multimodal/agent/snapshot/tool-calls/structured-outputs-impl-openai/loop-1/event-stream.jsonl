@@ -1,0 +1,19 @@
+[
+  {
+    "id": "7b08815e-c607-4f12-932b-3c3737115a6f",
+    "type": "agent_run_start",
+    "timestamp": 1750094972286,
+    "sessionId": "1750094972286-nvupfzf",
+    "runOptions": {
+      "input": "How's the weather today?"
+    },
+    "provider": "openai",
+    "model": "gpt-4o-2024-11-20"
+  },
+  {
+    "id": "d77ba5b9-070c-4fed-88ca-855829162a92",
+    "type": "user_message",
+    "timestamp": 1750094972286,
+    "content": "How's the weather today?"
+  }
+]

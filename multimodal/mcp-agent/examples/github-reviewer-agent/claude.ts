@@ -13,6 +13,7 @@ export const agent = new MCPAgent({
     baseURL: process.env.AWS_CLAUDE_API_BASE_URL,
     id: 'aws_sdk_claude37_sonnet',
   },
+  temperature: 0,
 });
 
 async function main() {
