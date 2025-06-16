@@ -1,0 +1,6 @@
+{"id":"2025061700300913FDD47E090E3D24B7CD","created":1750091422,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{"role":"assistant"},"index":0,"stop_reason":""}],"usage":{}}
+{"id":"2025061700300913FDD47E090E3D24B7CD","created":1750091422,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{"content":"Let"},"index":0,"stop_reason":""}],"usage":{}}
+{"id":"2025061700300913FDD47E090E3D24B7CD","created":1750091422,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{"content":" me try a different approach to view the commit details."},"index":0,"stop_reason":""}],"usage":{}}
+{"id":"2025061700300913FDD47E090E3D24B7CD","created":1750091422,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{},"index":0,"stop_reason":""}],"usage":{}}
+{"id":"2025061700300913FDD47E090E3D24B7CD","created":1750091422,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{},"index":0,"finish_reason":"stop","stop_reason":"end_turn"}],"usage":{}}
+{"id":"2025061700300913FDD47E090E3D24B7CD","created":1750091422,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{},"index":0,"stop_reason":""}],"usage":{"completion_tokens":15,"prompt_tokens":88623,"total_tokens":88638}}

@@ -1,0 +1,17 @@
+[
+  {
+    "toolCallId": "call_1750091404644_z2ru0",
+    "name": "browser_click",
+    "args": {
+      "element": "feat(ui-tars): format error status and messages",
+      "ref": "e3694"
+    },
+    "result": [
+      {
+        "type": "text",
+        "text": "TimeoutError: locator._generateLocatorString: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator('aria-ref=e3694')\n"
+      }
+    ],
+    "executionTime": 5005
+  }
+]
