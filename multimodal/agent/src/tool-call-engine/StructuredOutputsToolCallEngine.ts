@@ -8,7 +8,6 @@ import {
   ToolDefinition,
   PrepareRequestContext,
   ChatCompletionCreateParams,
-  ChatCompletion,
   ChatCompletionChunk,
   MultimodalToolCallResult,
   AgentSingleLoopReponse,
@@ -25,21 +24,72 @@ import { buildToolCallResultMessages } from './utils';
 import { jsonrepair } from 'jsonrepair';
 
 /**
+ * Represents the structured response format that the LLM should return
+ * when using the StructuredOutputsToolCallEngine.
+ *
+ * This interface defines two distinct response patterns:
+ * 1. Tool calling scenario: Uses 'thought' + 'toolCall' fields
+ * 2. Final answer scenario: Uses 'finalAnswer' field
+ *
+ * The separation ensures semantic clarity and prevents the model from
+ * confusing reasoning processes with final user-facing responses.
+ */
+interface StructuredAgentResponse {
+  /**
+   * The agent's reasoning and thinking process when it needs to call a tool.
+   * This field contains explanations of why a specific tool is needed and
+   * how it will help solve the user's request.
+   *
+   * Should be present when toolCall is provided.
+   */
+  thought?: string;
+
+  /**
+   * Tool invocation details when the agent needs to use a tool.
+   * Contains the exact tool name and its required arguments.
+   *
+   * Should be present together with 'thought' field.
+   */
+  toolCall?: {
+    /**
+     * The exact name of the tool to invoke.
+     * Must match one of the available tool definitions.
+     */
+    name: string;
+
+    /**
+     * Arguments to pass to the tool call.
+     * Structure should match the tool's parameter schema.
+     */
+    args: Record<string, unknown>;
+  };
+
+  /**
+   * The complete response to provide to the user when no tool call is needed.
+   * This should be a comprehensive, helpful answer that directly addresses
+   * the user's question or request.
+   *
+   * Should be used instead of 'thought' + 'toolCall' when providing final answers.
+   */
+  finalAnswer?: string;
+}
+
+/**
  * StructuredOutputsToolCallEngine - Uses structured outputs (JSON Schema) for tool calls
  *
- * This approach instructs the model to return a structured JSON response
- * with tool call information, avoiding the need to parse
- * tool call markers from text content.
+ * This design eliminates semantic ambiguity by clearly separating reasoning from final answers,
+ * preventing models from confusing when to provide explanations vs. final responses.
  */
 export class StructuredOutputsToolCallEngine implements ToolCallEngine {
   private logger = getLogger('StructuredOutputsToolCallEngine');
 
   /**
-   * Prepare the system prompt with tool definitions
+   * Prepare the system prompt with tool definitions and clear instructions
+   * for the structured output format with separated thought and finalAnswer fields
    *
    * @param basePrompt The base system prompt
    * @param tools Available tools for the agent
-   * @returns Enhanced system prompt with tool information
+   * @returns Enhanced system prompt with tool information and structured output instructions
    */
   preparePrompt(basePrompt: string, tools: ToolDefinition[]): string {
     if (!tools.length) {
@@ -58,12 +108,11 @@ Parameters: ${JSON.stringify(schema, null, 2)}`;
       })
       .join('\n\n');
 
-    // Define instructions for using structured outputs
+    // Define instructions for using structured outputs with separated semantics
     const structuredOutputInstructions = `
 When you need to use a tool:
-1. Respond with a structured JSON object with the following format:
 {
-  "content": "Always include a brief, concise message about what you're doing or what information you're providing. Avoid lengthy explanations.",
+  "thought": "Explain your reasoning and why you need to call this specific tool",
   "toolCall": {
     "name": "the_exact_tool_name",
     "args": {
@@ -71,12 +120,16 @@ When you need to use a tool:
     }
   }
 }
-IMPORTANT: Always include both "content" and "toolCall" when using a tool. The "content" should be brief but informative.
 
-If you want to provide a final answer without calling a tool:
+When you want to provide a final answer without calling any tool:
 {
-  "content": "Your complete and helpful response to the user"
-}`;
+  "finalAnswer": "Your complete and helpful response to the user"
+}
+
+IMPORTANT: 
+- Use "thought" + "toolCall" when you need to call a tool
+- Use "finalAnswer" when providing the final response
+- Never mix these patterns - they serve different purposes`;
 
     // Combine everything
     return `${basePrompt}
@@ -88,19 +141,19 @@ ${structuredOutputInstructions}`;
   }
 
   /**
-   * Prepare the request parameters for the LLM call
+   * Prepare the request parameters for the LLM call with updated JSON schema
    *
    * @param context The request context
    * @returns ChatCompletionCreateParams with structured outputs configuration
    */
   prepareRequest(context: PrepareRequestContext): ChatCompletionCreateParams {
-    // Define the schema for structured outputs
+    // Define the schema for structured outputs with separated semantics
     const responseSchema = {
       type: 'object',
       properties: {
-        content: {
+        thought: {
           type: 'string',
-          description: 'Your response text to the user',
+          description: 'Your reasoning and thinking process when calling a tool',
         },
         toolCall: {
           type: 'object',
@@ -116,9 +169,20 @@ ${structuredOutputInstructions}`;
           },
           required: ['name', 'args'],
         },
+        finalAnswer: {
+          // OpenAI recommends list of types.
+          // @see https://platform.openai.com/docs/guides/structured-outputs?api-mode=chat&example=chain-of-thought
+          //
+          // Volcengine does not support a list of types
+          // Error: 400 Invalid decoding guidance syntax: A list of types is not supported yet at path '$.properties.finalAnswer
+          // type: ['string', 'null'],
+          type: 'string',
+          description:
+            'Your final complete response to the user when no tool call is needed, returns an empty string when toolCall exists.',
+        },
       },
-      // At least one of these fields must be present
-      anyOf: [{ required: ['content'] }, { required: ['toolCall'] }],
+      required: ['thought', 'toolCall', 'finalAnswer'],
+      additionalProperties: false,
     };
 
     // Basic parameters
@@ -131,11 +195,12 @@ ${structuredOutputInstructions}`;
 
     // Add tools if available
     if (context.tools && context.tools.length > 0) {
-      // Use JSON Schema response format where supported
       params.response_format = {
         type: 'json_schema',
+        // @ts-expect-error
+        strict: true,
         json_schema: {
-          name: 'agent_response_schema',
+          name: 'agent_schema',
           strict: true,
           schema: responseSchema,
         },
@@ -160,8 +225,8 @@ ${structuredOutputInstructions}`;
   }
 
   /**
-   * Process a streaming chunk for structured outputs
-   * Improved to properly handle incremental JSON content extraction
+   * Process a streaming chunk for structured outputs with separated thought/finalAnswer handling
+   * Improved to handle both thought and finalAnswer fields appropriately
    */
   processStreamingChunk(
     chunk: ChatCompletionChunk,
@@ -197,36 +262,54 @@ ${structuredOutputInstructions}`;
         try {
           // Try to repair and parse the potentially incomplete JSON
           const repairedJson = jsonrepair(state.contentBuffer);
-          const parsed = JSON.parse(repairedJson);
+          const parsed: StructuredAgentResponse = JSON.parse(repairedJson);
 
-          // If we have a valid JSON with content field
-          if (parsed && typeof parsed.content === 'string') {
-            // Calculate only the new incremental content
-            const newExtractedContent = parsed.content.slice(state.lastParsedContent?.length || 0);
+          if (parsed) {
+            // Handle tool call scenario - extract thought
+            if (parsed.thought && typeof parsed.thought === 'string') {
+              // Calculate only the new incremental thought content
+              const newExtractedContent = parsed.thought.slice(
+                state.lastParsedContent?.length || 0,
+              );
 
-            // Only send if we have new incremental content
-            if (newExtractedContent) {
-              content = newExtractedContent;
-              // Update the last parsed content to the full content
-              state.lastParsedContent = parsed.content;
+              // Only send if we have new incremental content
+              if (newExtractedContent) {
+                content = newExtractedContent;
+                // Update the last parsed content to the full thought
+                state.lastParsedContent = parsed.thought;
+              }
+
+              // Check for tool call
+              if (parsed.toolCall && parsed.toolCall.name && !hasToolCallUpdate) {
+                const { name, args } = parsed.toolCall;
+
+                // Create a tool call and update state
+                const toolCall: ChatCompletionMessageToolCall = {
+                  id: `call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+                  type: 'function',
+                  function: {
+                    name,
+                    arguments: JSON.stringify(args),
+                  },
+                };
+
+                state.toolCalls = [toolCall];
+                hasToolCallUpdate = true;
+              }
             }
+            // Handle final answer scenario
+            else if (parsed.finalAnswer && typeof parsed.finalAnswer === 'string') {
+              // Calculate only the new incremental final answer content
+              const newExtractedContent = parsed.finalAnswer.slice(
+                state.lastParsedContent?.length || 0,
+              );
 
-            // Check for tool call
-            if (parsed.toolCall && !hasToolCallUpdate) {
-              const { name, args } = parsed.toolCall;
-
-              // Create a tool call and update state
-              const toolCall: ChatCompletionMessageToolCall = {
-                id: `call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-                type: 'function',
-                function: {
-                  name,
-                  arguments: JSON.stringify(args),
-                },
-              };
-
-              state.toolCalls = [toolCall];
-              hasToolCallUpdate = true;
+              // Only send if we have new incremental content
+              if (newExtractedContent) {
+                content = newExtractedContent;
+                // Update the last parsed content to the full final answer
+                state.lastParsedContent = parsed.finalAnswer;
+              }
             }
           }
         } catch (e) {
@@ -250,15 +333,23 @@ ${structuredOutputInstructions}`;
 
   /**
    * Finalize the stream processing and extract the final response
+   * Updated to handle both thought and finalAnswer fields
    */
   finalizeStreamProcessing(state: StreamProcessingState): ParsedModelResponse {
+    console.log('---!!!state.contentBuffer----\n', state.contentBuffer);
+    console.log('---');
+
     // One final attempt to parse JSON
     try {
       const repairedJson = jsonrepair(state.contentBuffer);
-      const parsed = JSON.parse(repairedJson);
+      const parsed: StructuredAgentResponse = JSON.parse(repairedJson);
 
       if (parsed) {
-        if (parsed.toolCall) {
+        /**
+         * In structured output, the output will be { "toolCall": { "name": "", "args": {} } }
+         * We need to skip it.
+         */
+        if (parsed.toolCall && parsed.toolCall.name) {
           // Found a tool call in the JSON
           const { name, args } = parsed.toolCall;
 
@@ -274,15 +365,20 @@ ${structuredOutputInstructions}`;
 
           state.toolCalls = [toolCall];
 
-          // For JSON-based responses, return only the content field
-          if (parsed.content) {
-            state.contentBuffer = parsed.content;
+          // For tool call responses, return the thought as content
+          if (parsed.thought) {
+            state.contentBuffer = parsed.thought;
           } else {
             state.contentBuffer = '';
           }
-        } else if (parsed.content) {
-          // No tool call, just content
-          state.contentBuffer = parsed.content;
+        }
+
+        if (parsed.finalAnswer) {
+          // No tool call, use final answer as content
+          state.contentBuffer = parsed.finalAnswer;
+        } else if (parsed.thought) {
+          // Edge case: thought without tool call - treat as regular content
+          state.contentBuffer = parsed.thought;
         }
       }
     } catch (e) {
@@ -306,40 +402,6 @@ ${structuredOutputInstructions}`;
   private mightBeCollectingJson(text: string): boolean {
     // If it contains an opening brace but not a balancing number of closing braces
     return text.includes('{');
-  }
-
-  /**
-   * Check if the text looks like it's likely to be JSON
-   * This helps us avoid showing partial JSON to users
-   */
-  private isLikelyJson(text: string): boolean {
-    // If it starts with whitespace followed by {, it's likely JSON
-    const trimmed = text.trim();
-    return (
-      trimmed.startsWith('{') ||
-      // Has JSON field patterns
-      trimmed.includes('"content":') ||
-      trimmed.includes('"toolCall":')
-    );
-  }
-
-  /**
-   * Try to parse JSON from a string, handling partial/invalid JSON
-   */
-  private tryParseJson(text: string): any {
-    try {
-      // Clean the text by finding the first '{' and last '}'
-      const startIdx = text.indexOf('{');
-      const endIdx = text.lastIndexOf('}');
-
-      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-        const jsonText = text.substring(startIdx, endIdx + 1);
-        return JSON.parse(jsonText);
-      }
-    } catch (e) {
-      // Not valid JSON yet
-    }
-    return null;
   }
 
   /**
