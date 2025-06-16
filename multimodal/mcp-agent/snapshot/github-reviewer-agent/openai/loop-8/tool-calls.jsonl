@@ -1,0 +1,14 @@
+[
+  {
+    "toolCallId": "call_1750101443540_dknqv",
+    "name": "list_allowed_directories",
+    "args": {},
+    "result": [
+      {
+        "type": "text",
+        "text": "Allowed directories:\n/Users/chenhaoli/workspace/code/UI-TARS-desktop-5/multimodal/mcp-agent/examples/github-reviewer-agent/filesystem\n/tmp"
+      }
+    ],
+    "executionTime": 1
+  }
+]

@@ -29,7 +29,7 @@ export const commonOptions: MCPAgentOptions = {
     '   - removed code\n' +
     '   + added code\n' +
     '   ```\n' +
-    '5. ALWAYS use the filesystem tool to save your final review report to a file named "REVIEW_RESULT.md" in the current directory.\n\n' +
+    '5. ALWAYS use the "write_file" tool to save your final review report to a file named "REVIEW_RESULT.md" in the current directory.\n\n' +
     'Make extensive use of the playwright browsing tool to navigate GitHub repositories, ' +
     'examine code changes in PRs, understand context by exploring related files, and analyze commit histories. ' +
     'Take screenshots of specific code sections when they help illustrate complex issues or changes. ' +
@@ -42,7 +42,12 @@ export const commonOptions: MCPAgentOptions = {
     },
     filesystem: {
       command: 'npx',
-      args: ['-y', '@modelcontextprotocol/server-filesystem', join(__dirname, 'filesystem')],
+      args: [
+        '-y',
+        '@modelcontextprotocol/server-filesystem',
+        join(__dirname, 'filesystem'),
+        '/tmp/',
+      ],
     },
   },
   toolCallEngine: 'structured_outputs',
@@ -50,7 +55,8 @@ export const commonOptions: MCPAgentOptions = {
 };
 
 export const runOptions = {
-  input: 'Review https://github.com/bytedance/UI-TARS-desktop/pull/534',
+  // input: 'Review https://github.com/bytedance/UI-TARS-desktop/pull/534',
+  input: 'Review https://github.com/bytedance/UI-TARS-desktop/pull/697',
 };
 
 export async function run(agent: MCPAgent) {

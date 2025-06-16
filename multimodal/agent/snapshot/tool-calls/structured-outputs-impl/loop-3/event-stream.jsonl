@@ -1,9 +1,9 @@
 [
   {
-    "id": "2d064dc7-7239-4505-8e1d-1ca879012f55",
+    "id": "89283acc-7f8e-4bcd-a683-098b8d28a1f9",
     "type": "agent_run_start",
-    "timestamp": 1750094862303,
-    "sessionId": "1750094862303-2893zp8",
+    "timestamp": 1750097126087,
+    "sessionId": "1750097126086-hkf1ni6",
     "runOptions": {
       "input": "How's the weather today?"
     },
@@ -11,19 +11,19 @@
     "model": "ep-20250512165931-2c2ln"
   },
   {
-    "id": "7034a307-4d4d-4ec0-9fae-7b4b7bf7ac35",
+    "id": "484574f7-9895-48b7-ae2f-af88a628a146",
     "type": "user_message",
-    "timestamp": 1750094862303,
+    "timestamp": 1750097126087,
     "content": "How's the weather today?"
   },
   {
-    "id": "c075a88c-4ec9-49cb-aafd-4be2ebe36fee",
+    "id": "1f5b1063-b9aa-4edb-97e5-27de8302e084",
     "type": "assistant_message",
-    "timestamp": 1750094863349,
-    "content": "To get the weather, I need your current location. Retrieving your location...",
+    "timestamp": 1750097126955,
+    "content": "Need user's current location to get weather. Retrieving current location first.",
     "toolCalls": [
       {
-        "id": "call_1750094863349_3lsvr",
+        "id": "call_1750097126955_x7g8l",
         "type": "function",
         "function": {
           "name": "getCurrentLocation",
@@ -32,16 +32,16 @@
       }
     ],
     "finishReason": "tool_calls",
-    "messageId": "msg_1750094862637_6tx0hmzj"
+    "messageId": "msg_1750097126484_o2ypmzo5"
   },
   {
-    "id": "9ef74169-297b-4004-942a-a3ba237a4048",
+    "id": "552ace2c-5941-4cc3-a4bc-90818444ea94",
     "type": "tool_call",
-    "timestamp": 1750094863352,
-    "toolCallId": "call_1750094863349_3lsvr",
+    "timestamp": 1750097126958,
+    "toolCallId": "call_1750097126955_x7g8l",
     "name": "getCurrentLocation",
     "arguments": {},
-    "startTime": 1750094863352,
+    "startTime": 1750097126957,
     "tool": {
       "name": "getCurrentLocation",
       "description": "Get user's current location",
@@ -52,10 +52,10 @@
     }
   },
   {
-    "id": "e3289b6a-3a6e-4295-beef-edd2237033ca",
+    "id": "ad42754f-cb58-4b51-ba90-1269b079fe7f",
     "type": "tool_result",
-    "timestamp": 1750094863352,
-    "toolCallId": "call_1750094863349_3lsvr",
+    "timestamp": 1750097126958,
+    "toolCallId": "call_1750097126955_x7g8l",
     "name": "getCurrentLocation",
     "content": {
       "location": "Boston"
@@ -63,13 +63,13 @@
     "elapsedMs": 0
   },
   {
-    "id": "2fa60902-e7ac-49e6-ace3-9667b8e26d64",
+    "id": "0a95aaed-21e8-4925-8316-fc08c31f4c9c",
     "type": "assistant_message",
-    "timestamp": 1750094864037,
-    "content": "Fetching weather information for Boston.",
+    "timestamp": 1750097127647,
+    "content": "Get weather for Boston",
     "toolCalls": [
       {
-        "id": "call_1750094864037_4kt54",
+        "id": "call_1750097127647_wkjne",
         "type": "function",
         "function": {
           "name": "getWeather",
@@ -78,18 +78,18 @@
       }
     ],
     "finishReason": "tool_calls",
-    "messageId": "msg_1750094863573_scpyoxp0"
+    "messageId": "msg_1750097127181_beoetdcq"
   },
   {
-    "id": "0ea28dca-507d-40f2-8e91-36b937622d4f",
+    "id": "a2c35b87-8fcc-461d-afe3-75acd8848702",
     "type": "tool_call",
-    "timestamp": 1750094864038,
-    "toolCallId": "call_1750094864037_4kt54",
+    "timestamp": 1750097127648,
+    "toolCallId": "call_1750097127647_wkjne",
     "name": "getWeather",
     "arguments": {
       "location": "Boston"
     },
-    "startTime": 1750094864038,
+    "startTime": 1750097127647,
     "tool": {
       "name": "getWeather",
       "description": "Get weather information for a specified location",
@@ -108,10 +108,10 @@
     }
   },
   {
-    "id": "baf6d6e7-2356-43c8-89b4-a7f240f46d9b",
+    "id": "91c99ee9-75df-4250-b038-66d43ed4a6ad",
     "type": "tool_result",
-    "timestamp": 1750094864039,
-    "toolCallId": "call_1750094864037_4kt54",
+    "timestamp": 1750097127648,
+    "toolCallId": "call_1750097127647_wkjne",
     "name": "getWeather",
     "content": {
       "location": "Boston",

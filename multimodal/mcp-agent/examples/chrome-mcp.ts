@@ -68,6 +68,8 @@ async function main() {
       console.log(`\nTool call response ${JSON.stringify(chunk)}`);
     }
   }
+
+  console.log('!!!');
 }
 
-main();
+main().catch(console.error);

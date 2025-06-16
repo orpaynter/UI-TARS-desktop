@@ -1,8 +1,0 @@
-{"id":"202506170156532B74643F8B1AC905B108","created":1750096617,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{"role":"assistant"},"index":0,"stop_reason":""}],"usage":{}}
-{"id":"202506170156532B74643F8B1AC905B108","created":1750096617,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{"content":"{"},"index":0,"stop_reason":""}],"usage":{}}
-{"id":"202506170156532B74643F8B1AC905B108","created":1750096618,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{"content":"\n  \"content\": \"I'll check the files"},"index":0,"stop_reason":""}],"usage":{}}
-{"id":"202506170156532B74643F8B1AC905B108","created":1750096619,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{"content":" changed in this PR to understand the error handling improvements being made.\""},"index":0,"stop_reason":""}],"usage":{}}
-{"id":"202506170156532B74643F8B1AC905B108","created":1750096619,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{"content":"\n}"},"index":0,"stop_reason":""}],"usage":{}}
-{"id":"202506170156532B74643F8B1AC905B108","created":1750096619,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{},"index":0,"stop_reason":""}],"usage":{}}
-{"id":"202506170156532B74643F8B1AC905B108","created":1750096619,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{},"index":0,"finish_reason":"stop","stop_reason":"end_turn"}],"usage":{}}
-{"id":"202506170156532B74643F8B1AC905B108","created":1750096619,"model":"aws_sdk_claude37_sonnet","choices":[{"delta":{},"index":0,"stop_reason":""}],"usage":{"completion_tokens":30,"prompt_tokens":22423,"total_tokens":22453}}

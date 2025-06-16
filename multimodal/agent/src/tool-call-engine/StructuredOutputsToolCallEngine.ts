@@ -28,9 +28,9 @@ import { jsonrepair } from 'jsonrepair';
  * Interface for parsed structured output from LLM response
  */
 interface ParsedStructuredOutput {
-  content?: string;
   finalAnswer?: string;
   toolCall?: {
+    thought?: string;
     name: string;
     args: Record<string, any>;
   };
@@ -72,24 +72,31 @@ Parameters: ${JSON.stringify(schema, null, 2)}`;
 
     // Define instructions for using structured outputs
     const structuredOutputInstructions = `
+CRITICAL: You MUST respond with ONLY valid JSON. No other text is allowed before, after, or around the JSON.
+
 When you need to use a tool:
 1. Respond with a structured JSON object with the following format:
 {
-  "content": "Always include a brief, concise message about what you're doing or what information you're providing. Avoid lengthy explanations.",
   "toolCall": {
+    "thought": "Always include a brief, concise message about what you're doing or what information you're providing. Avoid lengthy explanations.",
     "name": "the_exact_tool_name",
     "args": {
       // The arguments as required by the tool's parameter schema
     }
   }
 }
-IMPORTANT: Always include both "content" and "toolCall" when using a tool. The "content" should be brief but informative.
+IMPORTANT: Always include "thought", "name", and "args" within the "toolCall" object when using a tool. The "thought" should be brief but informative.
 
 BAD EXAMPLE - DO NOT DO THIS:
 {
-  "content": "I'll search for information about recent climate agreements."
+  "toolCall": {
+    "name": "search_web",
+    "args": {
+      "query": "recent climate agreements"
+    }
+  }
 }
-This is incorrect because it only has "content" without a "toolCall", so I won't know which tool to use or what arguments to pass.
+This is incorrect because it's missing the "thought" field within "toolCall".
 
 If you want to provide a final answer without calling a tool:
 {
@@ -184,10 +191,10 @@ ${structuredOutputInstructions}`;
           const repairedJson = jsonrepair(state.contentBuffer);
           const parsed = JSON.parse(repairedJson) as ParsedStructuredOutput;
 
-          // Check for finalAnswer or content field (for backwards compatibility)
-          const extractedContent = parsed.finalAnswer || parsed.content;
+          // Get content from appropriate field: finalAnswer, toolCall.thought, or legacy content
+          const extractedContent = this.extractContentFromParsedOutput(parsed);
 
-          if (parsed && typeof extractedContent === 'string') {
+          if (extractedContent !== undefined) {
             // Calculate only the new incremental content
             const newExtractedContent = extractedContent.slice(
               state.lastParsedContent?.length || 0,
@@ -201,7 +208,7 @@ ${structuredOutputInstructions}`;
             }
 
             // Check for tool call
-            if (parsed.toolCall && !hasToolCallUpdate) {
+            if (parsed.toolCall) {
               const { name, args } = parsed.toolCall;
 
               // Create a tool call and update state
@@ -238,6 +245,23 @@ ${structuredOutputInstructions}`;
   }
 
   /**
+   * Extract content from parsed output, checking all possible locations
+   * where thought/content might be found in the JSON structure
+   */
+  private extractContentFromParsedOutput(parsed: ParsedStructuredOutput): string | undefined {
+    if (parsed.finalAnswer !== undefined) {
+      return parsed.finalAnswer;
+    }
+
+    // New structure: toolCall.thought
+    if (parsed.toolCall?.thought !== undefined) {
+      return parsed.toolCall.thought;
+    }
+
+    return undefined;
+  }
+
+  /**
    * Finalize the stream processing and extract the final response
    */
   finalizeStreamProcessing(state: StreamProcessingState): ParsedModelResponse {
@@ -264,18 +288,14 @@ ${structuredOutputInstructions}`;
 
           state.toolCalls = [toolCall];
 
-          // For JSON-based responses, return only the content field
-          if (parsed.content) {
-            state.contentBuffer = parsed.content;
-          } else {
-            state.contentBuffer = '';
-          }
+          // Extract content from toolCall.thought or fallback to legacy content
+          const extractedContent = this.extractContentFromParsedOutput(parsed);
+          state.contentBuffer = extractedContent || '';
         } else {
-          // Check for finalAnswer field first (preferred) then content field (backward compatibility)
-          if (parsed.finalAnswer !== undefined) {
-            state.contentBuffer = parsed.finalAnswer;
-          } else if (parsed.content !== undefined) {
-            state.contentBuffer = parsed.content;
+          // Check for finalAnswer field or content field (backward compatibility)
+          const extractedContent = this.extractContentFromParsedOutput(parsed);
+          if (extractedContent !== undefined) {
+            state.contentBuffer = extractedContent;
           }
         }
       }
