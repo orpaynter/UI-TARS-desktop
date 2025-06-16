@@ -17,6 +17,7 @@ import {
   StreamProcessingState,
   StreamChunkResult,
   FinishReason,
+  JSONSchema7,
 } from '@multimodal/agent-interface';
 import { zodToJsonSchema } from '../utils';
 import { getLogger } from '../utils/logger';
@@ -110,6 +111,9 @@ Parameters: ${JSON.stringify(schema, null, 2)}`;
 
     // Define instructions for using structured outputs with separated semantics
     const structuredOutputInstructions = `
+CRITICAL: You MUST respond with ONLY valid JSON. No other text is allowed before, after, or around the JSON.
+YOUR ENTIRE RESPONSE MUST BE A VALID JSON STRING, NOT A PLAIN TEXT STRING.
+
 When you need to use a tool:
 {
   "thought": "Explain your reasoning and why you need to call this specific tool",
@@ -129,7 +133,10 @@ When you want to provide a final answer without calling any tool:
 IMPORTANT: 
 - Use "thought" + "toolCall" when you need to call a tool
 - Use "finalAnswer" when providing the final response
-- Never mix these patterns - they serve different purposes`;
+- Never mix these patterns - they serve different purposes
+- Always ensure your complete response is a properly formatted JSON string`;
+
+    // Combine everything
 
     // Combine everything
     return `${basePrompt}
@@ -148,7 +155,7 @@ ${structuredOutputInstructions}`;
    */
   prepareRequest(context: PrepareRequestContext): ChatCompletionCreateParams {
     // Define the schema for structured outputs with separated semantics
-    const responseSchema = {
+    const responseSchema: JSONSchema7 = {
       type: 'object',
       properties: {
         thought: {
@@ -163,10 +170,15 @@ ${structuredOutputInstructions}`;
               description: 'The exact name of the tool to call',
             },
             args: {
+              // FIXME: OpenAI: In context=('properties', 'toolCall'), 'required' is required to be supplied and to be an array including every key in properties. Extra required key 'args' supplied.
+              // {"finalAnswer":"It seems there was an issue with my previous attempts. Let me recheck and ensure the correct navigation to the specified URL.","thought":"Reconfirming and correctly formatting the URL for navigation.","toolCall":{"args":{},"name":"browser_navigate"}}
               type: 'object',
+              properties: {},
               description: 'The arguments for the tool call',
+              additionalProperties: false,
             },
           },
+          additionalProperties: false,
           required: ['name', 'args'],
         },
         finalAnswer: {
@@ -181,8 +193,8 @@ ${structuredOutputInstructions}`;
             'Your final complete response to the user when no tool call is needed, returns an empty string when toolCall exists.',
         },
       },
-      required: ['thought', 'toolCall', 'finalAnswer'],
       additionalProperties: false,
+      required: ['thought', 'toolCall', 'finalAnswer'],
     };
 
     // Basic parameters
@@ -197,11 +209,11 @@ ${structuredOutputInstructions}`;
     if (context.tools && context.tools.length > 0) {
       params.response_format = {
         type: 'json_schema',
-        // @ts-expect-error
         strict: true,
         json_schema: {
           name: 'agent_schema',
           strict: true,
+          // @ts-expect-error
           schema: responseSchema,
         },
       };
