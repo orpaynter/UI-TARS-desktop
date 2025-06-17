@@ -227,11 +227,11 @@ export abstract class BaseAgent<T extends AgentOptions = AgentOptions> {
       if (typeof agent.getLLMClient === 'function') {
         const abortController = new AbortController();
 
-        // Set a timeout to prevent reflection from taking too long
-        const timeoutId = setTimeout(() => {
-          abortController.abort();
-          this.logger.warn(`[Reflection] Timeout reached for session ${id}, allowing termination`);
-        }, 10000);
+        // // Set a timeout to prevent reflection from taking too long
+        // const timeoutId = setTimeout(() => {
+        //   abortController.abort();
+        //   this.logger.warn(`[Reflection] Timeout reached for session ${id}, allowing termination`);
+        // }, 10000);
 
         try {
           // Perform reflection
@@ -255,7 +255,7 @@ export abstract class BaseAgent<T extends AgentOptions = AgentOptions> {
           this.logger.error(`[Reflection] Error during reflection: ${error}`);
           return { finished: true };
         } finally {
-          clearTimeout(timeoutId);
+          // clearTimeout(timeoutId);
         }
       }
     } catch (error) {

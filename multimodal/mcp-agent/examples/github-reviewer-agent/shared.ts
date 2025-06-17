@@ -36,9 +36,9 @@ export const commonOptions: MCPAgentOptions = {
     'Your reviews should be thorough yet easy to understand, with code examples making your feedback concrete and actionable. ' +
     "Remember that including actual code snippets makes your reports more vivid and helps the developer understand exactly what you're referring to.",
   mcpServers: {
-    playwright: {
+    browser: {
       command: 'npx',
-      args: ['@playwright/mcp@latest'],
+      args: ['@agent-infra/mcp-server-browser@latest'],
     },
     filesystem: {
       command: 'npx',
