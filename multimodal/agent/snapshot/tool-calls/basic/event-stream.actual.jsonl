@@ -1,0 +1,28 @@
+[
+  {
+    "id": "175fef70-a1f5-4c12-87a6-33f054de11be",
+    "type": "agent_run_start",
+    "timestamp": 1750312008055,
+    "sessionId": "1750312008055-f3nfrlq",
+    "runOptions": {
+      "input": "How's the weather today?",
+      "toolCallEngine": "structured_outputs"
+    },
+    "provider": "volcengine",
+    "model": "ep-20250512165931-2c2ln"
+  },
+  {
+    "id": "f3ff73df-7d19-476c-82fa-d313ea68a3e2",
+    "type": "user_message",
+    "timestamp": 1750312008055,
+    "content": "How's the weather today?"
+  },
+  {
+    "id": "f609d462-3d72-4b00-ac43-06a260bc0b24",
+    "type": "assistant_message",
+    "timestamp": 1750312008061,
+    "content": "To get the weather, we first need the user's current location. So call getCurrentLocation to retrieve that information.",
+    "finishReason": "tool_calls",
+    "messageId": "msg_1750312008059_fr0rvtrz"
+  }
+]

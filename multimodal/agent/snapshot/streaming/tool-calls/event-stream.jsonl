@@ -6,6 +6,7 @@
     "sessionId": "1749894931553-8b7d0ed",
     "runOptions": {
       "input": "How's the weather today?",
+      "toolCallEngine": "structured_outputs",
       "stream": true
     },
     "provider": "volcengine",

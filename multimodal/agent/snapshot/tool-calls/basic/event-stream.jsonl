@@ -5,7 +5,8 @@
     "timestamp": 1749894916285,
     "sessionId": "1749894916284-qjzg5ul",
     "runOptions": {
-      "input": "How's the weather today?"
+      "input": "How's the weather today?",
+      "toolCallEngine": "structured_outputs"
     },
     "provider": "volcengine",
     "model": "ep-20250512165931-2c2ln"
