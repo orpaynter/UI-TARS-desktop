@@ -61,8 +61,8 @@ export async function createSession(req: Request, res: Response) {
     const session = new AgentSession(
       server,
       sessionId,
-      workingDirectory,
       server.getCustomAgioProvider(),
+      workingDirectory,
     );
 
     server.sessions[sessionId] = session;
