@@ -80,8 +80,6 @@ export class AgentTARS<T extends AgentTARSOptions = AgentTARSOptions> extends MC
         ...(options.browser ?? {}),
       },
       mcpImpl: 'in-memory',
-      // default tool call engine for agent tars.
-      toolCallEngine: 'structured_outputs',
       mcpServers: {},
       maxIterations: 100,
       maxTokens: 8192,
