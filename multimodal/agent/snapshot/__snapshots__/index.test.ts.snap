@@ -19,7 +19,7 @@ exports[`AgentSnapshot tests > should match snapshot for gui-agent/basic 2`] = `
       "input": "[Complex multimodal input]"
     },
     "provider": "volcengine",
-    "model": "ep-20250512165931-2c2ln"
+    "model": "ep-20250510145437-5sxhs"
   },
   {
     "id": "<<ID>>",
@@ -269,7 +269,7 @@ exports[`AgentSnapshot tests > should match snapshot for streaming/tool-calls 2`
       "stream": true
     },
     "provider": "volcengine",
-    "model": "ep-20250512165931-2c2ln"
+    "model": "ep-20250510145437-5sxhs"
   },
   {
     "id": "<<ID>>",
@@ -1689,7 +1689,7 @@ exports[`AgentSnapshot tests > should match snapshot for streaming/tool-calls-pr
       "stream": true
     },
     "provider": "volcengine",
-    "model": "ep-20250512165931-2c2ln"
+    "model": "ep-20250510145437-5sxhs"
   },
   {
     "id": "<<ID>>",
@@ -2678,7 +2678,7 @@ exports[`AgentSnapshot tests > should match snapshot for tool-calls/basic 2`] = 
       "input": "How's the weather today?"
     },
     "provider": "volcengine",
-    "model": "ep-20250512165931-2c2ln"
+    "model": "ep-20250510145437-5sxhs"
   },
   {
     "id": "<<ID>>",
@@ -2843,7 +2843,7 @@ exports[`AgentSnapshot tests > should match snapshot for tool-calls/prompt-engin
       "input": "How's the weather today?"
     },
     "provider": "volcengine",
-    "model": "ep-20250512165931-2c2ln"
+    "model": "ep-20250510145437-5sxhs"
   },
   {
     "id": "<<ID>>",
@@ -3008,7 +3008,7 @@ exports[`AgentSnapshot tests > should match snapshot for tool-calls/structured-o
       "input": "How's the weather today?"
     },
     "provider": "volcengine",
-    "model": "ep-20250512165931-2c2ln"
+    "model": "ep-20250510145437-5sxhs"
   },
   {
     "id": "<<ID>>",

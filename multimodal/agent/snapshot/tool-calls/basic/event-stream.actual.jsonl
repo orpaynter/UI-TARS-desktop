@@ -1,28 +1,28 @@
 [
   {
-    "id": "175fef70-a1f5-4c12-87a6-33f054de11be",
+    "id": "04dc8901-347a-4142-945e-b63cdafd5f13",
     "type": "agent_run_start",
-    "timestamp": 1750312008055,
-    "sessionId": "1750312008055-f3nfrlq",
+    "timestamp": 1750312615312,
+    "sessionId": "1750312615312-r5atmij",
     "runOptions": {
       "input": "How's the weather today?",
       "toolCallEngine": "structured_outputs"
     },
     "provider": "volcengine",
-    "model": "ep-20250512165931-2c2ln"
+    "model": "ep-20250510145437-5sxhs"
   },
   {
-    "id": "f3ff73df-7d19-476c-82fa-d313ea68a3e2",
+    "id": "b5813a49-4898-4e04-a0fc-d449e3ef6b67",
     "type": "user_message",
-    "timestamp": 1750312008055,
+    "timestamp": 1750312615312,
     "content": "How's the weather today?"
   },
   {
-    "id": "f609d462-3d72-4b00-ac43-06a260bc0b24",
+    "id": "a9991aa4-ecac-4b53-a482-a44b8e9a69dc",
     "type": "assistant_message",
-    "timestamp": 1750312008061,
+    "timestamp": 1750312615316,
     "content": "To get the weather, we first need the user's current location. So call getCurrentLocation to retrieve that information.",
     "finishReason": "tool_calls",
-    "messageId": "msg_1750312008059_fr0rvtrz"
+    "messageId": "msg_1750312615314_zbojgase"
   }
 ]
