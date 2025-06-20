@@ -100,6 +100,26 @@ export class AgentEventStreamProcessor implements AgentEventStream.Processor {
   }
 
   /**
+   * Get the latest assistant response to be used for the next message
+   */
+  getLatestAssistantResponse(): AgentSingleLoopReponse | null {
+    // Get the most recent assistant message event
+    const assistantEvents = this.getEventsByType(['assistant_message']);
+    if (assistantEvents.length === 0) {
+      return null;
+    }
+
+    const latestAssistantEvent = assistantEvents[
+      assistantEvents.length - 1
+    ] as AgentEventStream.AssistantMessageEvent;
+    return {
+      content: latestAssistantEvent.content || '',
+      toolCalls: latestAssistantEvent.toolCalls,
+      responseId: latestAssistantEvent.responseId,
+    };
+  }
+
+  /**
    * Get tool results since the last assistant message
    */
   getLatestToolResults(): { toolCallId: string; toolName: string; content: any }[] {

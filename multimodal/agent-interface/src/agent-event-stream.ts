@@ -126,6 +126,10 @@ export namespace AgentEventStream {
      * This allows clients to correlate incremental updates with complete messages
      */
     messageId?: string;
+    /**
+     * Unique response identifier
+     */
+    responseId?: string;
   }
 
   /**
