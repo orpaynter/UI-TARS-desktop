@@ -67,9 +67,12 @@ export function registerRunCommand(cli: CAC): void {
         input = stdinInput;
       }
 
+      // Only force quiet mode if debug mode is not enabled
+      const quietMode = options.debug ? false : true;
+
       const { appConfig } = await processCommonOptions({
         ...options,
-        quiet: true, // Force quiet mode for silent operation
+        quiet: quietMode, // Don't force quiet mode when debug is enabled
       });
 
       // Process the query in silent mode
@@ -77,7 +80,7 @@ export function registerRunCommand(cli: CAC): void {
         appConfig,
         input,
         format: options.format as 'json' | 'text',
-        includeLogs: options.includeLogs,
+        includeLogs: options.includeLogs || !!options.debug, // Always include logs in debug mode
       });
     } catch (err) {
       console.error('Error:', err instanceof Error ? err.message : String(err));
