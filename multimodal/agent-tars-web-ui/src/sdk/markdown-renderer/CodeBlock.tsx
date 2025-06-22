@@ -2,20 +2,20 @@ import React, { useState, useRef } from 'react';
 import { FiCopy, FiCheck } from 'react-icons/fi';
 
 interface CodeBlockProps {
+  inline?: boolean;
   className?: string;
   children: React.ReactNode;
 }
 
-export const CodeBlock: React.FC<CodeBlockProps> = ({ className, children }) => {
+export const CodeBlock: React.FC<CodeBlockProps> = ({ inline, className, children }) => {
   const match = /language-(\w+)/.exec(className || '');
   const [isWordWrap, setIsWordWrap] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const codeRef = useRef<HTMLElement>(null);
 
-  // If no language is specified, return inline code style
-  if (!match) {
+  if (inline || !match) {
     return (
-      <code className="font-mono text-xs bg-[#fff] border border-slate-200 dark:border-slate-600 dark:bg-gray-700/80 text-gray-800 dark:text-gray-200 px-2 py-0.5 rounded-md mx-0.5 whitespace-nowrap font-medium">
+      <code className="font-mono text-xs bg-[#fff] border border-slate-200 dark:border-slate-600 dark:bg-gray-700/80 text-gray-800 dark:text-gray-200 px-2 py-0.5 mx-0.5 whitespace-nowrap font-medium">
         {children}
       </code>
     );
@@ -44,7 +44,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ className, children }) => 
         <div className="flex items-center gap-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-md shadow-sm p-1">
           {/* Language badge */}
           <div className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-md font-mono">
-            {match[1] || 'code'}
+            {match?.[1] ?? 'text'}
           </div>
 
           {/* Word wrap toggle button */}
