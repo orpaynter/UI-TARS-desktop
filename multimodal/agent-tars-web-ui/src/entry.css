@@ -128,10 +128,8 @@
   }
 }
 
-/* 全局基础样式 */
 body {
   margin: 0;
-  font-family: var(--font-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   height: 100vh;
