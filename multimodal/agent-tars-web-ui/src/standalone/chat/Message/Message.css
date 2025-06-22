@@ -78,7 +78,7 @@
 /* 助手消息代码块暗黑模式样式 */
 .message-assistant .prose code,
 .message-assistant .prose pre {
-  @apply dark:bg-gray-800/80 dark:text-gray-200 dark:border-gray-700/50 rounded-xl;
+  @apply dark:bg-gray-800/80 dark:text-gray-200 dark:border-gray-700/50 rounded-md;
 }
 
 .message-system {

@@ -48,7 +48,7 @@ export function useTool() {
         return (
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full opacity-20"></div>
-            <FiMonitor className="relative z-10 text-purple-600 dark:text-purple-400" />
+            <FiMonitor className="relative z-10 text-accent-600 dark:text-accent-400" />
           </div>
         );
       case TOOL_TYPES.COMMAND:

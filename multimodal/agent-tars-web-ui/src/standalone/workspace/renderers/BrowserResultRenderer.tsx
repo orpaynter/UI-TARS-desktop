@@ -87,7 +87,7 @@ export const BrowserResultRenderer: React.FC<BrowserResultRendererProps> = ({ pa
                 href={extractedUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-800/30 transition-colors border border-purple-200/50 dark:border-purple-800/30"
+                className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-accent-600 dark:text-accent-400 hover:bg-purple-100 dark:hover:bg-purple-800/30 transition-colors border border-purple-200/50 dark:border-purple-800/30"
                 title="Open in new tab"
               >
                 <FiExternalLink size={18} />

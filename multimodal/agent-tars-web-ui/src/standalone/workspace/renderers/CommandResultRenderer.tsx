@@ -32,7 +32,7 @@ const highlightCommand = (command: string) => {
       // Quoted strings
       { pattern: /(["'])(?:(?=(\\?))\2.)*?\1/, className: 'text-orange-300' },
       // Environment variables
-      { pattern: /\$\w+|\$\{\w+\}/, className: 'text-purple-400' },
+      { pattern: /\$\w+|\$\{\w+\}/, className: 'text-accent-400' },
       // Output redirection
       { pattern: /(?<=\s)(>|>>|<|<<|2>|2>>|&>)(?=\s|$)/, className: 'text-blue-400 font-bold' },
       // Pipes and operators
