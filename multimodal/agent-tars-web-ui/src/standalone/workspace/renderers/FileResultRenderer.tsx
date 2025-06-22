@@ -242,7 +242,7 @@ export const FileResultRenderer: React.FC<FileResultRendererProps> = ({ part, on
           ) : (
             <div className="max-h-[70vh] overflow-auto">
               <div className="prose dark:prose-invert prose-sm max-w-none">
-                <MarkdownRenderer content={`\`\`\`${getLanguage()}\n${content}\n\`\`\``} />
+                <MarkdownRenderer content={`\`\`\`\`\`${getLanguage()}\n${content}\n\`\`\`\`\``} />
               </div>
             </div>
           )}
