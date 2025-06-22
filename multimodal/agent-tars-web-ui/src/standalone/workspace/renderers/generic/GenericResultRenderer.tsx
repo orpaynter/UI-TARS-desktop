@@ -218,7 +218,6 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
                       WebkitBackgroundClip: 'text',
                       color: 'transparent',
                       WebkitTextFillColor: 'transparent',
-                      textShadow: '0 2px 10px rgba(26, 32, 44, 0.3)',
                       padding: '3rem',
                       borderRadius: '8px',
                     }}
@@ -292,8 +291,8 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
                     transition={{ duration: 0.2 }}
                     className="flex items-start"
                   >
-                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400 w-12 flex-shrink-0">
-                      {formatKey(key)}
+                    <div className="text-sm font-light text-gray-500 dark:text-gray-400 w-[auto  ] flex-shrink-0">
+                      {formatKey(key)} &nbsp;
                     </div>
                     <div className="text-sm text-gray-700 dark:text-gray-300">
                       {formatValue(value)}
