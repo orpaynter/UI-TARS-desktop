@@ -165,7 +165,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         return (
           <a
             href={href}
-            className="text-accent-400 hover:text-accent-600 transition-colors underline underline-offset-2"
+            className="text-accent-500 hover:text-accent-600 transition-colors underline underline-offset-2"
             onClick={(e) => {
               e.preventDefault();
               // Find target element and scroll into view
@@ -184,7 +184,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         return (
           <Link
             to={href}
-            className="text-accent-400 hover:text-accent-600 transition-colors underline underline-offset-2"
+            className="text-accent-500 hover:text-accent-600 transition-colors underline underline-offset-2"
             {...props}
           />
         );
@@ -194,7 +194,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       return (
         <a
           href={href}
-          className="text-accent-400 hover:text-accent-600 transition-colors underline underline-offset-2"
+          className="text-accent-500 hover:text-accent-600 transition-colors underline underline-offset-2"
           target="_blank"
           rel="noopener noreferrer"
           {...props}

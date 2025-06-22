@@ -43,7 +43,7 @@ export const Layout: React.FC<LayoutProps> = ({ isReplayMode: propIsReplayMode }
         {!isReplayMode && <Sidebar />}
 
         {/* Content area - using flex-col to properly distribute vertical space */}
-        <div className="flex-1 flex flex-col overflow-hidden px-2 pb-2 lg:px-3 lg:pb-3">
+        <div className="flex-1 flex flex-col overflow-hidden pr-2 pb-2 lg:pr-3 lg:pb-3">
           {/* Panels container - apply flex-1 to take remaining vertical space */}
           <div className="flex gap-3 flex-1 min-h-0">
             {/* Chat panel - adjust width based on replay mode */}
