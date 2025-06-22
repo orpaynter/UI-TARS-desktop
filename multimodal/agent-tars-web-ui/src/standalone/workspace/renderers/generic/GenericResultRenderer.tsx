@@ -213,12 +213,12 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontWeight: 700,
-                      background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                      background: 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)',
                       backgroundClip: 'text',
                       WebkitBackgroundClip: 'text',
                       color: 'transparent',
                       WebkitTextFillColor: 'transparent',
-                      textShadow: '0 2px 10px rgba(99, 102, 241, 0.2)',
+                      textShadow: '0 2px 10px rgba(26, 32, 44, 0.3)',
                       padding: '3rem',
                       borderRadius: '8px',
                     }}
@@ -282,7 +282,7 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
 
           {/* Details area - always shown now */}
           {resultInfo.details && Object.keys(resultInfo.details).length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700/30">
+            <div className="mt-3 pt-3">
               <div className="grid gap-2">
                 {Object.entries(resultInfo.details).map(([key, value]) => (
                   <motion.div
