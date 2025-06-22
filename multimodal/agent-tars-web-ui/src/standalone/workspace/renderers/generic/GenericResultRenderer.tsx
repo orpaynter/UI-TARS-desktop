@@ -137,7 +137,7 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className="w-full"
     >
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200/50 dark:border-gray-700/30 shadow-sm overflow-hidden w-full transform transition-all duration-300 hover:shadow-md">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden w-full transform transition-all duration-300 hover:shadow-md">
         {/* Content area */}
         <div className="p-5 relative">
           {/* Toggle button for markdown content */}

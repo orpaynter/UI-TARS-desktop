@@ -28,7 +28,7 @@ export const Navbar: React.FC = () => {
   }, [isDarkMode]);
 
   return (
-    <div className="h-12 border-b border-gray-300/40 dark:border-gray-600/20 backdrop-blur-sm flex items-center px-3">
+    <div className="h-12 backdrop-blur-sm flex items-center px-3">
       {/* Left section with macOS-style traffic lights */}
       <div className="flex items-center">
         {/* macOS-style traffic lights */}
