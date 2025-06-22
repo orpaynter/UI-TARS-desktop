@@ -57,8 +57,6 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
   console.log('part', part);
 
   const content = processContent();
-  const [showDetails, setShowDetails] = useState(true); // Always show details by default
-  const [animateSuccess, setAnimateSuccess] = useState(false);
   // State to track the current display mode (source or rendered) for markdown content
   const [displayMode, setDisplayMode] = useState<DisplayMode>('source');
 
@@ -75,15 +73,6 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
 
   // Intelligently detect result type
   const resultInfo = analyzeResult(parsedContent, part.name);
-
-  // Trigger success animation
-  useEffect(() => {
-    if (resultInfo.type === 'success') {
-      setAnimateSuccess(true);
-      const timer = setTimeout(() => setAnimateSuccess(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [resultInfo.type]);
 
   // Special handling: if content includes "Navigated to", extract URL and set as navigation operation
   if (typeof content === 'string' && content.includes('Navigated to')) {
