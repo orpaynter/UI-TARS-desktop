@@ -54,6 +54,8 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
     return part.text || part.data || {};
   };
 
+  console.log('part', part);
+
   const content = processContent();
   const [showDetails, setShowDetails] = useState(false);
   const [animateSuccess, setAnimateSuccess] = useState(false);
@@ -137,7 +139,7 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
 
   // Check if this is a very short string that should be displayed prominently
   const isShortString =
-    typeof resultInfo.message === 'string' && resultInfo.message.length < 20 && !isMarkdownContent;
+    typeof resultInfo.message === 'string' && resultInfo.message.length < 80 && !isMarkdownContent;
 
   return (
     <motion.div
@@ -193,22 +195,36 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
-                className="text-gray-700 dark:text-gray-300"
+                className="text-gray-700 dark:text-gray-300 mb-4"
               >
                 {isShortString ? (
-                  <div
-                    className="font-size-40px height-100px flex items-center justify-center font-bold text-center"
+                  <motion.div
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    transition={{
+                      duration: 0.5,
+                      ease: 'easeOut',
+                    }}
+                    className="text-center"
                     style={{
-                      fontSize: '40px',
-                      height: '100px',
+                      fontSize: '30px',
+                      height: '120px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontWeight: 700,
+                      background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      color: 'transparent',
+                      WebkitTextFillColor: 'transparent',
+                      textShadow: '0 2px 10px rgba(99, 102, 241, 0.2)',
+                      padding: '3rem',
+                      borderRadius: '8px',
                     }}
                   >
                     {resultInfo.message}
-                  </div>
+                  </motion.div>
                 ) : typeof resultInfo.message === 'string' && isMarkdownContent ? (
                   displayMode === 'source' ? (
                     <MarkdownRenderer content={`\`\`\`\`\`md\n${resultInfo.message}\n\`\`\`\`\``} />
