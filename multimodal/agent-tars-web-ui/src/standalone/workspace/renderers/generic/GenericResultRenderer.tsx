@@ -85,11 +85,13 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
 
   // Special handling: if content includes "Navigated to", extract URL and set as navigation operation
   if (typeof content === 'string' && content.includes('Navigated to')) {
-    const url = content.split('\n')[0].replace('Navigated to ', '').trim();
+    const splits = content.split('\n');
+    const url = splits[0].replace('Navigated to ', '').trim();
     resultInfo.operation = 'navigate';
     resultInfo.url = url;
     resultInfo.type = 'success';
     resultInfo.title = 'Navigation Successful';
+    resultInfo.details = splits.slice(1);
   }
 
   // Add special handling for navigation operations
