@@ -113,6 +113,9 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
       /!\[.+\]\(.+\)/, // Images
       /^---$/m, // Horizontal rules
       /^\|.+\|$/m, // Tables
+      /^\s*\[\d+\].*$/m, // Numbered references like [1], [2]
+      /^\s*\[FILE\].*$/m, // File annotations
+      /^\s*\[DIR\].*$/m, // Directory annotations
     ];
 
     // If content matches at least two Markdown patterns, or is lengthy with one pattern, consider it Markdown
@@ -138,66 +141,6 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
       className="w-full"
     >
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200/50 dark:border-gray-700/30 shadow-sm overflow-hidden w-full transform transition-all duration-300 hover:shadow-md">
-        {/* Status header */}
-        <div
-          className={`py-4 px-5 flex items-center justify-between border-b ${getHeaderClasses(resultInfo.type)}`}
-        >
-          <div className="flex items-center">
-            <div className="mr-3 relative">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={resultInfo.type}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {getStatusIcon(resultInfo.type, resultInfo.operation)}
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Success animation effect */}
-              {animateSuccess && resultInfo.type === 'success' && (
-                <motion.div
-                  initial={{ scale: 0.5, opacity: 0.8 }}
-                  animate={{ scale: 1.5, opacity: 0 }}
-                  transition={{ duration: 1.2, ease: 'easeOut' }}
-                  className="absolute inset-0 rounded-full bg-green-500 dark:bg-green-400 z-0"
-                />
-              )}
-            </div>
-            <div>
-              <motion.span
-                className="font-medium"
-                initial={{ opacity: 0.8 }}
-                animate={{ opacity: 1 }}
-              >
-                {part.name || resultInfo.title}
-              </motion.span>
-              {resultInfo.operation && (
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {getOperationDescription(resultInfo.operation, resultInfo)}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Add URL display (for browser tools) */}
-          {resultInfo.url && (
-            <div className="text-xs flex items-center text-gray-500 dark:text-gray-400 hover:text-accent-600 dark:hover:text-accent-400 transition-colors group">
-              <FiLink size={12} className="mr-1 group-hover:text-accent-500" />
-              <a
-                href={resultInfo.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="max-w-[200px] truncate hover:underline transition-all"
-              >
-                {resultInfo.url}
-              </a>
-            </div>
-          )}
-        </div>
-
         {/* Content area */}
         <div className="p-5 relative">
           {/* Toggle button for markdown content */}
@@ -248,13 +191,12 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
               >
                 {typeof resultInfo.message === 'string' && isMarkdownContent ? (
                   displayMode === 'source' ? (
-                    <pre className="whitespace-pre-wrap text-sm p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md overflow-x-auto border border-gray-200/50 dark:border-gray-700/30 font-mono">
-                      {resultInfo.message}
-                    </pre>
+                    <MarkdownRenderer content={`\`\`\`\`\`md\n${resultInfo.message}\n\`\`\`\`\``} />
                   ) : (
-                    <div className="prose dark:prose-invert prose-sm max-w-none">
-                      <MarkdownRenderer content={resultInfo.message} />
-                    </div>
+                    <MarkdownRenderer
+                      className="prose dark:prose-invert prose-sm max-w-none"
+                      content={resultInfo.message}
+                    />
                   )
                 ) : (
                   resultInfo.message
