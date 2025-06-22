@@ -1,6 +1,5 @@
 import React from 'react';
 import { ToolResultContentPart } from '../types';
-import { FiTerminal } from 'react-icons/fi';
 
 interface CommandResultRendererProps {
   part: ToolResultContentPart;
@@ -111,13 +110,6 @@ export const CommandResultRenderer: React.FC<CommandResultRendererProps> = ({ pa
   return (
     <div className="space-y-2">
       <div className="mb-2">
-        <div className="flex items-center mb-2">
-          <FiTerminal className="text-gray-600 dark:text-gray-400 mr-2" size={16} />
-          <h3 className="text-base font-medium text-gray-800 dark:text-gray-200">
-            Terminal {exitCodeDisplay}
-          </h3>
-        </div>
-
         {/* Terminal interface */}
         <div className="rounded-lg overflow-hidden border border-gray-900">
           {/* Terminal title bar */}
