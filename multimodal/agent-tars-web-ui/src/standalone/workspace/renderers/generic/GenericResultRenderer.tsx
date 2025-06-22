@@ -57,7 +57,7 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
   console.log('part', part);
 
   const content = processContent();
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(true); // Always show details by default
   const [animateSuccess, setAnimateSuccess] = useState(false);
   // State to track the current display mode (source or rendered) for markdown content
   const [displayMode, setDisplayMode] = useState<DisplayMode>('source');
@@ -280,66 +280,29 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
             </motion.div>
           )}
 
-          {/* Detail toggle button - only shown when additional details exist */}
+          {/* Details area - always shown now */}
           {resultInfo.details && Object.keys(resultInfo.details).length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
-              className="mt-2 mb-3"
-            >
-              <button
-                onClick={() => setShowDetails(!showDetails)}
-                className="text-xs flex items-center text-gray-500 dark:text-gray-400 hover:text-accent-600 dark:hover:text-accent-400 transition-colors"
-              >
-                <motion.div
-                  animate={{
-                    rotate: showDetails ? 90 : 0,
-                  }}
-                  transition={{
-                    duration: 0.2,
-                  }}
-                >
-                  <FiArrowRight size={12} className="mr-1.5" />
-                </motion.div>
-                {showDetails ? 'Hide Details' : 'View Details'}
-              </button>
-            </motion.div>
+            <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700/30">
+              <div className="grid gap-2">
+                {Object.entries(resultInfo.details).map(([key, value]) => (
+                  <motion.div
+                    key={key}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-start"
+                  >
+                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400 w-12 flex-shrink-0">
+                      {formatKey(key)}
+                    </div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">
+                      {formatValue(value)}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           )}
-
-          {/* Details area - only shown when additional details exist */}
-          <AnimatePresence>
-            {showDetails && resultInfo.details && Object.keys(resultInfo.details).length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
-              >
-                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700/30">
-                  <div className="grid gap-2">
-                    {Object.entries(resultInfo.details).map(([key, value]) => (
-                      <motion.div
-                        key={key}
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex items-start"
-                      >
-                        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">
-                          {formatKey(key)}:
-                        </div>
-                        <div className="text-sm text-gray-700 dark:text-gray-300">
-                          {formatValue(value)}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Empty state handling - enhanced version */}
           {!resultInfo.message &&

@@ -101,7 +101,9 @@ export const BrowserResultRenderer: React.FC<BrowserResultRendererProps> = ({ pa
           <div className="bg-white dark:bg-gray-800 px-5 min-h-[200px] max-h-[70vh] overflow-auto border-t border-gray-100/30 dark:border-gray-700/20">
             {contentType === 'text' || typeof extractedContent === 'string' ? (
               <div className="prose dark:prose-invert prose-sm max-w-none py-4">
-                <MarkdownRenderer content={typeof extractedContent === 'string' ? extractedContent : ''} />
+                <MarkdownRenderer
+                  content={typeof extractedContent === 'string' ? extractedContent : ''}
+                />
               </div>
             ) : (
               <pre className="text-sm whitespace-pre-wrap font-mono bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-gray-100/30 dark:border-gray-700/20 overflow-x-auto">
