@@ -133,6 +133,10 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
   const shouldOfferToggle =
     isMarkdownContent && typeof resultInfo.message === 'string' && resultInfo.message.length > 100;
 
+  // Check if this is a very short string that should be displayed prominently
+  const isShortString =
+    typeof resultInfo.message === 'string' && resultInfo.message.length < 20 && !isMarkdownContent;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -187,9 +191,23 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
-                className="text-gray-700 dark:text-gray-300 mb-4"
+                className="text-gray-700 dark:text-gray-300"
               >
-                {typeof resultInfo.message === 'string' && isMarkdownContent ? (
+                {isShortString ? (
+                  <div
+                    className="font-size-40px height-100px flex items-center justify-center font-bold text-center"
+                    style={{
+                      fontSize: '40px',
+                      height: '100px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {resultInfo.message}
+                  </div>
+                ) : typeof resultInfo.message === 'string' && isMarkdownContent ? (
                   displayMode === 'source' ? (
                     <MarkdownRenderer content={`\`\`\`\`\`md\n${resultInfo.message}\n\`\`\`\`\``} />
                   ) : (
@@ -257,8 +275,12 @@ export const GenericResultRenderer: React.FC<GenericResultRendererProps> = ({ pa
                 className="text-xs flex items-center text-gray-500 dark:text-gray-400 hover:text-accent-600 dark:hover:text-accent-400 transition-colors"
               >
                 <motion.div
-                  animate={{ rotate: showDetails ? 90 : 0 }}
-                  transition={{ duration: 0.2 }}
+                  animate={{
+                    rotate: showDetails ? 90 : 0,
+                  }}
+                  transition={{
+                    duration: 0.2,
+                  }}
                 >
                   <FiArrowRight size={12} className="mr-1.5" />
                 </motion.div>
