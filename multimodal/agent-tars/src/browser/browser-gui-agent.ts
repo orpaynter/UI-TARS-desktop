@@ -7,7 +7,7 @@
 import { LocalBrowser, Page } from '@agent-infra/browser';
 import { BrowserOperator } from '@ui-tars/operator-browser';
 import { ConsoleLogger, AgentEventStream, Tool, z } from '@mcp-agent/core';
-import { ImageCompressor, formatBytes } from '../shared/utils';
+import { ImageCompressor } from '../shared/image-optimization';
 
 /**
  * Coordinate type definition
@@ -320,58 +320,27 @@ wait()                                         - Wait 5 seconds and take a scree
 
       // Calculate screenshot time
       const endTime = performance.now();
-      const screenshotTime = (endTime - startTime).toFixed(2);
+      const screenshotTime = endTime - startTime;
 
-      // Extract image dimensions from screenshot
-      this.extractImageDimensionsFromBase64(output.base64);
+      // Create an ImageCompressor instance with logger for stats
+      const imageCompressor = new ImageCompressor(
+        {
+          quality: 20,
+          screenshotTime,
+          format: 'webp',
+        },
+        this.logger,
+      );
 
-      // Calculate original image size
-      const originalBase64Data = output.base64.replace(/^data:image\/\w+;base64,/, '');
-      const originalBuffer = Buffer.from(originalBase64Data, 'base64');
-      const originalSize = originalBuffer.length;
+      // Process the image (compression and analysis)
+      const compressionResult = await imageCompressor.compressImage(output.base64, startTime);
 
-      // Compress the image
-      const imageCompressor = new ImageCompressor({
-        quality: 80,
-        format: 'webp',
-      });
+      // Update screen dimensions from result
+      this.screenWidth = compressionResult.width;
+      this.screenHeight = compressionResult.height;
 
-      const compressedBuffer = await imageCompressor.compressToBuffer(originalBuffer);
-      const compressedSize = compressedBuffer.length;
-
-      // Convert compressed buffer to base64
-      const compressedBase64 = `data:image/webp;base64,${compressedBuffer.toString('base64')}`;
-
-      // Calculate compression ratio and percentage
-      const compressionRatio = originalSize / compressedSize;
-      const compressionPercentage = ((1 - compressedSize / originalSize) * 100).toFixed(2);
-
-      // Log compression stats
-      this.logger.info('Screenshot compression stats:', {
-        original: formatBytes(originalSize),
-        compressed: formatBytes(compressedSize),
-        ratio: `${compressionRatio.toFixed(2)}x (${compressionPercentage}% smaller)`,
-        dimensions: `${this.screenWidth}x${this.screenHeight}`,
-        format: 'webp',
-        quality: 20,
-        time: `${screenshotTime} ms`,
-      });
-
-      // Calculate image size
-      const sizeInKB = (compressedSize / 1024).toFixed(2);
-
-      // FIXME: using logger
-      console.log('Screenshot info:', {
-        width: this.screenWidth,
-        height: this.screenHeight,
-        size: `${sizeInKB} KB`,
-        time: `${screenshotTime} ms`,
-        compression: `${
-          originalSize / 1024 > 1024
-            ? (originalSize / 1024 / 1024).toFixed(2) + ' MB'
-            : (originalSize / 1024).toFixed(2) + ' KB'
-        } → ${formatBytes(compressedSize)} (${compressionPercentage}% reduction)`,
-      });
+      // Log detailed image info
+      imageCompressor.logImageInfo(compressionResult, true);
 
       // Send screenshot to event stream as environment input
       const event = eventStream.createEvent('environment_input', {
@@ -379,7 +348,7 @@ wait()                                         - Wait 5 seconds and take a scree
           {
             type: 'image_url',
             image_url: {
-              url: compressedBase64,
+              url: compressionResult.base64,
             },
           },
         ],
@@ -395,14 +364,6 @@ wait()                                         - Wait 5 seconds and take a scree
 
       // Don't throw the error to prevent loop interruption
     }
-  }
-
-  /**
-   * Add data URI prefix to base64 image if not present
-   */
-  private addBase64ImagePrefix(base64: string): string {
-    if (!base64) return '';
-    return base64.startsWith('data:') ? base64 : `data:image/jpeg;base64,${base64}`;
   }
 
   /**
@@ -461,47 +422,6 @@ wait()                                         - Wait 5 seconds and take a scree
       action_type,
       action_inputs,
     };
-  }
-
-  /**
-   * Extract width and height information from base64 encoded image
-   */
-  private extractImageDimensionsFromBase64(base64String: string): void {
-    // Remove base64 prefix (if any)
-    const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
-
-    // Decode base64 to binary data
-    const buffer = Buffer.from(base64Data, 'base64');
-
-    // Check image type and extract dimensions
-    if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
-      // PNG format: width in bytes 16-19, height in bytes 20-23
-      this.screenWidth = buffer.readUInt32BE(16);
-      this.screenHeight = buffer.readUInt32BE(20);
-    } else if (buffer[0] === 0xff && buffer[1] === 0xd8) {
-      // JPEG format: need to parse SOF0 marker (0xFFC0)
-      let offset = 2;
-      while (offset < buffer.length) {
-        if (buffer[offset] !== 0xff) break;
-
-        const marker = buffer[offset + 1];
-        const segmentLength = buffer.readUInt16BE(offset + 2);
-
-        // SOF0, SOF2 markers contain dimension information
-        if ((marker >= 0xc0 && marker <= 0xc3) || (marker >= 0xc5 && marker <= 0xc7)) {
-          this.screenHeight = buffer.readUInt16BE(offset + 5);
-          this.screenWidth = buffer.readUInt16BE(offset + 7);
-          break;
-        }
-
-        offset += 2 + segmentLength;
-      }
-    }
-
-    // Ensure dimensions were extracted
-    if (!this.screenWidth || !this.screenHeight) {
-      this.logger.warn('Unable to extract dimension information from image data');
-    }
   }
 
   /**
