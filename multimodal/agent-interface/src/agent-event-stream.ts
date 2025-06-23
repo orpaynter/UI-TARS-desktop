@@ -291,6 +291,18 @@ export namespace AgentEventStream {
   }
 
   /**
+   * Environment input event - for injecting contextual information
+   *
+   * This allows agents to receive multimodal context from their environment
+   * without attributing it to a user message
+   */
+  export interface EnvironmentInputEvent extends BaseEvent {
+    type: 'environment_input';
+
+    state: 
+  }
+
+  /**
    * Represents a single step in a plan
    */
   export interface PlanStep {

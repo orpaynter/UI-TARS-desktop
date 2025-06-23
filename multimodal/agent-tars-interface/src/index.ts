@@ -9,3 +9,4 @@ export * from './core';
 export * from './server';
 export * from './cli';
 export * from './define-config';
+export * from './event-stream';

@@ -373,6 +373,10 @@ wait()                                         - Wait 5 seconds and take a scree
         } → ${formatBytes(compressedSize)} (${compressionPercentage}% reduction)`,
       });
 
+      eventStream.createEvent('custom_analysis', {
+        result: '',
+      });
+
       // Send screenshot to event stream as environment input
       const event = eventStream.createEvent('environment_input', {
         content: [

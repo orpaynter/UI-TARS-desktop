@@ -298,6 +298,9 @@ importers:
       '@mcp-agent/interface':
         specifier: workspace:*
         version: link:../mcp-agent-interface
+      '@multimodal/agent-interface':
+        specifier: workspace:*
+        version: link:../agent-interface
       '@multimodal/agio':
         specifier: workspace:*
         version: link:../agio
