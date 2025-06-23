@@ -1,6 +1,6 @@
 /* 消息相关样式 - 极简黑白灰风格 */
 .message-container {
-  @apply relative mb-4 w-full;
+  @apply relative mb-2 w-full;
 }
 
 .message-container-user {

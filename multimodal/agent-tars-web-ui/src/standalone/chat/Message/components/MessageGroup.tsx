@@ -73,7 +73,7 @@ export const MessageGroup: React.FC<MessageGroupProps> = ({ messages, isThinking
       })}
 
       {/* 渲染所有助手消息 - 每条消息独立渲染，支持流式展示 */}
-      <div className="space-y-2">
+      <div className="space-y-1">
         {assistantMessages.map((message, index) => (
           <Message
             key={message.id}
