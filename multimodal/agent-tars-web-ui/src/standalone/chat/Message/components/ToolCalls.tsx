@@ -7,25 +7,18 @@ interface ToolCallsProps {
   toolCalls: any[];
   onToolCallClick: (toolCall: any) => void;
   getToolIcon: (name: string) => React.ReactNode;
-  isIntermediate?: boolean;
   toolResults?: any[]; // Add toolResults to check completion status
 }
 
 /**
  * Component for displaying tool calls with loading states and status icons
  *
- * Design principles:
- * - Shows loading state for pending tool calls
- * - Displays success/error status with appropriate icons
- * - Maintains compact display for thinking sequences
- * - Provides clear visual feedback for tool execution status
- * - Refined colors for better visual harmony while keeping simplicity
+ * 修改以移除对 isIntermediate 的依赖，保持统一的视觉样式
  */
 export const ToolCalls: React.FC<ToolCallsProps> = ({
   toolCalls,
   onToolCallClick,
   getToolIcon,
-  isIntermediate = false,
   toolResults = [],
 }) => {
   // Helper function to get tool call status
@@ -64,7 +57,7 @@ export const ToolCalls: React.FC<ToolCallsProps> = ({
     }
   };
 
-  // 新增：生成工具描述文本
+  // 生成工具描述文本
   const getToolDescription = (toolCall: any) => {
     try {
       const args = JSON.parse(toolCall.function.arguments || '{}');
@@ -87,7 +80,7 @@ export const ToolCalls: React.FC<ToolCallsProps> = ({
     }
   };
 
-  // 新增：获取浏览器操作结果说明
+  // 获取浏览器操作结果说明
   const getResultInfo = (toolCall: any, status: string) => {
     const result = toolResults.find((result) => result.toolCallId === toolCall.id);
 

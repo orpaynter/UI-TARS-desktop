@@ -33,11 +33,11 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
       case 'pending':
         return 'border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300';
       case 'success':
-        return 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/60 text-slate-800 dark:text-slate-200';
+        return 'border-slate-200 dark:border-slate-600 bg-[#f9fafb] dark:bg-slate-800/60 text-slate-800 dark:text-slate-200';
       case 'error':
         return 'border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300';
       default:
-        return 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/60 text-slate-800 dark:text-slate-200';
+        return 'border-slate-200 dark:border-slate-600 bg-[#f9fafb] dark:bg-slate-800/60 text-slate-800 dark:text-slate-200';
     }
   };
 
@@ -58,7 +58,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   return (
     <motion.button
       onClick={onClick}
-      className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-2xl transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] border text-left group w-full mt-2 ${getStatusColorClasses()} ${getHoverColorClasses()}`}
+      className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-xl transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] border text-left group w-full mt-2 ${getStatusColorClasses()} ${getHoverColorClasses()}`}
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}

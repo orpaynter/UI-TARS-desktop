@@ -15,7 +15,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ inline, className, childre
 
   if (inline || !match) {
     return (
-      <code className="font-mono text-xs bg-[#fff] border border-slate-200 dark:border-slate-600 dark:bg-gray-700/80 text-gray-800 dark:text-gray-200 px-2 py-0.5 mx-0.5 whitespace-nowrap font-medium">
+      <code className="font-mono text-xs bg-[#fff] border border-slate-200 dark:border-slate-600 dark:bg-gray-700/80 text-gray-800 dark:text-gray-200 px-2 py-0.5 mx-0.5 whitespace-nowrap font-medium rounded-md">
         {children}
       </code>
     );
