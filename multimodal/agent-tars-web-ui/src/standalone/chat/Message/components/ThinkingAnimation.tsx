@@ -15,7 +15,7 @@ export const ThinkingAnimation: React.FC<ThinkingAnimationProps> = ({
   const textClass = size === 'small' ? 'text-xs' : size === 'medium' ? 'text-sm' : 'text-base';
 
   return (
-    <div className={`flex items-center ${className}`}>
+    <div className={`p-2 flex items-center ${className}`}>
       <span className={`${textClass} text-violet-600 dark:text-violet-400 font-medium`}>
         {text}
       </span>

@@ -4,7 +4,7 @@ import { Message } from '../index';
 import { FiClock } from 'react-icons/fi';
 import { formatTimestamp } from '@/common/utils/formatters';
 import { isMultimodalContent } from '@/common/utils/typeGuards';
-import { ThinkingAnimation } from './ThinkingAnimation';
+// import { ThinkingAnimation } from './ThinkingAnimation';
 
 interface MessageGroupProps {
   messages: MessageType[];
@@ -86,11 +86,11 @@ export const MessageGroup: React.FC<MessageGroupProps> = ({ messages, isThinking
         ))}
 
         {/* 思考加载动画 */}
-        {isThinking && (
+        {/* {isThinking && (
           <div className="mt-2 pl-1">
             <ThinkingAnimation />
           </div>
-        )}
+        )} */}
       </div>
 
       {/* 时间戳 */}
