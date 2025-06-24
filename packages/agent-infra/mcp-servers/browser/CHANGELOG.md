@@ -1,5 +1,11 @@
 # @agent-infra/mcp-server-browser
 
+## 1.2.1
+
+### Patch Changes
+
+- fix: browser_get_html deprecated
+
 ## 1.2.0
 
 ### Minor Changes
