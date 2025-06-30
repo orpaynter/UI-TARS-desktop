@@ -27,13 +27,8 @@ interface MessageProps {
 }
 
 /**
- * Message Component - 重构版，移除 isIntermediate 差异
- *
- * 设计原则:
- * - 统一的消息样式，不区分中间和最终状态
- * - 专注于内容，减少视觉干扰
- * - 优雅的样式和排版
- * - 支持便捷的消息复制功能
+ * Message Component with intelligent animation handling
+ * Animation is now handled automatically by MarkdownRenderer without external configuration
  */
 export const Message: React.FC<MessageProps> = ({
   message,
@@ -136,7 +131,7 @@ export const Message: React.FC<MessageProps> = ({
       );
     }
 
-    // Use forceDarkTheme for user messages only
+    // MarkdownRenderer now handles animation automatically
     return <MarkdownRenderer content={message.content as string} forceDarkTheme={isUserMessage} />;
   };
 
