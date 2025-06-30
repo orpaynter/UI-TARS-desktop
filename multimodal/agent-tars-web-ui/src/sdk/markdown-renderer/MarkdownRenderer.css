@@ -1,0 +1,160 @@
+/* /multimodal/agent-tars-web-ui/src/sdk/markdown-renderer/MarkdownRenderer.css */
+
+/* Markdown Renderer Container Styles */
+.markdown-renderer-cmd,
+.markdown-renderer-static {
+  width: 100%;
+  max-width: none;
+}
+
+/* Enhanced streaming animation styles */
+.markdown-renderer-cmd {
+  position: relative;
+}
+
+/* Streaming indicator styles */
+.markdown-renderer-cmd::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.6), transparent);
+  background-size: 200% 100%;
+  animation: streaming-progress 2s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.markdown-renderer-cmd[data-streaming="true"]::after {
+  opacity: 1;
+}
+
+@keyframes streaming-progress {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Ensure proper text rendering during streaming */
+.markdown-renderer-cmd .ds-markdown,
+.markdown-renderer-static .ds-markdown {
+  line-height: 1.7;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Dark theme adjustments */
+.dark .markdown-renderer-cmd::after {
+  background: linear-gradient(90deg, transparent, rgba(129, 140, 248, 0.8), transparent);
+}
+
+/* Performance optimizations */
+.markdown-renderer-cmd,
+.markdown-renderer-static {
+  contain: layout style paint;
+  will-change: auto;
+}
+
+/* Smooth transitions for mode switching */
+.markdown-renderer-cmd,
+.markdown-renderer-static {
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Typography consistency */
+.markdown-renderer-cmd .ds-markdown-content,
+.markdown-renderer-static .ds-markdown-content {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Code block enhancements for streaming */
+.markdown-renderer-cmd .ds-markdown pre,
+.markdown-renderer-static .ds-markdown pre {
+  overflow-x: auto;
+  border-radius: 8px;
+  background-color: var(--code-bg, #f8f9fa);
+  border: 1px solid var(--code-border, #e9ecef);
+}
+
+.dark .markdown-renderer-cmd .ds-markdown pre,
+.dark .markdown-renderer-static .ds-markdown pre {
+  background-color: var(--code-bg-dark, #1e1e1e);
+  border-color: var(--code-border-dark, #333);
+}
+
+/* Table styling consistency */
+.markdown-renderer-cmd .ds-markdown table,
+.markdown-renderer-static .ds-markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  border: 1px solid var(--table-border, #e9ecef);
+}
+
+.dark .markdown-renderer-cmd .ds-markdown table,
+.dark .markdown-renderer-static .ds-markdown table {
+  border-color: var(--table-border-dark, #374151);
+}
+
+/* List styling improvements */
+.markdown-renderer-cmd .ds-markdown ul,
+.markdown-renderer-cmd .ds-markdown ol,
+.markdown-renderer-static .ds-markdown ul,
+.markdown-renderer-static .ds-markdown ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+/* Blockquote styling */
+.markdown-renderer-cmd .ds-markdown blockquote,
+.markdown-renderer-static .ds-markdown blockquote {
+  border-left: 4px solid var(--accent-color, #6366f1);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: var(--text-muted, #6b7280);
+}
+
+.dark .markdown-renderer-cmd .ds-markdown blockquote,
+.dark .markdown-renderer-static .ds-markdown blockquote {
+  color: var(--text-muted-dark, #9ca3af);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .markdown-renderer-cmd,
+  .markdown-renderer-static {
+    font-size: 0.9rem;
+  }
+  
+  .markdown-renderer-cmd .ds-markdown pre,
+  .markdown-renderer-static .ds-markdown pre {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Animation performance optimizations */
+.markdown-renderer-cmd * {
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .markdown-renderer-cmd::after {
+    animation: none;
+  }
+  
+  .markdown-renderer-cmd,
+  .markdown-renderer-static {
+    transition: none;
+  }
+}
