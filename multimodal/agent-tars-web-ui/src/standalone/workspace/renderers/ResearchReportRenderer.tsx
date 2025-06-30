@@ -138,7 +138,7 @@ export const ResearchReportRenderer: React.FC<ResearchReportRendererProps> = ({
       >
         <div className="p-8">
           <div className="research-report prose prose-slate lg:prose-lg dark:prose-invert max-w-none">
-            <MarkdownRenderer content={formattedContent} />
+            <MarkdownRenderer content={formattedContent} animated={true} />
           </div>
 
           {/* Loading indicator for streaming content */}
