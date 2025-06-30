@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { FiArrowRight } from 'react-icons/fi';
 
 interface ActionButtonProps {
@@ -57,12 +56,9 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   };
 
   return (
-    <motion.button
+    <button
       onClick={onClick}
       className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-xl transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] border text-left group w-full ${getStatusColorClasses()} ${getHoverColorClasses()}`}
-      initial={{ opacity: 0, y: 5 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
     >
       {/* Icon container with enhanced visual styling */}
       <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center">{icon}</div>
@@ -84,6 +80,6 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
           />
         )}
       </div>
-    </motion.button>
+    </button>
   );
 };
