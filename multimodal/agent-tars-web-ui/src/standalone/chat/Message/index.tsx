@@ -103,10 +103,6 @@ export const Message: React.FC<MessageProps> = ({
     }
   };
 
-  // Determine if we should animate the message
-  // Only animate messages that are being streamed (no finishReason)
-  const shouldAnimateMessage = message.role === 'assistant' && message.finishReason !== 'stop';
-
   // Render content based on type
   const renderContent = () => {
     if (isMultimodal) {
@@ -123,7 +119,7 @@ export const Message: React.FC<MessageProps> = ({
     if (message.role === 'assistant' && message.toolCalls && message.toolCalls.length > 0) {
       return (
         <div className="prose dark:prose-invert prose-sm max-w-none text-xs">
-          <MarkdownRenderer content={message.content as string} animated={shouldAnimateMessage} />
+          <MarkdownRenderer content={message.content as string} />
         </div>
       );
     }
@@ -140,14 +136,8 @@ export const Message: React.FC<MessageProps> = ({
       );
     }
 
-    // Use forceDarkTheme for user messages only and enable animation for streaming responses
-    return (
-      <MarkdownRenderer
-        content={message.content as string}
-        forceDarkTheme={isUserMessage}
-        animated={shouldAnimateMessage}
-      />
-    );
+    // Use forceDarkTheme for user messages only
+    return <MarkdownRenderer content={message.content as string} forceDarkTheme={isUserMessage} />;
   };
 
   // Determine message bubble style based on role and state

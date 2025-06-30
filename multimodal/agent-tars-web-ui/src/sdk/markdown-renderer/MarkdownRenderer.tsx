@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -8,11 +8,8 @@ import { Dialog } from '@headlessui/react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CodeBlock } from './CodeBlock';
-import { rehypeAnimateText } from './plugins/rehype-animate-text';
-import { useAnimatedMarkdown } from './hooks/useAnimatedMarkdown';
 import 'remark-github-blockquote-alert/alert.css';
 import './syntax-highlight.css';
-import './animate-text.css';
 
 interface MarkdownRendererProps {
   content: string;
@@ -20,40 +17,22 @@ interface MarkdownRendererProps {
   author?: string;
   className?: string;
   forceDarkTheme?: boolean;
-  /**
-   * Enable animated text rendering (streaming effect)
-   */
-  animated?: boolean;
 }
 
 /**
  * MarkdownRenderer component
  * Renders markdown content with custom styling and enhanced functionality
- * including streaming text animation effects with smooth incremental updates
  */
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   content,
   className = '',
   forceDarkTheme = false,
-  animated = false,
 }) => {
   const [openImage, setOpenImage] = useState<string | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [renderError, setRenderError] = useState<Error | null>(null);
-
   // Track if we've rendered the first h1
   const firstH1Ref = useRef(false);
-
-  // Reference to the rendered markdown container
-  const markdownRef = useRef<HTMLDivElement>(null);
-
-  // Animation control with incremental update support
-  const animationState = useAnimatedMarkdown({
-    enabled: animated,
-    content,
-    startDelay: 5,
-    animationDuration: 2000,
-  });
 
   const handleImageClick = (src: string) => {
     setOpenImage(src);
@@ -70,17 +49,18 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       const id = window.location.hash.substring(1);
       const element = document.getElementById(id);
       if (element) {
+        // Use setTimeout to ensure page is fully rendered before scrolling
         setTimeout(() => {
           element.scrollIntoView({ behavior: 'smooth' });
         }, 100);
       }
     }
-  }, [content]);
+  }, [content]); // Re-check when content changes
 
   // Reset the first h1 flag when content changes
   useEffect(() => {
     firstH1Ref.current = false;
-    setRenderError(null);
+    setRenderError(null); // Reset any previous errors when content changes
   }, [content]);
 
   // If there was a rendering error, show a fallback
@@ -94,7 +74,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   }
 
   // Determine the theme class based on the forceDarkTheme prop
-  const themeClass = forceDarkTheme ? 'dark' : '';
+  const themeClass = forceDarkTheme ? 'dark' : 'light';
 
   // Create heading ID from text content
   const createHeadingId = (children: React.ReactNode): string =>
@@ -104,186 +84,156 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       .replace(/[^\w\s]/g, '')
       .replace(/\s+/g, '-') || '';
 
-  // Memoize components to prevent unnecessary re-renders
-  const components: Components = useMemo(
-    () => ({
-      h1: ({ node, children, ...props }) => {
-        const id = createHeadingId(children);
-        const isFirstH1 = !firstH1Ref.current;
-        if (isFirstH1) {
-          firstH1Ref.current = true;
-        }
+  const components: Components = {
+    h1: ({ node, children, ...props }) => {
+      const id = createHeadingId(children);
+      const isFirstH1 = !firstH1Ref.current;
+      if (isFirstH1) {
+        firstH1Ref.current = true;
+      }
 
-        return (
-          <h1
-            id={id}
-            className="group text-3xl font-bold mt-6 mb-2 pb-2 border-b border-gray-200 bg-gradient-to-r from-purple-700 to-purple-500 bg-clip-text text-transparent scroll-mt-20 flex items-center animate-section"
-            {...props}
-          >
-            {children}
-          </h1>
-        );
-      },
-      h2: ({ node, children, ...props }) => (
-        <h2
-          id={createHeadingId(children)}
-          className="group text-2xl font-bold mt-6 mb-2 bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent scroll-mt-20 flex items-center animate-section"
+      return (
+        <h1
+          id={id}
+          className="group text-3xl font-bold mt-6 mb-2 pb-2 border-b border-gray-200 bg-gradient-to-r from-purple-700 to-purple-500 bg-clip-text text-transparent scroll-mt-20 flex items-center"
           {...props}
         >
           {children}
-        </h2>
-      ),
-      h3: ({ node, children, ...props }) => (
-        <h3
-          id={createHeadingId(children)}
-          className="group text-xl font-semibold mt-8 mb-3 text-gray-800 scroll-mt-20 flex items-center animate-section"
-          {...props}
-        >
-          {children}
-        </h3>
-      ),
-      h4: ({ node, children, ...props }) => (
-        <h4
-          id={createHeadingId(children)}
-          className="group text-md font-semibold mt-6 mb-2 text-gray-800 dark:text-gray-200 scroll-mt-20 flex items-center animate-section"
-          {...props}
-        >
-          {children}
-        </h4>
-      ),
-      p: ({ node, ...props }) => (
-        <p
-          className="my-0 text-gray-800 dark:text-gray-200 leading-relaxed animate-section"
-          {...props}
-        />
-      ),
-      a: ({ node, href, ...props }) => {
-        if (href && href.startsWith('#')) {
-          return (
-            <a
-              href={href}
-              className="text-accent-500 hover:text-accent-600 transition-colors underline underline-offset-2"
-              onClick={(e) => {
-                e.preventDefault();
-                const element = document.getElementById(href.substring(1));
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth' });
-                  window.history.pushState(null, '', href);
-                }
-              }}
-              {...props}
-            />
-          );
-        } else if (href && !href.match(/^(https?:)?\/\//) && href.startsWith('/')) {
-          return (
-            <Link
-              to={href}
-              className="text-accent-500 hover:text-accent-600 transition-colors underline underline-offset-2"
-              {...props}
-            />
-          );
-        }
-
+        </h1>
+      );
+    },
+    h2: ({ node, children, ...props }) => (
+      <h2
+        id={createHeadingId(children)}
+        className="group text-2xl font-bold mt-6 mb-2 bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent scroll-mt-20 flex items-center"
+        {...props}
+      >
+        {children}
+      </h2>
+    ),
+    h3: ({ node, children, ...props }) => (
+      <h3
+        id={createHeadingId(children)}
+        className="group text-xl font-semibold mt-8 mb-3 text-gray-800 scroll-mt-20 flex items-center"
+        {...props}
+      >
+        {children}
+      </h3>
+    ),
+    h4: ({ node, children, ...props }) => (
+      <h4
+        id={createHeadingId(children)}
+        className="group text-md font-semibold mt-6 mb-2 text-gray-800 dark:text-gray-200 scroll-mt-20 flex items-center"
+        {...props}
+      >
+        {children}
+      </h4>
+    ),
+    p: ({ node, ...props }) => (
+      <p className="my-0 text-gray-800 dark:text-gray-200 leading-relaxed" {...props} />
+    ),
+    a: ({ node, href, ...props }) => {
+      // Handle three types of links:
+      if (href && href.startsWith('#')) {
+        // Hash links - use smooth scrolling
         return (
           <a
             href={href}
             className="text-accent-500 hover:text-accent-600 transition-colors underline underline-offset-2"
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={(e) => {
+              e.preventDefault();
+              const element = document.getElementById(href.substring(1));
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+                window.history.pushState(null, '', href);
+              }
+            }}
             {...props}
           />
         );
-      },
-      ul: ({ node, ...props }) => (
-        <ul className="my-2 list-disc pl-6 text-gray-800 animate-section" {...props} />
-      ),
-      ol: ({ node, ...props }) => (
-        <ol className="my-2 list-decimal pl-6 text-gray-800 animate-section" {...props} />
-      ),
-      li: ({ node, ...props }) => <li className="my-1" {...props} />,
-      blockquote: ({ node, ...props }) => (
-        <blockquote
-          className="border-l-4 border-purple-300 pl-4 my-4 italic text-gray-600 animate-section"
-          {...props}
-        />
-      ),
-      code: ({ node, className, children, ...props }) => (
-        <CodeBlock className={`${className} animate-code`} {...props}>
-          {children}
-        </CodeBlock>
-      ),
-      table: ({ node, ...props }) => (
-        <div className="overflow-x-auto my-6 animate-section">
-          <table
-            className="min-w-full border-collapse border border-gray-300 dark:border-gray-600 text-sm"
+      } else if (href && !href.match(/^(https?:)?\/\//) && href.startsWith('/')) {
+        // Internal links - use React Router's Link
+        return (
+          <Link
+            to={href}
+            className="text-accent-500 hover:text-accent-600 transition-colors underline underline-offset-2"
             {...props}
           />
-        </div>
-      ),
-      thead: ({ node, ...props }) => <thead className="bg-gray-100 dark:bg-gray-800" {...props} />,
-      tbody: ({ node, ...props }) => (
-        <tbody className="divide-y divide-gray-200 dark:divide-gray-700" {...props} />
-      ),
-      tr: ({ node, ...props }) => (
-        <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" {...props} />
-      ),
-      th: ({ node, ...props }) => (
-        <th
-          className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-300 dark:border-gray-600"
+        );
+      }
+
+      // External links - open in new tab
+      return (
+        <a
+          href={href}
+          className="text-accent-500 hover:text-accent-600 transition-colors underline underline-offset-2"
+          target="_blank"
+          rel="noopener noreferrer"
           {...props}
         />
-      ),
-      td: ({ node, ...props }) => (
-        <td
-          className="px-4 py-3 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700"
+      );
+    },
+    ul: ({ node, ...props }) => <ul className="my-2 list-disc pl-6 text-gray-800" {...props} />,
+    ol: ({ node, ...props }) => <ol className="my-2 list-decimal pl-6 text-gray-800" {...props} />,
+    li: ({ node, ...props }) => <li className="my-1" {...props} />,
+    blockquote: ({ node, ...props }) => (
+      <blockquote
+        className="border-l-4 border-purple-300 pl-4 my-4 italic text-gray-600"
+        {...props}
+      />
+    ),
+    code: ({ node, className, children, ...props }) => (
+      <CodeBlock className={className} {...props}>
+        {children}
+      </CodeBlock>
+    ),
+    table: ({ node, ...props }) => (
+      <div className="overflow-x-auto my-6">
+        <table
+          className="min-w-full border-collapse border border-gray-300 dark:border-gray-600 text-sm"
           {...props}
         />
-      ),
-      img: ({ node, src, ...props }) => (
-        <motion.img
-          className="max-w-full h-auto my-6 rounded-lg cursor-pointer animate-section"
-          src={src}
-          onClick={() => src && handleImageClick(src)}
-          {...props}
-          alt={props.alt || 'Documentation image'}
-          whileHover={{ scale: 1.01 }}
-          transition={{ duration: 0.2 }}
-        />
-      ),
-      hr: ({ node, ...props }) => <hr className="my-8 border-t border-gray-200" {...props} />,
-    }),
-    [],
-  );
-
-  // Determine which rehype plugins to use based on animation setting
-  const rehypePlugins = useMemo(() => {
-    const basePlugins = [rehypeRaw, [rehypeHighlight, { detect: true, ignoreMissing: true }]];
-
-    if (animated && animationState.shouldAnimate) {
-      return [
-        ...basePlugins,
-        [
-          rehypeAnimateText,
-          {
-            granularity: 'word',
-            staggerDelay: 30,
-            maxDelay: 2000,
-            previousContentLength: animationState.previousContentLength,
-            currentContentLength: animationState.currentContentLength,
-          },
-        ],
-      ];
-    }
-
-    return basePlugins;
-  }, [animated, animationState]);
+      </div>
+    ),
+    thead: ({ node, ...props }) => <thead className="bg-gray-100 dark:bg-gray-800" {...props} />,
+    tbody: ({ node, ...props }) => (
+      <tbody className="divide-y divide-gray-200 dark:divide-gray-700" {...props} />
+    ),
+    tr: ({ node, ...props }) => (
+      <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" {...props} />
+    ),
+    th: ({ node, ...props }) => (
+      <th
+        className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-300 dark:border-gray-600"
+        {...props}
+      />
+    ),
+    td: ({ node, ...props }) => (
+      <td
+        className="px-4 py-3 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700"
+        {...props}
+      />
+    ),
+    img: ({ node, src, ...props }) => (
+      <motion.img
+        className="max-w-full h-auto my-6 rounded-lg cursor-pointer"
+        src={src}
+        onClick={() => src && handleImageClick(src)}
+        {...props}
+        alt={props.alt || 'Documentation image'}
+        whileHover={{ scale: 1.01 }}
+        transition={{ duration: 0.2 }}
+      />
+    ),
+    hr: ({ node, ...props }) => <hr className="my-8 border-t border-gray-200" {...props} />,
+  };
 
   try {
     return (
-      <div ref={markdownRef} className={`${themeClass} markdown-content`}>
+      <div className={`${themeClass} markdown-content`}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkAlert]}
-          rehypePlugins={rehypePlugins}
+          rehypePlugins={[rehypeRaw, [rehypeHighlight, { detect: true, ignoreMissing: true }]]}
           className={className}
           components={components}
         >
