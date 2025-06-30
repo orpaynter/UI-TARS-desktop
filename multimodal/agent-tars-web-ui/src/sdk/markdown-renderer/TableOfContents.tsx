@@ -13,14 +13,11 @@ interface TableOfContentsProps {
 export const TableOfContents: React.FC<TableOfContentsProps> = ({ markdown }) => {
   const [items, setItems] = useState<TOCItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
-
-  // Observer reference
   const observerRef = useRef<IntersectionObserver | null>(null);
-  // Reference to the TOC container
   const tocRef = useRef<HTMLDivElement>(null);
 
+  // Extract headings from markdown
   useEffect(() => {
-    // Extract headings from markdown
     const headingRegex = /^(#{1,6})\s+(.+)$/gm;
     const matches = [...markdown.matchAll(headingRegex)];
 
@@ -33,19 +30,10 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({ markdown }) =>
           .replace(/[^\w\s]/g, '')
           .replace(/\s+/g, '-');
 
-        return {
-          id,
-          text,
-          level,
-        };
+        return { id, text, level };
       })
-      // Filter out h1 headings
-      .filter((item, index) => {
-        if (index === 0 && item.level === 1) {
-          return false;
-        }
-        return true;
-      });
+      // Filter out h1 headings except the first one
+      .filter((item, index) => !(index === 0 && item.level === 1));
 
     setItems(tocItems);
   }, [markdown]);
@@ -62,19 +50,14 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({ markdown }) =>
     // Create a new intersection observer
     const observer = new IntersectionObserver(
       (entries) => {
-        // Get all entries that are currently visible
         const visibleEntries = entries.filter((entry) => entry.isIntersecting);
-
-        // If we have visible entries, use the first one (topmost)
         if (visibleEntries.length > 0) {
-          // Get the ID from the element
-          const id = visibleEntries[0].target.id;
-          setActiveId(id);
+          setActiveId(visibleEntries[0].target.id);
         }
       },
       {
-        rootMargin: '-60px 0px -80% 0px', // Adjust rootMargin to fine-tune when headings are considered visible
-        threshold: 0.1, // Trigger when at least 10% of the heading is visible
+        rootMargin: '-60px 0px -80% 0px',
+        threshold: 0.1,
       },
     );
 
@@ -86,20 +69,14 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({ markdown }) =>
       }
     });
 
-    // Store observer reference
     observerRef.current = observer;
-
-    // Cleanup function
-    return () => {
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, [items]);
 
   // Handle initial active heading when page loads with a hash
   useEffect(() => {
     if (window.location.hash && items.length > 0) {
-      const hash = window.location.hash.substring(1);
-      setActiveId(hash);
+      setActiveId(window.location.hash.substring(1));
     }
   }, [items]);
 
@@ -123,11 +100,8 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({ markdown }) =>
                   e.preventDefault();
                   const element = document.getElementById(item.id);
                   if (element) {
-                    // Update URL without page reload
                     window.history.pushState(null, '', `#${item.id}`);
-                    // Scroll to target element with smooth behavior
                     element.scrollIntoView({ behavior: 'smooth' });
-                    // Update active ID
                     setActiveId(item.id);
                   }
                 }}

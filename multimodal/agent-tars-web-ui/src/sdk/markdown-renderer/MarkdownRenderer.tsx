@@ -25,15 +25,13 @@ interface MarkdownRendererProps {
  */
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   content,
-  publishDate,
-  author,
   className = '',
   forceDarkTheme = false,
 }) => {
   const [openImage, setOpenImage] = useState<string | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [renderError, setRenderError] = useState<Error | null>(null);
-  // Add a ref to track if we've rendered the first h1
+  // Track if we've rendered the first h1
   const firstH1Ref = useRef(false);
 
   const handleImageClick = (src: string) => {
@@ -78,90 +76,64 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   // Determine the theme class based on the forceDarkTheme prop
   const themeClass = forceDarkTheme ? 'dark' : 'light';
 
+  // Create heading ID from text content
+  const createHeadingId = (children: React.ReactNode): string =>
+    children
+      ?.toString()
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .replace(/\s+/g, '-') || '';
+
   const components: Components = {
     h1: ({ node, children, ...props }) => {
-      // Generate ID from heading text for anchor links
-      const id = children
-        ?.toString()
-        .toLowerCase()
-        .replace(/[^\w\s]/g, '')
-        .replace(/\s+/g, '-');
-
-      // Check if this is the first h1 and set the flag
+      const id = createHeadingId(children);
       const isFirstH1 = !firstH1Ref.current;
       if (isFirstH1) {
         firstH1Ref.current = true;
       }
 
       return (
-        <>
-          <h1
-            id={id}
-            className="group text-3xl font-bold mt-6 mb-2 pb-2 border-b border-gray-200 bg-gradient-to-r from-purple-700 to-purple-500 bg-clip-text text-transparent scroll-mt-20 flex items-center"
-            {...props}
-          >
-            {children}
-          </h1>
-        </>
-      );
-    },
-    h2: ({ node, children, ...props }) => {
-      const id = children
-        ?.toString()
-        .toLowerCase()
-        .replace(/[^\w\s]/g, '')
-        .replace(/\s+/g, '-');
-      return (
-        <h2
+        <h1
           id={id}
-          className="group text-2xl font-bold mt-6 mb-2 bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent scroll-mt-20 flex items-center"
+          className="group text-3xl font-bold mt-6 mb-2 pb-2 border-b border-gray-200 bg-gradient-to-r from-purple-700 to-purple-500 bg-clip-text text-transparent scroll-mt-20 flex items-center"
           {...props}
         >
           {children}
-        </h2>
+        </h1>
       );
     },
-    h3: ({ node, children, ...props }) => {
-      const id = children
-        ?.toString()
-        .toLowerCase()
-        .replace(/[^\w\s]/g, '')
-        .replace(/\s+/g, '-');
-      return (
-        <h3
-          id={id}
-          className="group text-xl font-semibold mt-8 mb-3 text-gray-800 scroll-mt-20 flex items-center"
-          {...props}
-        >
-          {children}
-        </h3>
-      );
-    },
-    h4: ({ node, children, ...props }) => {
-      const id = children
-        ?.toString()
-        .toLowerCase()
-        .replace(/[^\w\s]/g, '')
-        .replace(/\s+/g, '-');
-      return (
-        <h4
-          id={id}
-          className="group text-md font-semibold mt-6 mb-2 text-gray-800 dark:text-gray-200 scroll-mt-20 flex items-center"
-          {...props}
-        >
-          {children}
-        </h4>
-      );
-    },
+    h2: ({ node, children, ...props }) => (
+      <h2
+        id={createHeadingId(children)}
+        className="group text-2xl font-bold mt-6 mb-2 bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent scroll-mt-20 flex items-center"
+        {...props}
+      >
+        {children}
+      </h2>
+    ),
+    h3: ({ node, children, ...props }) => (
+      <h3
+        id={createHeadingId(children)}
+        className="group text-xl font-semibold mt-8 mb-3 text-gray-800 scroll-mt-20 flex items-center"
+        {...props}
+      >
+        {children}
+      </h3>
+    ),
+    h4: ({ node, children, ...props }) => (
+      <h4
+        id={createHeadingId(children)}
+        className="group text-md font-semibold mt-6 mb-2 text-gray-800 dark:text-gray-200 scroll-mt-20 flex items-center"
+        {...props}
+      >
+        {children}
+      </h4>
+    ),
     p: ({ node, ...props }) => (
       <p className="my-0 text-gray-800 dark:text-gray-200 leading-relaxed" {...props} />
     ),
     a: ({ node, href, ...props }) => {
       // Handle three types of links:
-      // 1. Hash links (#section)
-      // 2. Internal path links (/path)
-      // 3. External links (https://...)
-
       if (href && href.startsWith('#')) {
         // Hash links - use smooth scrolling
         return (
@@ -170,11 +142,9 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             className="text-accent-500 hover:text-accent-600 transition-colors underline underline-offset-2"
             onClick={(e) => {
               e.preventDefault();
-              // Find target element and scroll into view
               const element = document.getElementById(href.substring(1));
               if (element) {
                 element.scrollIntoView({ behavior: 'smooth' });
-                // Update URL without page reload
                 window.history.pushState(null, '', href);
               }
             }}
@@ -212,13 +182,11 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         {...props}
       />
     ),
-    code: ({ node, className, children, ...props }) => {
-      return (
-        <CodeBlock className={className} {...props}>
-          {children}
-        </CodeBlock>
-      );
-    },
+    code: ({ node, className, children, ...props }) => (
+      <CodeBlock className={className} {...props}>
+        {children}
+      </CodeBlock>
+    ),
     table: ({ node, ...props }) => (
       <div className="overflow-x-auto my-6">
         <table
@@ -227,9 +195,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         />
       </div>
     ),
-
     thead: ({ node, ...props }) => <thead className="bg-gray-100 dark:bg-gray-800" {...props} />,
-
     tbody: ({ node, ...props }) => (
       <tbody className="divide-y divide-gray-200 dark:divide-gray-700" {...props} />
     ),
@@ -249,7 +215,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       />
     ),
     img: ({ node, src, ...props }) => (
-      // @ts-expect-error
       <motion.img
         className="max-w-full h-auto my-6 rounded-lg cursor-pointer"
         src={src}
@@ -260,7 +225,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         transition={{ duration: 0.2 }}
       />
     ),
-
     hr: ({ node, ...props }) => <hr className="my-8 border-t border-gray-200" {...props} />,
   };
 
@@ -276,12 +240,9 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           {content}
         </ReactMarkdown>
 
-        {/* 图片预览对话框 */}
+        {/* Image preview dialog */}
         <Dialog open={!!openImage} onClose={handleCloseModal} className="relative z-[9999]">
-          {/* 背景遮罩 */}
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
-
-          {/* 图片容器 */}
           <div className="fixed inset-0 flex items-center justify-center p-4">
             <Dialog.Panel className="max-w-[90vw] max-h-[90vh] outline-none">
               <motion.img
@@ -306,8 +267,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   } catch (error) {
     console.error('Error rendering markdown:', error);
     setRenderError(error instanceof Error ? error : new Error(String(error)));
-
-    // Fallback render for raw content
     return (
       <pre className="p-3 text-sm border border-gray-200 rounded-md overflow-auto">{content}</pre>
     );

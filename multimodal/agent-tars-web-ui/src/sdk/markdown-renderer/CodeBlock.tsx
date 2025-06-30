@@ -13,6 +13,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ inline, className, childre
   const [isCopied, setIsCopied] = useState(false);
   const codeRef = useRef<HTMLElement>(null);
 
+  // Render inline code
   if (inline || !match) {
     return (
       <code className="font-mono text-xs text-[#525252] bg-[#1b1f230d] dark:bg-[#333e4ecc] dark:text-gray-200 px-1 py-0.5 mx-0.5 whitespace-nowrap font-medium rounded-md">
@@ -23,7 +24,6 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ inline, className, childre
 
   const handleCopy = () => {
     if (codeRef.current) {
-      // Extract text content from code element instead of React nodes
       const code = codeRef.current.textContent || '';
       navigator.clipboard.writeText(code).then(() => {
         setIsCopied(true);
@@ -38,16 +38,15 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ inline, className, childre
 
   return (
     <div className="relative my-2 group">
-      {/* Language badge and action buttons - positioned in top right, visible on hover */}
+      {/* Language badge and action buttons */}
       <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        {/* Action buttons */}
         <div className="flex items-center gap-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-md shadow-sm p-1">
           {/* Language badge */}
           <div className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-md font-mono">
             {match?.[1] ?? 'text'}
           </div>
 
-          {/* Word wrap toggle button */}
+          {/* Word wrap toggle */}
           <button
             onClick={toggleWordWrap}
             className="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
@@ -78,7 +77,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ inline, className, childre
             )}
           </button>
 
-          {/* Copy button - 使用react-icons图标并移除文字 */}
+          {/* Copy button */}
           <button
             onClick={handleCopy}
             className="hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
