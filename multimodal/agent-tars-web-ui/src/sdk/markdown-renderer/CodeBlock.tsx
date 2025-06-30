@@ -89,7 +89,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ inline, className, childre
       </div>
 
       <pre
-        className={`bg-[#f9fafb] dark:bg-gray-900/50 dark:border-gray-700/50 rounded-xl p-4 text-xs ${
+        className={`bg-[#f9fafb] dark:bg-gray-900/50 dark:border-gray-700/50 rounded-xl p-4 text-xs border border-slate-200 dark:border-slate-600 ${
           isWordWrap ? 'whitespace-pre-wrap break-words' : 'overflow-x-auto'
         }`}
       >
