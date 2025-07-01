@@ -38,6 +38,7 @@ import { Operator } from '@main/store/types';
 import { api } from '../../api';
 import { useRemoteResource } from '../../hooks/useRemoteResource';
 import { VNCPreview } from './cast/vnc';
+//@ts-ignore
 import { CDPBrowser } from './cast/canvas';
 import { NavDialog } from '../../components/AlertDialog/navDialog';
 
@@ -67,13 +68,21 @@ const RemoteOperator = () => {
     createSession,
   } = useSession();
   const [activeTab, setActiveTab] = useState('vnc');
-  const { status, queueNum, rdpUrl, releaseResource, getTimeBalance } =
-    useRemoteResource({
-      sessionId: state.sessionId,
-      operator: state.operator,
-      isFree: state.isFree ?? true,
-      from: state.from,
-    });
+  const {
+    status,
+    queueNum,
+    rdpUrl,
+    browserVncUrl,
+    releaseResource,
+    getTimeBalance,
+  } = useRemoteResource({
+    sessionId: state.sessionId,
+    operator: state.operator,
+    isFree: state.isFree ?? true,
+    from: state.from,
+  });
+  const testRdpUrl =
+    'https://sd18itejj5ce3htvrcnu0.apigateway-cn-beijing.volceapi.com/vnc/index.html?autoconnect=true&resize=on&path=ws%3FfaasInstanceName%3Dvefaas-8dndd8xb-cri3egx7rh-d1ho9f1vnaumg4cnflm0-sandbox';
   const TabName =
     state.operator === Operator.RemoteComputer
       ? 'Cloud Computer'
@@ -384,11 +393,14 @@ const RemoteOperator = () => {
               {state.operator === Operator.RemoteComputer ? (
                 <VNCPreview status={status} queueNum={queueNum} url={rdpUrl} />
               ) : (
-                <CDPBrowser
+                <VNCPreview
+                  // key={rdpUrl}
                   status={status}
                   queueNum={queueNum}
-                  url={rdpUrl}
-                  VLMError={errorMsg}
+                  // url={rdpUrl}
+                  // url={browserVncUrl}
+                  url={testRdpUrl}
+                  // VLMError={errorMsg}
                 />
               )}
             </div>

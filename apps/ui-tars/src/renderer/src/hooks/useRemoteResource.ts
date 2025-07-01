@@ -6,13 +6,17 @@ import { useState, useCallback, useEffect } from 'react';
 import useSWR from 'swr';
 import { api } from '@renderer/api';
 import { Operator } from '@main/store/types';
+import {
+  GrantedResponseHdfBrowser,
+  GrantedResponseSandbox,
+} from '@/main/remote/proxyClient';
 
 const map: Record<
   Operator.RemoteComputer | Operator.RemoteBrowser,
-  'computer' | 'browser'
+  'computer' | 'hdfBrowser'
 > = {
   [Operator.RemoteComputer]: 'computer',
-  [Operator.RemoteBrowser]: 'browser',
+  [Operator.RemoteBrowser]: 'hdfBrowser',
 };
 
 interface Settings {
@@ -34,6 +38,7 @@ export type RemoteResourceStatus =
 export const useRemoteResource = (settings: Settings) => {
   const [status, setStatus] = useState<RemoteResourceStatus>('init');
   const [rdpUrl, setRdpUrl] = useState<string>('');
+  const [browserVncUrl, setBrowserVncUrl] = useState<string>('');
   const [queueNum, setQueueNum] = useState<number | null>(null);
   const [error, setError] = useState<Error>();
 
@@ -67,9 +72,20 @@ export const useRemoteResource = (settings: Settings) => {
 
         case 'granted':
           setQueueNum(null);
-          setStatus('connected');
-          // @ts-ignore
-          setRdpUrl(result.data.rdpUrl ?? result.data.wsUrl);
+          setStatus('connecting');
+          if (resourceType === 'hdfBrowser') {
+            // setRdpUrl((result.data as { vncUrl: string }).vncUrl);
+            setBrowserVncUrl(
+              (result.data as GrantedResponseHdfBrowser['data']).vncUrl,
+            );
+            setStatus('connected');
+          } /*else if (resourceType === 'browser') {
+            setRdpUrl((result.data as { wsUrl: string }).wsUrl);
+          }*/ else if (resourceType === 'computer') {
+            // setRdpUrl((result.data as { rdpUrl: string }).rdpUrl);
+            setRdpUrl((result.data as GrantedResponseSandbox['data']).rdpUrl);
+            setStatus('connected');
+          }
           break;
       }
     }
@@ -126,6 +142,7 @@ export const useRemoteResource = (settings: Settings) => {
   return {
     status,
     rdpUrl,
+    browserVncUrl,
     queueNum,
     error,
     releaseResource,

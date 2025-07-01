@@ -12,7 +12,7 @@ interface VNCProps {
 const originalWidth = 1200;
 const originalHeight = 900;
 
-export const VNCPreview = memo(({ status, url, queueNum }: VNCProps) => {
+export const VNCPreview = ({ status, url, queueNum }: VNCProps) => {
   const [scale, setScale] = useState(0.5);
 
   useEffect(() => {
@@ -53,6 +53,7 @@ export const VNCPreview = memo(({ status, url, queueNum }: VNCProps) => {
   }, []);
 
   console.log('VNCPreview', status, url);
+  console.log('url', url, url?.length);
 
   // Show iframe only when connected and URL is available
   if (status === 'connected' && url) {
@@ -69,7 +70,14 @@ export const VNCPreview = memo(({ status, url, queueNum }: VNCProps) => {
       >
         <iframe
           className="rounded-lg border absolute"
+          key={url}
           src={url}
+          onLoad={() => {
+            console.log('iframe loaded', url);
+          }}
+          onError={(e) => {
+            console.error('iframe error', url, e);
+          }}
           style={{
             width: `${originalWidth}px`,
             height: `${originalHeight}px`,
@@ -85,4 +93,4 @@ export const VNCPreview = memo(({ status, url, queueNum }: VNCProps) => {
   return (
     <StatusIndicator name={'Computer'} status={status} queueNum={queueNum} />
   );
-});
+};

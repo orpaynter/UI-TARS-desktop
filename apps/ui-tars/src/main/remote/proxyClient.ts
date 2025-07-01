@@ -289,9 +289,11 @@ export interface SandboxInfo {
 }
 
 export interface BrowserInfo {
+  browserType: 'hdf' | 'hdls';
   browserId: string;
-  podName: string;
-  wsUrl: string;
+  podName?: string;
+  cdpUrl: string;
+  vncUrl?: string;
 }
 
 export interface TimeBalanceInteral {
@@ -334,11 +336,21 @@ export interface GrantedResponseBrowser {
   };
 }
 
+export interface GrantedResponseHdfBrowser {
+  state: 'granted';
+  data: {
+    sandboxId: string;
+    cdpUrl: string;
+    vncUrl: string;
+  };
+}
+
 export type AvailableResponse =
   | QueuedResponse
   | WaitingResponse
   | GrantedResponseSandbox
-  | GrantedResponseBrowser;
+  | GrantedResponseBrowser
+  | GrantedResponseHdfBrowser;
 
 export type SandboxResponse =
   | QueuedResponse
@@ -349,6 +361,11 @@ export type BrowserResponse =
   | QueuedResponse
   | WaitingResponse
   | GrantedResponseBrowser;
+
+export type HdfBrowserResponse =
+  | QueuedResponse
+  | WaitingResponse
+  | GrantedResponseHdfBrowser;
 
 export class ProxyClient {
   private static instance: ProxyClient;
@@ -366,7 +383,7 @@ export class ProxyClient {
   }
 
   public static async allocResource(
-    resourceType: 'computer' | 'browser',
+    resourceType: 'computer' | 'browser' | 'hdfBrowser',
   ): Promise<AvailableResponse | null> {
     const instance = await ProxyClient.getInstance();
 
@@ -397,12 +414,43 @@ export class ProxyClient {
       }
       const res = await instance.getAvalialeBrowser();
       if (res?.state === 'granted') {
-        instance.browserInfo = res.data;
+        instance.browserInfo = {
+          browserType: 'hdls',
+          browserId: res.data.browserId,
+          podName: res.data.podName,
+          cdpUrl: res.data.wsUrl,
+        };
         instance.lastBrowserAllocTs = Date.now();
       }
       return res;
+    } else if (resourceType === 'hdfBrowser') {
+      return this.allocHeadfulBrowser();
     }
     return null;
+  }
+
+  public static async allocHeadfulBrowser(): Promise<HdfBrowserResponse | null> {
+    const instance = await ProxyClient.getInstance();
+
+    const currentTimeStamp = Date.now();
+    const needAllocate =
+      currentTimeStamp - instance.lastBrowserAllocTs > FREE_TRIAL_DURATION_MS;
+    if (!needAllocate && instance.browserInfo != null) {
+      logger.log('[ProxyClient] allocHeadfulBrowser: has been allocated');
+      return null;
+    }
+    const res = await instance.getAvalialeHeadfulBrowser();
+    if (res?.state === 'granted') {
+      instance.browserInfo = {
+        browserType: 'hdf',
+        browserId: res.data.sandboxId,
+        podName: 'HeadfulBrowsers',
+        cdpUrl: res.data.cdpUrl,
+        vncUrl: res.data.vncUrl,
+      };
+      instance.lastBrowserAllocTs = Date.now();
+    }
+    return res;
   }
 
   public static async releaseResource(
@@ -433,7 +481,8 @@ export class ProxyClient {
       return result;
     }
 
-    if (resourceType === 'browser') {
+    // hdfBrowser need release use new api
+    if (resourceType === 'browser' || resourceType === 'hdfBrowser') {
       // const hasReleased =
       //   currentTimeStamp - instance.lastBrowserAllocTs > FREE_TRIAL_DURATION_MS;
       if (!instance.browserInfo) {
@@ -490,7 +539,7 @@ export class ProxyClient {
     }
 
     const browserId = this.instance.browserInfo.browserId;
-    const cdpUrl = this.instance.browserInfo.wsUrl;
+    const cdpUrl = this.instance.browserInfo.cdpUrl;
     if (cdpUrl != null && cdpUrl.length > 0) {
       return cdpUrl;
     }
@@ -498,7 +547,7 @@ export class ProxyClient {
     const cdpUrlNew = await this.instance.getAvaliableWsCDPUrl(browserId);
     logger.log('[ProxyClient] getBrowserCDPUrl refresh: ', cdpUrlNew);
     if (cdpUrlNew != null) {
-      this.instance.browserInfo.wsUrl = cdpUrlNew;
+      this.instance.browserInfo.cdpUrl = cdpUrlNew;
       return cdpUrlNew;
     }
     return null;
@@ -615,6 +664,26 @@ export class ProxyClient {
     } catch (error) {
       logger.error(
         '[ProxyClient] avaliable Browser api Error:',
+        (error as Error).message,
+      );
+      throw error;
+    }
+  }
+
+  private async getAvalialeHeadfulBrowser(): Promise<HdfBrowserResponse | null> {
+    try {
+      const res = await fetchWithAuth(`${BROWSER_URL}/headful`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      logger.log('[ProxyClient] avaliable headful Browser api Response:', res);
+      return {
+        state: res.message,
+        data: res.data,
+      };
+    } catch (error) {
+      logger.error(
+        '[ProxyClient] avaliable headful Browser api Error:',
         (error as Error).message,
       );
       throw error;
