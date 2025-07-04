@@ -41,7 +41,7 @@ export function registerRunCommand(cli: CAC): void {
   );
 
   runCommand
-    .option('--input [...query]', 'Input query to process (can be omitted when using pipe)')
+    .option('-p, --prompt [...query]', 'Input query to process (can be omitted when using pipe)')
     .option('--format [format]', 'Output format: "json" or "text" (default: "text")', {
       default: 'text',
     })
@@ -56,15 +56,17 @@ export function registerRunCommand(cli: CAC): void {
     try {
       let input: string;
 
-      // Check if input is provided via --input parameter
-      if (options.input && (Array.isArray(options.input) ? options.input.length > 0 : true)) {
-        input = Array.isArray(options.input) ? options.input.join(' ') : options.input;
+      // Check if input is provided via -p/--prompt parameter
+      if (options.prompt && (Array.isArray(options.prompt) ? options.prompt.length > 0 : true)) {
+        input = Array.isArray(options.prompt) ? options.prompt.join(' ') : options.prompt;
       } else {
-        // If no --input is provided, try to read from stdin (pipe)
+        // If no --prompt is provided, try to read from stdin (pipe)
         const stdinInput = await readFromStdin();
 
         if (!stdinInput) {
-          console.error('Error: No input provided. Use --input parameter or pipe content to stdin');
+          console.error(
+            'Error: No input provided. Use -p/--prompt parameter or pipe content to stdin',
+          );
           process.exit(1);
         }
 
