@@ -275,6 +275,10 @@ describe('PromptEngineeringToolCallEngine', () => {
           normalContentBuffer: '',
           parserState: 'normal',
           partialTagBuffer: '',
+          currentToolCallId: '',
+          currentToolName: '',
+          emittingParameters: false,
+          toolNameExtracted: false,
         });
       });
     });
@@ -924,9 +928,7 @@ describe('PromptEngineeringToolCallEngine', () => {
   describe('edge cases and error handling', () => {
     it('should handle malformed JSON in tool calls gracefully', () => {
       const state = engine.initStreamProcessingState();
-
       const malformedContent = '<tool_call>\n{"name": "testTool", invalid json\n</tool_call>';
-
       const chunks = malformedContent.split('').map((char) => ({
         choices: [{ delta: { content: char }, index: 0, finish_reason: null }],
       }));
@@ -940,9 +942,9 @@ describe('PromptEngineeringToolCallEngine', () => {
         }
       }
 
-      // Should not crash, but also should not extract invalid tool calls
-      expect(hasToolCallUpdate).toBe(false);
-      expect(state.toolCalls).toHaveLength(0);
+      // Should extract partial information but not create final tool calls due to malformed JSON
+      expect(hasToolCallUpdate).toBe(true);
+      expect(state.toolCalls).toHaveLength(0); // Still no complete tool calls due to malformed JSON
     });
 
     it('should handle nested angle brackets in normal content', () => {
@@ -991,7 +993,7 @@ describe('PromptEngineeringToolCallEngine', () => {
       expect(state.toolCalls).toHaveLength(2);
       expect(state.toolCalls[0].function.name).toBe('tool1');
       expect(state.toolCalls[1].function.name).toBe('tool2');
-      expect(toolCallUpdateCount).toBe(2);
+      expect(toolCallUpdateCount).toBe(18);
     });
   });
 });
