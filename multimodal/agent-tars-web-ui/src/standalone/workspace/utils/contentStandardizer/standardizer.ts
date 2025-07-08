@@ -26,29 +26,18 @@ export function standardizeContent(panelContent: StandardPanelContent): ToolResu
     ];
   }
 
-  // Handle file operations with explicit path
-  if (type === 'file' && toolArguments?.path) {
+  // Handle file operations with explicit path or content
+  if (type === 'file' && (toolArguments?.path || toolArguments?.content)) {
     const content = toolArguments.content || (typeof source === 'string' ? source : null);
+    const path = toolArguments.path || title;
 
-    // Handle streaming write_file operation
-    if (toolArguments?.path && toolArguments?.content !== undefined) {
+    if (content && typeof content === 'string' && path) {
       return [
         {
           type: 'file_result',
           name: 'FILE_RESULT',
-          path: toolArguments.path as string,
-          content: toolArguments.content as string,
-        },
-      ];
-    }
-
-    if (content && typeof content === 'string') {
-      return [
-        {
-          type: 'file_result',
-          name: 'FILE_RESULT',
-          path: toolArguments.path as string,
-          content,
+          path: path as string,
+          content: content as string,
         },
       ];
     }

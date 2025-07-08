@@ -4,6 +4,7 @@ import { sessionsAtom, activeSessionIdAtom } from '../state/atoms/session';
 import { messagesAtom, groupedMessagesAtom } from '../state/atoms/message';
 import { toolResultsAtom } from '../state/atoms/tool';
 import { plansAtom, planUIStateAtom } from '../state/atoms/plan';
+import { sessionFilesAtom } from '../state/atoms/files';
 import {
   isProcessingAtom,
   activePanelContentAtom,
@@ -40,6 +41,7 @@ export function useSession() {
   const messages = useAtomValue(messagesAtom);
   const groupedMessages = useAtomValue(groupedMessagesAtom);
   const toolResults = useAtomValue(toolResultsAtom);
+  const sessionFiles = useAtomValue(sessionFilesAtom);
   const [isProcessing, setIsProcessing] = useAtom(isProcessingAtom);
   const [activePanelContent, setActivePanelContent] = useAtom(activePanelContentAtom);
   const [connectionStatus, setConnectionStatus] = useAtom(connectionStatusAtom);
@@ -136,6 +138,7 @@ export function useSession() {
       messages,
       groupedMessages,
       toolResults,
+      sessionFiles,
       isProcessing,
       activePanelContent,
       connectionStatus,
@@ -171,6 +174,7 @@ export function useSession() {
       messages,
       groupedMessages,
       toolResults,
+      sessionFiles,
       isProcessing,
       activePanelContent,
       connectionStatus,
