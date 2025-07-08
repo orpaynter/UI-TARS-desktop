@@ -423,6 +423,8 @@ export async function getBrowserControlInfo(req: Request, res: Response) {
  * Share a session
  */
 export async function shareSession(req: Request, res: Response) {
+  console.log('shareSession');
+
   const { sessionId, upload } = req.body;
 
   if (!sessionId) {

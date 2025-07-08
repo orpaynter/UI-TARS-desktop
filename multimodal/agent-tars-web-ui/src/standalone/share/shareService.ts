@@ -34,7 +34,7 @@ class ShareService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/share/config`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/share/config`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -59,7 +59,7 @@ class ShareService {
    */
   async shareSession(sessionId: string, upload = false): Promise<ShareResult> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/sessions/share`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/sessions/share`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, upload }),

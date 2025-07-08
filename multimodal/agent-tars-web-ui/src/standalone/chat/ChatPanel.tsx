@@ -273,33 +273,27 @@ export const ChatPanel: React.FC = () => {
           </div>
 
           {/* 消息输入区域 */}
-          {!isReplayMode && (
-            <div className="p-4">
-              {/* 文件显示 - 在输入框之前显示 */}
-              {activeSessionId && <FilesDisplay sessionId={activeSessionId} />}
 
-              {/* 研究报告入口 */}
-              {researchReport && !isProcessing && (
-                <div className="mb-4">
-                  <ResearchReportEntry
-                    title={researchReport.title || 'Research Report'}
-                    timestamp={researchReport.timestamp}
-                    content={
-                      typeof researchReport.content === 'string' ? researchReport.content : ''
-                    }
-                  />
-                </div>
-              )}
+          <div className="p-4">
+            {/* 研究报告入口 */}
+            {researchReport && !isProcessing && (
+              <div className="mb-4">
+                <ResearchReportEntry
+                  title={researchReport.title || 'Research Report'}
+                  timestamp={researchReport.timestamp}
+                  content={typeof researchReport.content === 'string' ? researchReport.content : ''}
+                />
+              </div>
+            )}
 
-              <MessageInput
-                isDisabled={
-                  !activeSessionId || isProcessing || !connectionStatus.connected || isReplayMode
-                }
-                onReconnect={checkServerStatus}
-                connectionStatus={connectionStatus}
-              />
-            </div>
-          )}
+            <MessageInput
+              isDisabled={
+                !activeSessionId || isProcessing || !connectionStatus.connected || isReplayMode
+              }
+              onReconnect={checkServerStatus}
+              connectionStatus={connectionStatus}
+            />
+          </div>
         </>
       )}
     </div>

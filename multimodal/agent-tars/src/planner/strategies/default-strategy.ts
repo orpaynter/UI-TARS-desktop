@@ -69,17 +69,15 @@ Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] T
         'IMPORTANT: Only call this tool AFTER you have actually executed the necessary tools and gathered the required information. ' +
         'Do not call this tool if you have not done any actual work.',
       parameters: z.object({
-        thought: z
-          .string()
-          .describe(
-            'Your structured thinking following this exact 5-step format: ' +
-              '1. WHAT：本次我计划完成什么任务，对应了什么原始需求 ' +
-              '2. DUPLICATE THOUGHT：我是否足够聪明，没有重复 Check：本次我要完成什么任务，是否没有存在重复执行 ' +
-              '3. WHY：为什么我判断我做完了这件事？我前面做了什么事、看到了什么，让我判断我完成这次任务是可靠的，我的信心是 XXX（满分 100） ' +
-              '4. REFLEXTION: 上一步的判断是否不完整，我是否偷懒了？比如调研一系列项目，但是我只偷懒找了 1-2 个，而不是尽可能找到所有的 ' +
-              '5. NEXT：下一步我应该做什么？ ' +
-              'If you did no actual work, do NOT call this tool.',
-          ),
+        thought: z.string().describe(
+          `Your structured thinking following this exact 5-step format: ' +
+  1. DUPLICATE CHECK：我是否足够聪明，没有重复更新 Checklist：本次我要完成的任务，是否没有存在重复执行
+  2. WHAT：本次我计划完成什么任务，对应了什么原始需求
+  3. WHY：为什么我判断我做完了这件事？我前面做了什么事、看到了什么，让我判断我完成这次任务是可靠的，我的信心是 XXX（满分 100）
+  4. REFLEXTION: 上一步的判断是否不完整，我是否偷懒了？比如调研一系列项目，但是我只偷懒找了 1-2 个，而不是尽可能找到所有的
+  5. NEXT：下一步我应该做什么？
+  If you did no actual work, do NOT call this tool.`,
+        ),
         checklist: z.string().describe('Complete updated markdown checklist'),
       }),
       function: async ({ thought, checklist }) => {
@@ -205,8 +203,8 @@ IMPORTANT REMINDERS:
 - ⚠️ DO NOT call update_checklist consecutively without doing actual work between calls
 - If you haven't done any real work yet, continue working instead of updating the checklist
 - In the thought parameter, follow the structured 5-step thinking format:
-  1. WHAT：本次我计划完成什么任务，对应了什么原始需求
-  2. DUPLICATE THOUGHT：我是否足够聪明，没有重复 Check：本次我要完成什么任务，是否没有存在重复执行
+  1. DUPLICATE CHECK：我是否足够聪明，没有重复更新 Checklist：本次我要完成的任务，是否没有存在重复执行
+  2. WHAT：本次我计划完成什么任务，对应了什么原始需求
   3. WHY：为什么我判断我做完了这件事？我前面做了什么事、看到了什么，让我判断我完成这次任务是可靠的，我的信心是 XXX（满分 100）
   4. REFLEXTION: 上一步的判断是否不完整，我是否偷懒了？比如调研一系列项目，但是我只偷懒找了 1-2 个，而不是尽可能找到所有的
   5. NEXT：下一步我应该做什么？
