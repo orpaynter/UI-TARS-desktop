@@ -138,15 +138,15 @@ You are a test assistant.
 <planning_approach>
 For complex tasks that need multiple steps, use structured planning:
 
-1. **Planning Phase**: Create a plan using create_checklist_plan with markdown format
-2. **Execution Phase**: Execute steps and update progress with update_checklist  
+1. **Planning Phase**: Create todos using create_todos with markdown format
+2. **Execution Phase**: Execute steps and update progress with edit_todos  
 3. **Completion**: Mark items complete when finished
 
-Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
+Use markdown todo format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
 </planning_approach>
  
 
- For complex tasks, create a plan using create_checklist_plan.
+ For complex tasks, create todos using create_todos.
 
 Current time: 5/20/2025, 10:00:00 AM"
 `;
@@ -289,15 +289,33 @@ You are a test assistant.
 <planning_approach>
 For complex tasks that need multiple steps, use structured planning:
 
-1. **Planning Phase**: Create a plan using create_checklist_plan with markdown format
-2. **Execution Phase**: Execute steps and update progress with update_checklist  
+1. **Planning Phase**: Create todos using create_todos with markdown format
+2. **Execution Phase**: Execute steps and update progress with edit_todos  
 3. **Completion**: Mark items complete when finished
 
-Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
+Use markdown todo format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
 </planning_approach>
  
 
- For complex tasks, create a plan using create_checklist_plan.
+ 
+<current_todos>
+- [ ] Search for weather information
+- [ ] Analyze the search results
+
+Progress: 0/2 completed
+
+IMPORTANT REMINDERS:
+- Only call edit_todos AFTER you have done actual work (executed tools, gathered information)
+- ⚠️ DO NOT call edit_todos consecutively without doing actual work between calls
+- If you haven't done any real work yet, continue working instead of updating the todos
+- In the thought parameter, follow the structured 5-step thinking format:
+  1. WHAT: What task am I completing this time and how does it relate to the original request?
+  2. DUPLICATE CHECK: Am I smart enough to avoid repetition? What task am I completing and am I not repeating previous work?
+  3. WHY: Why do I believe this task is complete? What work did I do and what results did I see? My confidence level is ___ (out of 100)
+  4. REFLECTION: Is my judgment incomplete? Am I being lazy? For example, when researching projects, did I only find 1-2 instead of being thorough?
+  5. NEXT: What should I do next?
+- Be specific about tools you called and information you gathered
+</current_todos>
 
 Current time: 5/20/2025, 10:00:00 AM"
 `;
@@ -440,15 +458,33 @@ You are a test assistant.
 <planning_approach>
 For complex tasks that need multiple steps, use structured planning:
 
-1. **Planning Phase**: Create a plan using create_checklist_plan with markdown format
-2. **Execution Phase**: Execute steps and update progress with update_checklist  
+1. **Planning Phase**: Create todos using create_todos with markdown format
+2. **Execution Phase**: Execute steps and update progress with edit_todos  
 3. **Completion**: Mark items complete when finished
 
-Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
+Use markdown todo format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
 </planning_approach>
  
 
- For complex tasks, create a plan using create_checklist_plan.
+ 
+<current_todos>
+- [ ] Search for weather information
+- [ ] Analyze the search results
+
+Progress: 0/2 completed
+
+IMPORTANT REMINDERS:
+- Only call edit_todos AFTER you have done actual work (executed tools, gathered information)
+- ⚠️ DO NOT call edit_todos consecutively without doing actual work between calls
+- If you haven't done any real work yet, continue working instead of updating the todos
+- In the thought parameter, follow the structured 5-step thinking format:
+  1. WHAT: What task am I completing this time and how does it relate to the original request?
+  2. DUPLICATE CHECK: Am I smart enough to avoid repetition? What task am I completing and am I not repeating previous work?
+  3. WHY: Why do I believe this task is complete? What work did I do and what results did I see? My confidence level is ___ (out of 100)
+  4. REFLECTION: Is my judgment incomplete? Am I being lazy? For example, when researching projects, did I only find 1-2 instead of being thorough?
+  5. NEXT: What should I do next?
+- Be specific about tools you called and information you gathered
+</current_todos>
 
 Current time: 5/20/2025, 10:00:00 AM"
 `;

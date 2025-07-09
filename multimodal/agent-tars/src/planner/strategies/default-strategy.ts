@@ -4,8 +4,8 @@ import { BasePlannerStrategy } from './base-strategy';
 import { PlannerContext, ToolFilterResult } from '../types';
 
 /**
- * Default planner strategy - uses simplified checklist format with markdown input
- * This strategy provides a natural, checklist-style planning approach using markdown lists
+ * Default planner strategy - uses simplified todo format with markdown input
+ * This strategy provides a natural, todo-style planning approach using markdown lists
  */
 export class DefaultPlannerStrategy extends BasePlannerStrategy {
   getSystemInstrucution(): string {
@@ -13,35 +13,34 @@ export class DefaultPlannerStrategy extends BasePlannerStrategy {
 <planning_approach>
 For complex tasks that need multiple steps, use structured planning:
 
-1. **Planning Phase**: Create a plan using create_checklist_plan with markdown format
-2. **Execution Phase**: Execute steps and update progress with update_checklist  
+1. **Planning Phase**: Create todos using create_todos with markdown format
+2. **Execution Phase**: Execute steps and update progress with edit_todos  
 3. **Completion**: Mark items complete when finished
 
-Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
+Use markdown todo format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
 </planning_approach>
 `;
   }
 
   createPlanningTools(context: PlannerContext): Tool[] {
-    const createChecklistPlanTool = new Tool({
-      id: 'create_checklist_plan',
-      description: 'Create a checklist-style plan for complex tasks using markdown format.',
+    const createTodosTool = new Tool({
+      id: 'create_todos',
+      description: 'Create a todo list for complex tasks using markdown format.',
       parameters: z.object({
         title: z.string().describe('Brief title of the task'),
-
-        checklist: z.string().describe('Markdown checklist with - [ ] for incomplete items'),
+        todos: z.string().describe('Markdown todo list with - [ ] for incomplete items'),
         needsPlanning: z.boolean().describe('Whether this task needs systematic planning'),
       }),
-      function: async ({ title, checklist, needsPlanning }) => {
+      function: async ({ title, todos, needsPlanning }) => {
         if (!needsPlanning) {
           context.state.completed = true;
           context.state.stage = 'execute';
           return { status: 'skipped', message: 'Task is simple, no planning needed' };
         }
 
-        const steps = this.parseMarkdownChecklist(checklist);
+        const steps = this.parseMarkdownTodos(todos);
         if (steps.length === 0) {
-          return { error: 'Invalid checklist format' };
+          return { error: 'Invalid todo format' };
         }
 
         context.state.steps = steps;
@@ -52,19 +51,19 @@ Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] T
         return {
           status: 'success',
           title,
-          message: `Created ${steps.length}-item plan: "${title}"`,
+          message: `Created ${steps.length}-item todo list: "${title}"`,
         };
       },
     });
 
-    return [createChecklistPlanTool];
+    return [createTodosTool];
   }
 
   createPlanUpdateTools(context: PlannerContext): Tool[] {
-    const updateChecklistTool = new Tool({
-      id: 'update_checklist',
+    const editTodosTool = new Tool({
+      id: 'edit_todos',
       description:
-        'Update checklist progress after completing actual work. Use - [x] for completed items, - [ ] for incomplete. ' +
+        'Update todo list progress after completing actual work. Use - [x] for completed items, - [ ] for incomplete. ' +
         '⚠️ CRITICAL: DO NOT call this tool consecutively without doing actual work between calls. ' +
         'IMPORTANT: Only call this tool AFTER you have actually executed the necessary tools and gathered the required information. ' +
         'Do not call this tool if you have not done any actual work.',
@@ -80,16 +79,16 @@ Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] T
               '5. NEXT: What should I do next? ' +
               'If you did no actual work, do NOT call this tool.',
           ),
-        checklist: z.string().describe('Complete updated markdown checklist'),
+        todos: z.string().describe('Complete updated markdown todo list'),
       }),
-      function: async ({ thought, checklist }) => {
+      function: async ({ thought, todos }) => {
         if (!context.state.steps?.length) {
-          return { error: 'Create a plan first using create_checklist_plan' };
+          return { error: 'Create todos first using create_todos' };
         }
 
-        const updatedSteps = this.parseMarkdownChecklist(checklist);
+        const updatedSteps = this.parseMarkdownTodos(todos);
         if (updatedSteps.length === 0) {
-          return { error: 'Invalid checklist format' };
+          return { error: 'Invalid todo format' };
         }
 
         context.state.steps = updatedSteps;
@@ -112,21 +111,21 @@ Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] T
       },
     });
 
-    return [updateChecklistTool];
+    return [editTodosTool];
   }
 
   /**
-   * Parse markdown checklist format into plan steps
+   * Parse markdown todo format into plan steps
    * Supports both - [ ] and - [x] formats
    */
-  private parseMarkdownChecklist(checklist: string): AgentEventStream.PlanStep[] {
-    const lines = checklist.split('\n').filter((line) => line.trim());
+  private parseMarkdownTodos(todos: string): AgentEventStream.PlanStep[] {
+    const lines = todos.split('\n').filter((line) => line.trim());
     const steps: AgentEventStream.PlanStep[] = [];
 
     for (const line of lines) {
       const trimmed = line.trim();
 
-      // Match markdown checklist format: - [ ] or - [x]
+      // Match markdown todo format: - [ ] or - [x]
       const incompleteMatch = trimmed.match(/^-\s*\[\s*\]\s*(.+)$/);
       const completedMatch = trimmed.match(/^-\s*\[x\]\s*(.+)$/i);
 
@@ -185,7 +184,7 @@ Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] T
 
   private formatCurrentPlanForPrompt(steps: AgentEventStream.PlanStep[]): string {
     if (steps.length === 0) {
-      return 'For complex tasks, create a plan using create_checklist_plan.';
+      return 'For complex tasks, create todos using create_todos.';
     }
 
     const stepsList = steps
@@ -195,15 +194,15 @@ Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] T
     const completedCount = steps.filter((s) => s.done).length;
 
     return `
-<current_plan>
+<current_todos>
 ${stepsList}
 
 Progress: ${completedCount}/${steps.length} completed
 
 IMPORTANT REMINDERS:
-- Only call update_checklist AFTER you have done actual work (executed tools, gathered information)
-- ⚠️ DO NOT call update_checklist consecutively without doing actual work between calls
-- If you haven't done any real work yet, continue working instead of updating the checklist
+- Only call edit_todos AFTER you have done actual work (executed tools, gathered information)
+- ⚠️ DO NOT call edit_todos consecutively without doing actual work between calls
+- If you haven't done any real work yet, continue working instead of updating the todos
 - In the thought parameter, follow the structured 5-step thinking format:
   1. WHAT: What task am I completing this time and how does it relate to the original request?
   2. DUPLICATE CHECK: Am I smart enough to avoid repetition? What task am I completing and am I not repeating previous work?
@@ -211,6 +210,6 @@ IMPORTANT REMINDERS:
   4. REFLECTION: Is my judgment incomplete? Am I being lazy? For example, when researching projects, did I only find 1-2 instead of being thorough?
   5. NEXT: What should I do next?
 - Be specific about tools you called and information you gathered
-</current_plan>`;
+</current_todos>`;
   }
 }

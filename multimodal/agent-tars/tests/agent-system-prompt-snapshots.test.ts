@@ -69,21 +69,21 @@ describe('Agent TARS System Prompt Snapshots', () => {
               return {
                 [Symbol.asyncIterator]: async function* () {
                   if (callCount === 1) {
-                    // First loop: Generate a plan
+                    // First loop: Create todos
                     yield {
                       id: 'mock-completion-1',
                       choices: [
                         {
                           delta: {
                             role: 'assistant',
-                            content: 'I need to create a plan to help you with this task.',
+                            content: 'I need to create a todo list to help you with this task.',
                           },
                           finish_reason: null,
                         },
                       ],
                     } as ChatCompletionChunk;
 
-                    // Tool call for generate_plan
+                    // Tool call for create_todos
                     yield {
                       id: 'mock-completion-1',
                       choices: [
@@ -92,21 +92,14 @@ describe('Agent TARS System Prompt Snapshots', () => {
                             tool_calls: [
                               {
                                 index: 0,
-                                id: 'call_generate_plan_1',
+                                id: 'call_create_todos_1',
                                 type: 'function',
                                 function: {
-                                  name: 'generate_plan',
+                                  name: 'create_todos',
                                   arguments: JSON.stringify({
-                                    steps: [
-                                      {
-                                        content: 'Search for weather information',
-                                        done: false,
-                                      },
-                                      {
-                                        content: 'Analyze the search results',
-                                        done: false,
-                                      },
-                                    ],
+                                    title: 'Weather Information Search',
+                                    todos:
+                                      '- [ ] Search for weather information\n- [ ] Analyze the search results',
                                     needsPlanning: true,
                                   }),
                                 },
@@ -168,21 +161,21 @@ describe('Agent TARS System Prompt Snapshots', () => {
                       choices: [{ delta: {}, finish_reason: 'tool_calls' }],
                     } as ChatCompletionChunk;
                   } else if (callCount === 3) {
-                    // Third loop: Update plan with completion
+                    // Third loop: Update todos with completion
                     yield {
                       id: 'mock-completion-3',
                       choices: [
                         {
                           delta: {
                             role: 'assistant',
-                            content: 'Let me update the plan with the completed steps.',
+                            content: 'Let me update the todos with the completed steps.',
                           },
                           finish_reason: null,
                         },
                       ],
                     } as ChatCompletionChunk;
 
-                    // Tool call for update_plan
+                    // Tool call for edit_todos
                     yield {
                       id: 'mock-completion-3',
                       choices: [
@@ -191,22 +184,15 @@ describe('Agent TARS System Prompt Snapshots', () => {
                             tool_calls: [
                               {
                                 index: 0,
-                                id: 'call_update_plan_1',
+                                id: 'call_edit_todos_1',
                                 type: 'function',
                                 function: {
-                                  name: 'update_plan',
+                                  name: 'edit_todos',
                                   arguments: JSON.stringify({
-                                    steps: [
-                                      {
-                                        content: 'Search for weather information',
-                                        done: true,
-                                      },
-                                      {
-                                        content: 'Analyze the search results',
-                                        done: true,
-                                      },
-                                    ],
-                                    completed: true,
+                                    thought:
+                                      '1. WHAT: I am completing the weather search task by updating the todo list after successfully searching for weather information. 2. DUPLICATE CHECK: I am not repeating work - I just completed the web search and now updating progress. 3. WHY: I believe both tasks are complete because I executed the web_search tool and received weather results. My confidence level is 95 (out of 100). 4. REFLECTION: My judgment is thorough - I completed the search and have the information needed. 5. NEXT: I should provide the final answer to the user.',
+                                    todos:
+                                      '- [x] Search for weather information\n- [x] Analyze the search results',
                                   }),
                                 },
                               },
@@ -230,7 +216,7 @@ describe('Agent TARS System Prompt Snapshots', () => {
                           delta: {
                             role: 'assistant',
                             content:
-                              'Based on my search and analysis, here is the weather information you requested. The plan has been completed successfully.',
+                              'Based on my search and analysis, here is the weather information you requested. The todo list has been completed successfully.',
                           },
                           finish_reason: null,
                         },
@@ -256,7 +242,7 @@ describe('Agent TARS System Prompt Snapshots', () => {
       const response = await agent.run('Help me find information about the weather today.');
       console.log('[DEBUG] Agent run completed');
       expect(response.content).toMatchInlineSnapshot(
-        `"Based on my search and analysis, here is the weather information you requested. The plan has been completed successfully."`,
+        `"Based on my search and analysis, here is the weather information you requested. The todo list has been completed successfully."`,
       );
 
       const systemPrompts = agent.getSystemPrompts();

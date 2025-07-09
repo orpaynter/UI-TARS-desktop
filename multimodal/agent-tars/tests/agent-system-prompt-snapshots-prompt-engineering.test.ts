@@ -1,3 +1,4 @@
+// /agent-tars/tests/agent-system-prompt-snapshots-prompt-engineering.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { resolve } from 'path';
 import { OpenAI, ChatCompletionChunk } from '@mcp-agent/core';
@@ -69,7 +70,7 @@ describe('Agent TARS System Prompt Snapshots - Prompt Engineering Mode', () => {
               return {
                 [Symbol.asyncIterator]: async function* () {
                   if (callCount === 1) {
-                    // First loop: Generate a plan using prompt engineering format
+                    // First loop: Create todos using prompt engineering format
                     yield {
                       id: 'mock-completion-1',
                       choices: [
@@ -77,7 +78,7 @@ describe('Agent TARS System Prompt Snapshots - Prompt Engineering Mode', () => {
                           delta: {
                             role: 'assistant',
                             content:
-                              'I need to create a plan to help you with this task.\n\n <tool_call>',
+                              'I need to create a todo list to help you with this task.\n\n <tool_call>',
                           },
                           finish_reason: null,
                         },
@@ -90,7 +91,7 @@ describe('Agent TARS System Prompt Snapshots - Prompt Engineering Mode', () => {
                       choices: [
                         {
                           delta: {
-                            content: '\n{\n  "name": "generate_plan",\n  "parameters": {\n',
+                            content: '\n{\n  "name": "create_todos",\n  "parameters": {\n',
                           },
                           finish_reason: null,
                         },
@@ -103,20 +104,7 @@ describe('Agent TARS System Prompt Snapshots - Prompt Engineering Mode', () => {
                         {
                           delta: {
                             content:
-                              '    "steps": [\n      {\n        "content": "Search for weather information",\n        "done": false\n      },\n',
-                          },
-                          finish_reason: null,
-                        },
-                      ],
-                    } as ChatCompletionChunk;
-
-                    yield {
-                      id: 'mock-completion-1',
-                      choices: [
-                        {
-                          delta: {
-                            content:
-                              '      {\n        "content": "Analyze the search results",\n        "done": false\n      }\n    ],\n',
+                              '    "title": "Weather Information Search",\n    "todos": "- [ ] Search for weather information\\n- [ ] Analyze the search results",\n',
                           },
                           finish_reason: null,
                         },
@@ -174,42 +162,33 @@ describe('Agent TARS System Prompt Snapshots - Prompt Engineering Mode', () => {
                       choices: [{ delta: {}, finish_reason: 'stop' }],
                     } as ChatCompletionChunk;
                   } else if (callCount === 3) {
-                    // Third loop: Update plan with completion using prompt engineering
+                    // Third loop: Update todos with completion using prompt engineering
                     yield {
                       id: 'mock-completion-3',
                       choices: [
                         {
                           delta: {
                             role: 'assistant',
-                            content: 'Let me update the plan with the completed steps.\n\n',
+                            content: 'Let me update the todos with the completed steps.\n\n',
                           },
                           finish_reason: null,
                         },
                       ],
                     } as ChatCompletionChunk;
 
-                    // Tool call for update_plan in prompt engineering format
-                    const updatePlanCall = `<tool_call>
+                    // Tool call for edit_todos in prompt engineering format
+                    const editTodosCall = `<tool_call>
 {
-  "name": "update_plan",
+  "name": "edit_todos",
   "parameters": {
-    "steps": [
-      {
-        "content": "Search for weather information",
-        "done": true
-      },
-      {
-        "content": "Analyze the search results", 
-        "done": true
-      }
-    ],
-    "completed": true
+    "thought": "1. WHAT: I am completing the weather search task by updating the todo list after successfully searching for weather information. 2. DUPLICATE CHECK: I am not repeating work - I just completed the web search and now updating progress. 3. WHY: I believe both tasks are complete because I executed the web_search tool and received weather results. My confidence level is 95 (out of 100). 4. REFLECTION: My judgment is thorough - I completed the search and have the information needed. 5. NEXT: I should provide the final answer to the user.",
+    "todos": "- [x] Search for weather information\\n- [x] Analyze the search results"
   }
 }
 </tool_call>`;
 
                     // Split the tool call into smaller chunks to simulate realistic streaming
-                    const chunks = updatePlanCall.split('\n');
+                    const chunks = editTodosCall.split('\n');
                     for (const chunk of chunks) {
                       yield {
                         id: 'mock-completion-3',
@@ -237,7 +216,7 @@ describe('Agent TARS System Prompt Snapshots - Prompt Engineering Mode', () => {
                           delta: {
                             role: 'assistant',
                             content:
-                              'Based on my search and analysis, here is the weather information you requested. The plan has been completed successfully using prompt engineering.',
+                              'Based on my search and analysis, here is the weather information you requested. The todo list has been completed successfully using prompt engineering.',
                           },
                           finish_reason: null,
                         },
@@ -263,7 +242,7 @@ describe('Agent TARS System Prompt Snapshots - Prompt Engineering Mode', () => {
       const response = await agent.run('Help me find information about the weather today.');
       console.log('[DEBUG PE] Agent run completed');
       expect(response.content).toMatchInlineSnapshot(
-        `"Based on my search and analysis, here is the weather information you requested. The plan has been completed successfully using prompt engineering."`,
+        `"Based on my search and analysis, here is the weather information you requested. The todo list has been completed successfully using prompt engineering."`,
       );
 
       const systemPrompts = agent.getSystemPrompts();

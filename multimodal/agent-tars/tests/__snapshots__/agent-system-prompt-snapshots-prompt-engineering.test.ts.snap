@@ -117,15 +117,15 @@ You are a test assistant using prompt engineering for tool calls.
 <planning_approach>
 For complex tasks that need multiple steps, use structured planning:
 
-1. **Planning Phase**: Create a plan using create_checklist_plan with markdown format
-2. **Execution Phase**: Execute steps and update progress with update_checklist  
+1. **Planning Phase**: Create todos using create_todos with markdown format
+2. **Execution Phase**: Execute steps and update progress with edit_todos  
 3. **Completion**: Mark items complete when finished
 
-Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
+Use markdown todo format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
 </planning_approach>
  
 
- For complex tasks, create a plan using create_checklist_plan.
+ For complex tasks, create todos using create_todos.
 
 Current time: 5/20/2025, 10:00:00 AM
 
@@ -133,13 +133,13 @@ Current time: 5/20/2025, 10:00:00 AM
   You have access to the following tools:
 
   <available_tools>
-  ## create_checklist_plan
+  ## create_todos
 
-Description: Create a checklist-style plan for complex tasks using markdown format.
+Description: Create a todo list for complex tasks using markdown format.
 
 Parameters JSON Schema:
 \`\`\`json
-{"type":"object","properties":{"title":{"type":"string","description":"Brief title of the task"},"checklist":{"type":"string","description":"Markdown checklist with - [ ] for incomplete items"},"needsPlanning":{"type":"boolean","description":"Whether this task needs systematic planning"}},"required":["title","checklist","needsPlanning"]}
+{"type":"object","properties":{"title":{"type":"string","description":"Brief title of the task"},"todos":{"type":"string","description":"Markdown todo list with - [ ] for incomplete items"},"needsPlanning":{"type":"boolean","description":"Whether this task needs systematic planning"}},"required":["title","todos","needsPlanning"]}
 \`\`\`
 
 
@@ -282,15 +282,33 @@ You are a test assistant using prompt engineering for tool calls.
 <planning_approach>
 For complex tasks that need multiple steps, use structured planning:
 
-1. **Planning Phase**: Create a plan using create_checklist_plan with markdown format
-2. **Execution Phase**: Execute steps and update progress with update_checklist  
+1. **Planning Phase**: Create todos using create_todos with markdown format
+2. **Execution Phase**: Execute steps and update progress with edit_todos  
 3. **Completion**: Mark items complete when finished
 
-Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
+Use markdown todo format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
 </planning_approach>
  
 
- For complex tasks, create a plan using create_checklist_plan.
+ 
+<current_todos>
+- [ ] Search for weather information
+- [ ] Analyze the search results
+
+Progress: 0/2 completed
+
+IMPORTANT REMINDERS:
+- Only call edit_todos AFTER you have done actual work (executed tools, gathered information)
+- ⚠️ DO NOT call edit_todos consecutively without doing actual work between calls
+- If you haven't done any real work yet, continue working instead of updating the todos
+- In the thought parameter, follow the structured 5-step thinking format:
+  1. WHAT: What task am I completing this time and how does it relate to the original request?
+  2. DUPLICATE CHECK: Am I smart enough to avoid repetition? What task am I completing and am I not repeating previous work?
+  3. WHY: Why do I believe this task is complete? What work did I do and what results did I see? My confidence level is ___ (out of 100)
+  4. REFLECTION: Is my judgment incomplete? Am I being lazy? For example, when researching projects, did I only find 1-2 instead of being thorough?
+  5. NEXT: What should I do next?
+- Be specific about tools you called and information you gathered
+</current_todos>
 
 Current time: 5/20/2025, 10:00:00 AM
 
@@ -298,13 +316,371 @@ Current time: 5/20/2025, 10:00:00 AM
   You have access to the following tools:
 
   <available_tools>
-  ## create_checklist_plan
+  ## web_search
 
-Description: Create a checklist-style plan for complex tasks using markdown format.
+Description: ⚠️ SEARCH QUERY LENGTH LIMIT: 7 WORDS MAXIMUM ⚠️
+
+Search the web for information. For best results:
+1) Use CONCISE queries (3-5 words ideal)
+2) Include only ESSENTIAL keywords, not full questions
+3) For complex topics, use multiple simple searches instead of one long query
+4) Focus on specific terms that will appear on relevant pages
 
 Parameters JSON Schema:
 \`\`\`json
-{"type":"object","properties":{"title":{"type":"string","description":"Brief title of the task"},"checklist":{"type":"string","description":"Markdown checklist with - [ ] for incomplete items"},"needsPlanning":{"type":"boolean","description":"Whether this task needs systematic planning"}},"required":["title","checklist","needsPlanning"]}
+{"type":"object","properties":{"query":{"type":"string","description":"Search query - MUST BE CONCISE (maximum 7 words)"},"count":{"type":"number","description":"Number of results to return (default: 5)"}},"required":["query"]}
+\`\`\`
+
+
+
+## browser_get_markdown
+
+Description: [browser] Get the markdown content of the current page
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_screenshot
+
+Description: [browser] Take a screenshot of the current page or a specific area. this tool SHOULD NOT be called unless the user requests an explicit call.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"area":{"type":"array","items":{"type":"number"},"minItems":4,"maxItems":4,"description":"Optional area to capture as [x1, y1, x2, y2]. If not provided, captures the entire viewport."}}}
+\`\`\`
+
+
+
+## browser_navigate
+
+Description: [browser] Navigate to a URL
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"url":{"type":"string"}},"required":["url"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_click
+
+Description: [browser] Click an element on the page, before using the tool, use \`browser_get_clickable_elements\` to get the index of the element, but not call \`browser_get_clickable_elements\` multiple times
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"index":{"type":"number","description":"Index of the element to click"}},"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_form_input_fill
+
+Description: [browser] Fill out an input field, before using the tool, Either 'index' or 'selector' must be provided
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"selector":{"type":"string","description":"CSS selector for input field"},"index":{"type":"number","description":"Index of the element to fill"},"value":{"type":"string","description":"Value to fill"}},"required":["value"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_select
+
+Description: [browser] Select an element on the page with index, Either 'index' or 'selector' must be provided
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"index":{"type":"number","description":"Index of the element to select"},"selector":{"type":"string","description":"CSS selector for element to select"},"value":{"type":"string","description":"Value to select"}},"required":["value"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_hover
+
+Description: [browser] Hover an element on the page, Either 'index' or 'selector' must be provided
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"index":{"type":"number","description":"Index of the element to hover"},"selector":{"type":"string","description":"CSS selector for element to hover"}},"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_evaluate
+
+Description: [browser] Execute JavaScript in the browser console
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"script":{"type":"string","description":"JavaScript code to execute"}},"required":["script"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_get_clickable_elements
+
+Description: [browser] Get the clickable or hoverable or selectable elements on the current page, don't call this tool multiple times
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_read_links
+
+Description: [browser] Get all links on the current page
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_scroll
+
+Description: [browser] Scroll the page
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"amount":{"type":"number","description":"Pixels to scroll (positive for down, negative for up), if the amount is not provided, scroll to the bottom of the page"}},"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_go_back
+
+Description: [browser] Go back to the previous page
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_go_forward
+
+Description: [browser] Go forward to the next page
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_tab_list
+
+Description: [browser] Get the list of tabs
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_new_tab
+
+Description: [browser] Open a new tab
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"url":{"type":"string","description":"URL to open in the new tab"}},"required":["url"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_close_tab
+
+Description: [browser] Close the current tab
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_switch_tab
+
+Description: [browser] Switch to a specific tab
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"index":{"type":"number","description":"Tab index to switch to"}},"required":["index"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_press_key
+
+Description: [browser] Press a key on the keyboard
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"key":{"type":"string","enum":["Enter","Tab","Escape","Backspace","Delete","Insert","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","ArrowLeft","ArrowRight","ArrowUp","ArrowDown","PageUp","PageDown","Home","End","ShiftLeft","ShiftRight","ControlLeft","ControlRight","AltLeft","AltRight","MetaLeft","MetaRight","CapsLock","PrintScreen","ScrollLock","Pause","ContextMenu"],"description":"Name of the key to press or a character to generate, such as Enter, Tab, Escape, Backspace, Delete, Insert, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, PageUp, PageDown, Home, End, ShiftLeft, ShiftRight, ControlLeft, ControlRight, AltLeft, AltRight, MetaLeft, MetaRight, CapsLock, PrintScreen, ScrollLock, Pause, ContextMenu"}},"required":["key"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## read_file
+
+Description: [filesystem] Read the complete contents of a file from the file system. Handles various text encodings and provides detailed error messages if the file cannot be read. Use this tool when you need to examine the contents of a single file. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"}},"required":["path"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## read_multiple_files
+
+Description: [filesystem] Read the contents of multiple files simultaneously. This is more efficient than reading files one by one when you need to analyze or compare multiple files. Each file's content is returned with its path as a reference. Failed reads for individual files won't stop the entire operation. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"paths":{"type":"array","items":{"type":"string"}}},"required":["paths"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## write_file
+
+Description: [filesystem] Create a new file or completely overwrite an existing file with new content. Use with caution as it will overwrite existing files without warning. Handles text content with proper encoding. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"},"content":{"type":"string"}},"required":["path","content"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## edit_file
+
+Description: [filesystem] Make line-based edits to a text file. Each edit replaces exact line sequences with new content. Returns a git-style diff showing the changes made. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"},"edits":{"type":"array","items":{"type":"object","properties":{"oldText":{"type":"string","description":"Text to search for - must match exactly"},"newText":{"type":"string","description":"Text to replace with"}},"required":["oldText","newText"],"additionalProperties":false}},"dryRun":{"type":"boolean","default":false,"description":"Preview changes using git-style diff format"}},"required":["path","edits"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## create_directory
+
+Description: [filesystem] Create a new directory or ensure a directory exists. Can create multiple nested directories in one operation. If the directory already exists, this operation will succeed silently. Perfect for setting up directory structures for projects or ensuring required paths exist. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"}},"required":["path"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## list_directory
+
+Description: [filesystem] Get a detailed listing of all files and directories in a specified path. Results clearly distinguish between files and directories with [FILE] and [DIR] prefixes. This tool is essential for understanding directory structure and finding specific files within a directory. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"}},"required":["path"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## directory_tree
+
+Description: [filesystem] Get a recursive tree view of files and directories as a JSON structure. Each entry includes 'name', 'type' (file/directory), and 'children' for directories. Files have no children array, while directories always have a children array (which may be empty). The output is formatted with 2-space indentation for readability. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"}},"required":["path"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## move_file
+
+Description: [filesystem] Move or rename files and directories. Can move files between directories and rename them in a single operation. If the destination exists, the operation will fail. Works across different directories and can be used for simple renaming within the same directory. Both source and destination must be within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"source":{"type":"string"},"destination":{"type":"string"}},"required":["source","destination"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## search_files
+
+Description: [filesystem] Recursively search for files and directories matching a pattern. Searches through all subdirectories from the starting path. The search is case-insensitive and matches partial names. Returns full paths to all matching items. Great for finding files when you don't know their exact location. Only searches within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"},"pattern":{"type":"string"},"excludePatterns":{"type":"array","items":{"type":"string"},"default":[]}},"required":["path","pattern"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## get_file_info
+
+Description: [filesystem] Retrieve detailed metadata about a file or directory. Returns comprehensive information including size, creation time, last modified time, permissions, and type. This tool is perfect for understanding file characteristics without reading the actual content. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"}},"required":["path"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## list_allowed_directories
+
+Description: [filesystem] Returns the list of directories that this server is allowed to access. Use this to understand which directories are available before trying to access files.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{},"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## run_command
+
+Description: [commands] Run a command on this tars machine
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"command":{"type":"string","description":"Command with args"},"cwd":{"type":"string","description":"Current working directory, leave empty in most cases"}},"required":["command"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## run_script
+
+Description: [commands] Run a script on this tars machine
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"interpreter":{"type":"string","description":"Command with arguments. Script will be piped to stdin. Examples: bash, fish, zsh, python, or: bash --norc"},"script":{"type":"string","description":"Script to run"},"cwd":{"type":"string","description":"Current working directory, leave empty in most cases"}},"required":["script"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## edit_todos
+
+Description: Update todo list progress after completing actual work. Use - [x] for completed items, - [ ] for incomplete. ⚠️ CRITICAL: DO NOT call this tool consecutively without doing actual work between calls. IMPORTANT: Only call this tool AFTER you have actually executed the necessary tools and gathered the required information. Do not call this tool if you have not done any actual work.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"thought":{"type":"string","description":"Your structured thinking following this exact 5-step format: 1. WHAT: What task am I completing this time and how does it relate to the original request? 2. DUPLICATE CHECK: Am I smart enough to avoid repetition? What task am I completing and am I not repeating previous work? 3. WHY: Why do I believe this task is complete? What work did I do and what results did I see? My confidence level is ___ (out of 100) 4. REFLECTION: Is my judgment incomplete? Am I being lazy? For example, when researching projects, did I only find 1-2 instead of being thorough? 5. NEXT: What should I do next? If you did no actual work, do NOT call this tool."},"todos":{"type":"string","description":"Complete updated markdown todo list"}},"required":["thought","todos"]}
 \`\`\`
 
 
@@ -447,15 +823,33 @@ You are a test assistant using prompt engineering for tool calls.
 <planning_approach>
 For complex tasks that need multiple steps, use structured planning:
 
-1. **Planning Phase**: Create a plan using create_checklist_plan with markdown format
-2. **Execution Phase**: Execute steps and update progress with update_checklist  
+1. **Planning Phase**: Create todos using create_todos with markdown format
+2. **Execution Phase**: Execute steps and update progress with edit_todos  
 3. **Completion**: Mark items complete when finished
 
-Use markdown checklist format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
+Use markdown todo format: "- [ ] Task description" for incomplete, "- [x] Task description" for completed.
 </planning_approach>
  
 
- For complex tasks, create a plan using create_checklist_plan.
+ 
+<current_todos>
+- [ ] Search for weather information
+- [ ] Analyze the search results
+
+Progress: 0/2 completed
+
+IMPORTANT REMINDERS:
+- Only call edit_todos AFTER you have done actual work (executed tools, gathered information)
+- ⚠️ DO NOT call edit_todos consecutively without doing actual work between calls
+- If you haven't done any real work yet, continue working instead of updating the todos
+- In the thought parameter, follow the structured 5-step thinking format:
+  1. WHAT: What task am I completing this time and how does it relate to the original request?
+  2. DUPLICATE CHECK: Am I smart enough to avoid repetition? What task am I completing and am I not repeating previous work?
+  3. WHY: Why do I believe this task is complete? What work did I do and what results did I see? My confidence level is ___ (out of 100)
+  4. REFLECTION: Is my judgment incomplete? Am I being lazy? For example, when researching projects, did I only find 1-2 instead of being thorough?
+  5. NEXT: What should I do next?
+- Be specific about tools you called and information you gathered
+</current_todos>
 
 Current time: 5/20/2025, 10:00:00 AM
 
@@ -463,13 +857,371 @@ Current time: 5/20/2025, 10:00:00 AM
   You have access to the following tools:
 
   <available_tools>
-  ## create_checklist_plan
+  ## web_search
 
-Description: Create a checklist-style plan for complex tasks using markdown format.
+Description: ⚠️ SEARCH QUERY LENGTH LIMIT: 7 WORDS MAXIMUM ⚠️
+
+Search the web for information. For best results:
+1) Use CONCISE queries (3-5 words ideal)
+2) Include only ESSENTIAL keywords, not full questions
+3) For complex topics, use multiple simple searches instead of one long query
+4) Focus on specific terms that will appear on relevant pages
 
 Parameters JSON Schema:
 \`\`\`json
-{"type":"object","properties":{"title":{"type":"string","description":"Brief title of the task"},"checklist":{"type":"string","description":"Markdown checklist with - [ ] for incomplete items"},"needsPlanning":{"type":"boolean","description":"Whether this task needs systematic planning"}},"required":["title","checklist","needsPlanning"]}
+{"type":"object","properties":{"query":{"type":"string","description":"Search query - MUST BE CONCISE (maximum 7 words)"},"count":{"type":"number","description":"Number of results to return (default: 5)"}},"required":["query"]}
+\`\`\`
+
+
+
+## browser_get_markdown
+
+Description: [browser] Get the markdown content of the current page
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_screenshot
+
+Description: [browser] Take a screenshot of the current page or a specific area. this tool SHOULD NOT be called unless the user requests an explicit call.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"area":{"type":"array","items":{"type":"number"},"minItems":4,"maxItems":4,"description":"Optional area to capture as [x1, y1, x2, y2]. If not provided, captures the entire viewport."}}}
+\`\`\`
+
+
+
+## browser_navigate
+
+Description: [browser] Navigate to a URL
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"url":{"type":"string"}},"required":["url"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_click
+
+Description: [browser] Click an element on the page, before using the tool, use \`browser_get_clickable_elements\` to get the index of the element, but not call \`browser_get_clickable_elements\` multiple times
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"index":{"type":"number","description":"Index of the element to click"}},"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_form_input_fill
+
+Description: [browser] Fill out an input field, before using the tool, Either 'index' or 'selector' must be provided
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"selector":{"type":"string","description":"CSS selector for input field"},"index":{"type":"number","description":"Index of the element to fill"},"value":{"type":"string","description":"Value to fill"}},"required":["value"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_select
+
+Description: [browser] Select an element on the page with index, Either 'index' or 'selector' must be provided
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"index":{"type":"number","description":"Index of the element to select"},"selector":{"type":"string","description":"CSS selector for element to select"},"value":{"type":"string","description":"Value to select"}},"required":["value"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_hover
+
+Description: [browser] Hover an element on the page, Either 'index' or 'selector' must be provided
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"index":{"type":"number","description":"Index of the element to hover"},"selector":{"type":"string","description":"CSS selector for element to hover"}},"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_evaluate
+
+Description: [browser] Execute JavaScript in the browser console
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"script":{"type":"string","description":"JavaScript code to execute"}},"required":["script"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_get_clickable_elements
+
+Description: [browser] Get the clickable or hoverable or selectable elements on the current page, don't call this tool multiple times
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_read_links
+
+Description: [browser] Get all links on the current page
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_scroll
+
+Description: [browser] Scroll the page
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"amount":{"type":"number","description":"Pixels to scroll (positive for down, negative for up), if the amount is not provided, scroll to the bottom of the page"}},"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_go_back
+
+Description: [browser] Go back to the previous page
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_go_forward
+
+Description: [browser] Go forward to the next page
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_tab_list
+
+Description: [browser] Get the list of tabs
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_new_tab
+
+Description: [browser] Open a new tab
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"url":{"type":"string","description":"URL to open in the new tab"}},"required":["url"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_close_tab
+
+Description: [browser] Close the current tab
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{}}
+\`\`\`
+
+
+
+## browser_switch_tab
+
+Description: [browser] Switch to a specific tab
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"index":{"type":"number","description":"Tab index to switch to"}},"required":["index"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## browser_press_key
+
+Description: [browser] Press a key on the keyboard
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"key":{"type":"string","enum":["Enter","Tab","Escape","Backspace","Delete","Insert","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","ArrowLeft","ArrowRight","ArrowUp","ArrowDown","PageUp","PageDown","Home","End","ShiftLeft","ShiftRight","ControlLeft","ControlRight","AltLeft","AltRight","MetaLeft","MetaRight","CapsLock","PrintScreen","ScrollLock","Pause","ContextMenu"],"description":"Name of the key to press or a character to generate, such as Enter, Tab, Escape, Backspace, Delete, Insert, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, ArrowLeft, ArrowRight, ArrowUp, ArrowDown, PageUp, PageDown, Home, End, ShiftLeft, ShiftRight, ControlLeft, ControlRight, AltLeft, AltRight, MetaLeft, MetaRight, CapsLock, PrintScreen, ScrollLock, Pause, ContextMenu"}},"required":["key"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## read_file
+
+Description: [filesystem] Read the complete contents of a file from the file system. Handles various text encodings and provides detailed error messages if the file cannot be read. Use this tool when you need to examine the contents of a single file. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"}},"required":["path"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## read_multiple_files
+
+Description: [filesystem] Read the contents of multiple files simultaneously. This is more efficient than reading files one by one when you need to analyze or compare multiple files. Each file's content is returned with its path as a reference. Failed reads for individual files won't stop the entire operation. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"paths":{"type":"array","items":{"type":"string"}}},"required":["paths"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## write_file
+
+Description: [filesystem] Create a new file or completely overwrite an existing file with new content. Use with caution as it will overwrite existing files without warning. Handles text content with proper encoding. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"},"content":{"type":"string"}},"required":["path","content"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## edit_file
+
+Description: [filesystem] Make line-based edits to a text file. Each edit replaces exact line sequences with new content. Returns a git-style diff showing the changes made. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"},"edits":{"type":"array","items":{"type":"object","properties":{"oldText":{"type":"string","description":"Text to search for - must match exactly"},"newText":{"type":"string","description":"Text to replace with"}},"required":["oldText","newText"],"additionalProperties":false}},"dryRun":{"type":"boolean","default":false,"description":"Preview changes using git-style diff format"}},"required":["path","edits"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## create_directory
+
+Description: [filesystem] Create a new directory or ensure a directory exists. Can create multiple nested directories in one operation. If the directory already exists, this operation will succeed silently. Perfect for setting up directory structures for projects or ensuring required paths exist. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"}},"required":["path"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## list_directory
+
+Description: [filesystem] Get a detailed listing of all files and directories in a specified path. Results clearly distinguish between files and directories with [FILE] and [DIR] prefixes. This tool is essential for understanding directory structure and finding specific files within a directory. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"}},"required":["path"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## directory_tree
+
+Description: [filesystem] Get a recursive tree view of files and directories as a JSON structure. Each entry includes 'name', 'type' (file/directory), and 'children' for directories. Files have no children array, while directories always have a children array (which may be empty). The output is formatted with 2-space indentation for readability. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"}},"required":["path"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## move_file
+
+Description: [filesystem] Move or rename files and directories. Can move files between directories and rename them in a single operation. If the destination exists, the operation will fail. Works across different directories and can be used for simple renaming within the same directory. Both source and destination must be within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"source":{"type":"string"},"destination":{"type":"string"}},"required":["source","destination"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## search_files
+
+Description: [filesystem] Recursively search for files and directories matching a pattern. Searches through all subdirectories from the starting path. The search is case-insensitive and matches partial names. Returns full paths to all matching items. Great for finding files when you don't know their exact location. Only searches within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"},"pattern":{"type":"string"},"excludePatterns":{"type":"array","items":{"type":"string"},"default":[]}},"required":["path","pattern"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## get_file_info
+
+Description: [filesystem] Retrieve detailed metadata about a file or directory. Returns comprehensive information including size, creation time, last modified time, permissions, and type. This tool is perfect for understanding file characteristics without reading the actual content. Only works within allowed directories.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"path":{"type":"string"}},"required":["path"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## list_allowed_directories
+
+Description: [filesystem] Returns the list of directories that this server is allowed to access. Use this to understand which directories are available before trying to access files.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{},"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## run_command
+
+Description: [commands] Run a command on this tars machine
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"command":{"type":"string","description":"Command with args"},"cwd":{"type":"string","description":"Current working directory, leave empty in most cases"}},"required":["command"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## run_script
+
+Description: [commands] Run a script on this tars machine
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"interpreter":{"type":"string","description":"Command with arguments. Script will be piped to stdin. Examples: bash, fish, zsh, python, or: bash --norc"},"script":{"type":"string","description":"Script to run"},"cwd":{"type":"string","description":"Current working directory, leave empty in most cases"}},"required":["script"],"additionalProperties":false,"$schema":"http://json-schema.org/draft-07/schema#"}
+\`\`\`
+
+
+
+## edit_todos
+
+Description: Update todo list progress after completing actual work. Use - [x] for completed items, - [ ] for incomplete. ⚠️ CRITICAL: DO NOT call this tool consecutively without doing actual work between calls. IMPORTANT: Only call this tool AFTER you have actually executed the necessary tools and gathered the required information. Do not call this tool if you have not done any actual work.
+
+Parameters JSON Schema:
+\`\`\`json
+{"type":"object","properties":{"thought":{"type":"string","description":"Your structured thinking following this exact 5-step format: 1. WHAT: What task am I completing this time and how does it relate to the original request? 2. DUPLICATE CHECK: Am I smart enough to avoid repetition? What task am I completing and am I not repeating previous work? 3. WHY: Why do I believe this task is complete? What work did I do and what results did I see? My confidence level is ___ (out of 100) 4. REFLECTION: Is my judgment incomplete? Am I being lazy? For example, when researching projects, did I only find 1-2 instead of being thorough? 5. NEXT: What should I do next? If you did no actual work, do NOT call this tool."},"todos":{"type":"string","description":"Complete updated markdown todo list"}},"required":["thought","todos"]}
 \`\`\`
 
 
