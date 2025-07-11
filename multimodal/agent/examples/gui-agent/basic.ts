@@ -316,7 +316,7 @@ export const agent = new BrowserGUIAgent({
     // id: 'ep-20250510145437-5sxhs', // 'doubao-1.5-thinking-vision-pro',
     id: 'ep-20250613182556-7z8pl', // 'doubao-1.6',
     apiKey: process.env.ARK_API_KEY,
-    useResponseApi: true,
+    // useResponseApi: true,
     // TODO: Support Claude 3.7
     // provider: 'azure-openai',
     // baseURL: process.env.AWS_CLAUDE_API_BASE_URL,
@@ -333,9 +333,13 @@ export const runOptions: AgentRunNonStreamingOptions = {
 async function main() {
   await agent.initialize();
 
+  const start = performance.now();
+
   const answer = await agent.run(runOptions);
 
   console.log(answer);
+
+  console.log('time cost: ', performance.now() - start);
 }
 
 if (require.main === module) {

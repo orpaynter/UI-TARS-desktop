@@ -552,6 +552,34 @@ importers:
         specifier: ^5.5.3
         version: 5.8.3
 
+  benchmark/response-api:
+    dependencies:
+      '@agent-tars/core':
+        specifier: workspace:*
+        version: link:../../agent-tars
+      '@mcp-agent/core':
+        specifier: workspace:*
+        version: link:../../mcp-agent
+      '@multimodal/agent':
+        specifier: workspace:*
+        version: link:../../agent
+      chalk:
+        specifier: ^4.1.2
+        version: 4.1.2
+      fs-extra:
+        specifier: ^11.2.0
+        version: 11.3.0
+    devDependencies:
+      '@types/fs-extra':
+        specifier: ^11.0.4
+        version: 11.0.4
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@22.15.30)(typescript@5.8.3)
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+
   codeact-agent:
     dependencies:
       '@agent-infra/logger':

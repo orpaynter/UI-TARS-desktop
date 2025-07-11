@@ -77,7 +77,7 @@ export class BrowserManager {
     this.lastLaunchOptions = { ...options };
 
     try {
-      this.logger.info('🌐 Launching browser instance...');
+      this.logger.info('🌐 Launching browser instance...', options);
       const browser = this.getBrowser();
       await browser.launch(options);
       // FIXME: Create new page here to avoid the mcp server browser createing

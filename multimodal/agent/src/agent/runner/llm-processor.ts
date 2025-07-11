@@ -320,7 +320,7 @@ export class LLMProcessor {
 
       allChunks.push(chunk);
 
-      // 仅 response api 的返回拥有 type 属性
+      // Only the return of the response api has the type attribute
       if (('choices' in chunk && chunk.choices) || ('type' in chunk && chunk.type)) {
         // Process the chunk using the tool call engine, use attribute 'choices' to identify completion chat chunk
         const chunkResult =

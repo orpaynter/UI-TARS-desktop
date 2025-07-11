@@ -52,6 +52,9 @@ export class SearchToolProvider {
         cdpEndpoint: config.cdpEndpoint,
         apiKey: config.apiKey,
         baseUrl: config.baseUrl,
+        browserOptions: {
+          headless: true,
+        },
       },
       logger: this.logger,
     };

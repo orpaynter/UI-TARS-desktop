@@ -18,6 +18,7 @@ import {
   LLMResponseHookPayload,
   ConsoleLogger,
   LoopTerminationCheckResult,
+  LogLevel,
 } from '@mcp-agent/core';
 import {
   AgentTARSOptions,
@@ -33,8 +34,8 @@ import { SearchToolProvider } from './search';
 import { applyDefaultOptions } from './shared/config-utils';
 import { MessageHistoryDumper } from './shared/message-history-dumper';
 
-// @ts-expect-error
 // Default esm asset has some issues {@see https://github.com/bytedance/UI-TARS-desktop/issues/672}
+// @ts-expect-error
 import * as browserModule from '@agent-infra/mcp-server-browser/dist/server.cjs';
 import * as filesystemModule from '@agent-infra/mcp-server-filesystem';
 import * as commandsModule from '@agent-infra/mcp-server-commands';
@@ -136,6 +137,9 @@ Current Working Directory: ${workingDirectory}
     });
 
     this.logger = this.logger.spawn('AgentTARS');
+    // log level default inheritance @multimodal/agent
+    this.logger.setLevel(options.logLevel ?? (this.logger.getLevel() || LogLevel.INFO));
+
     this.tarsOptions = tarsOptions;
     this.workingDirectory = workingDirectory;
     this.logger.info(`🤖 AgentTARS initialized | Working directory: ${workingDirectory}`);
