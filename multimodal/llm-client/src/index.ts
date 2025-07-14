@@ -63,14 +63,14 @@ export class TokenJS implements TokenJSInterface {
   private opts: ConfigOptions;
   public static extendedModelList: Readonly<extendedModelList> = [];
   chat: LLMChat;
-  response: LLMResponse;
+  responses: LLMResponse;
 
   constructor({ ...opts }: ConfigOptions = {}) {
     this.opts = opts;
 
     // We pass a reference to the LLM instance to the LLMChat instance so that the completions object can access the opts
     this.chat = new LLMChat(opts);
-    this.response = new LLMResponse(opts);
+    this.responses = new LLMResponse(opts);
   }
 
   /**

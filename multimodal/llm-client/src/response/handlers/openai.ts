@@ -47,6 +47,6 @@ export class OpenAIResponseHandler extends BaseHandler<OpenAIModel> {
       apiKey,
     });
 
-    await openai.responses.delete(responseId);
+    return openai.responses.delete(responseId);
   }
 }

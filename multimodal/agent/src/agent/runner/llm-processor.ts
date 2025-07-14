@@ -30,6 +30,7 @@ import { ToolProcessor } from './tool-processor';
 import { StructuredOutputsToolCallEngine } from '../../tool-call-engine';
 import { ResponseStreamingReturnType } from '@multimodal/llm-client';
 import { truncateInput } from '../../utils';
+import { ResponseIdCache } from '../../utils/response-cache';
 
 /**
  * LLMProcessor - Responsible for LLM interaction
@@ -42,6 +43,7 @@ export class LLMProcessor {
   private messageHistory: MessageHistory;
   private llmClient?: OpenAI;
   private enableStreamingToolCallEvents: boolean;
+  private responseCache?: ResponseIdCache;
 
   get useResponsesApi(): boolean {
     return this.agent.getOptions().model?.useResponseApi ?? false;
@@ -71,6 +73,7 @@ export class LLMProcessor {
    */
   public setCustomLLMClient(client: OpenAI): void {
     this.llmClient = client;
+    this.responseCache?.setLLMClient(client);
   }
 
   /**
@@ -136,6 +139,12 @@ export class LLMProcessor {
         },
       );
     }
+
+    // Set the LLM client for the response cache
+    if (this.useResponsesApi && !this.responseCache) {
+      this.responseCache = new ResponseIdCache(this.llmClient, { maxSize: 5 });
+    }
+
     // Allow the agent to perform any pre-iteration setup
     try {
       await this.agent.onEachAgentLoopStart(sessionId);
@@ -239,6 +248,9 @@ export class LLMProcessor {
       return;
     }
 
+    // Check and cleanup cache before new message if it contains images
+    await this.responseCache?.checkAndCleanupBeforeNewMessage();
+
     // Use either the custom LLM client or create one using model resolver
     this.logger.info(
       `[LLM] Sending streaming request to ${resolvedModel.provider} | SessionId: ${sessionId}`,
@@ -278,6 +290,7 @@ export class LLMProcessor {
     await this.handleStreamingResponse(
       stream,
       resolvedModel,
+      requestOptions,
       sessionId,
       toolCallEngine,
       streamingMode,
@@ -292,6 +305,7 @@ export class LLMProcessor {
   private async handleStreamingResponse(
     stream: AsyncIterable<ChatCompletionChunk> | ResponseStreamingReturnType,
     resolvedModel: ResolvedModel,
+    requestOptions: ChatCompletionCreateParams | ResponseCreateParams,
     sessionId: string,
     toolCallEngine: ToolCallEngine,
     streamingMode: boolean,
@@ -397,6 +411,14 @@ export class LLMProcessor {
       parsedResponse.responseId || '',
       messageId, // Pass the message ID to final events,
     );
+
+    // Add response ID to cache if it exists and contains images
+    if (parsedResponse.responseId) {
+      this.responseCache?.addResponseId(
+        parsedResponse.responseId,
+        requestOptions as ResponseCreateParams,
+      );
+    }
 
     const chatCompletionChunks = allChunks.filter(
       (c): c is ChatCompletionChunk => 'choices' in c && !!c.choices,

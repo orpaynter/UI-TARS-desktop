@@ -27,6 +27,7 @@ import type {
 import {
   ResponseInput,
   ResponseInputImage,
+  EasyInputMessage,
   ResponseInputItem,
   ResponseCreateParams,
   ResponseStreamEvent,
@@ -59,4 +60,5 @@ export type {
   ResponseInputItem,
   ResponseCreateParams,
   ResponseStreamEvent,
+  EasyInputMessage,
 };

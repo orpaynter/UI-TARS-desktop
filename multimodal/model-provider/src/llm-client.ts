@@ -71,10 +71,14 @@ export function createLLMClient(
           ? requestInterceptor(provider, requestPayload, baseURL)
           : requestPayload;
 
-        return client.response.create({
+        return client.responses.create({
           ...finalRequest,
           provider: actualProvider,
         });
+      },
+
+      async delete(responseId: string) {
+        return client.responses.delete(responseId);
       },
     },
   } as unknown as OpenAI;
