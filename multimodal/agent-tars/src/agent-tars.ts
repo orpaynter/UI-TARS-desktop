@@ -34,8 +34,8 @@ import { SearchToolProvider } from './search';
 import { applyDefaultOptions } from './shared/config-utils';
 import { MessageHistoryDumper } from './shared/message-history-dumper';
 
-// Default esm asset has some issues {@see https://github.com/bytedance/UI-TARS-desktop/issues/672}
 // @ts-expect-error
+// Default esm asset has some issues {@see https://github.com/bytedance/UI-TARS-desktop/issues/672}
 import * as browserModule from '@agent-infra/mcp-server-browser/dist/server.cjs';
 import * as filesystemModule from '@agent-infra/mcp-server-filesystem';
 import * as commandsModule from '@agent-infra/mcp-server-commands';

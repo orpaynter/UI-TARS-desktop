@@ -1,17 +1,10 @@
-import {
-  ChatCompletionContentPart,
-  ChatCompletionMessageParam,
-  ResponseCreateParams,
-  OpenAI,
-  EasyInputMessage,
-} from '@multimodal/agent-interface';
+import { ResponseCreateParams, OpenAI, EasyInputMessage } from '@multimodal/agent-interface';
 import { getLogger } from './logger';
 
 interface CachedResponseInfo {
   responseId: string;
   timestamp: number;
   hasImages: boolean;
-  messageContent?: string;
 }
 
 interface ResponseCacheConfig {
@@ -31,9 +24,10 @@ export class ResponseIdCache {
     this.llmClient = llmClient;
     this.config = {
       enableCache: true,
-      maxSize: 5,
       deleteTimeout: 10000,
       ...config,
+      // default maxSize is 5, and greater than 2
+      maxSize: Math.max(config?.maxSize ?? 5, 2),
     };
 
     this.logger.info(`[ResponseCache] Initialized with config:`, this.config);
@@ -49,13 +43,13 @@ export class ResponseIdCache {
       return;
     }
 
-    this.logger.info(
+    this.logger.debug(
       'responseCache before clean: ',
       this.cache.map((c) => c.responseId),
     );
 
     if (this.cache.length > this.config.maxSize) {
-      this.logger.info(
+      this.logger.debug(
         `[ResponseCache] Cache size ${this.cache.length} exceeds limit ${this.config.maxSize}, cleaning up...`,
       );
       await this.cleanupOldResponses();
@@ -80,7 +74,6 @@ export class ResponseIdCache {
       responseId,
       timestamp: Date.now(),
       hasImages,
-      // messageContent: this.extractMessageContent(messages),
     };
 
     this.cache.push(cachedInfo);
@@ -92,7 +85,7 @@ export class ResponseIdCache {
 
   private async cleanupOldResponses(): Promise<void> {
     while (this.cache.length > this.config.maxSize) {
-      // 取出数组第二个元素（索引为1），如果不存在则取第一个元素
+      // Take out the second element of the array (index 1), and if it does not exist, take the first element
       const indexToRemove = this.cache.length > 1 ? 1 : 0;
       const responseToDelete = this.cache.splice(indexToRemove, 1)[0];
       if (responseToDelete) {
@@ -115,7 +108,6 @@ export class ResponseIdCache {
     try {
       this.logger.debug(`[ResponseCache] Attempting to delete response ${responseId}`);
 
-      //TODO:
       const res = await this.llmClient.responses.delete(responseId);
 
       const deleteTime = Date.now() - startTime;
@@ -165,32 +157,6 @@ export class ResponseIdCache {
 
       return false;
     });
-  }
-
-  private hasImagesInContent(content: ChatCompletionContentPart): boolean {
-    return content.type === 'image_url';
-  }
-
-  private extractMessageContent(messages?: ChatCompletionMessageParam[]): string {
-    if (!messages || messages.length === 0) {
-      return '';
-    }
-
-    return messages
-      .map((message) => {
-        if (typeof message.content === 'string') {
-          return message.content;
-        }
-        if (Array.isArray(message.content)) {
-          return message.content
-            .filter((part) => part.type === 'text')
-            .map((part) => (part as any).text)
-            .join(' ');
-        }
-        return '';
-      })
-      .join(' ')
-      .substring(0, 200);
   }
 
   private updateAverageDeleteTime(deleteTime: number): void {

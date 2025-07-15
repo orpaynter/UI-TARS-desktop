@@ -313,9 +313,9 @@ export const agent = new BrowserGUIAgent({
   instructions: `You are a GUI Agent, you are good at using browser_action_tool to solve user problems`,
   model: {
     provider: 'volcengine',
-    // id: 'ep-20250510145437-5sxhs', // 'doubao-1.5-thinking-vision-pro',
-    id: 'ep-20250613182556-7z8pl', // 'doubao-1.6',
+    id: 'ep-20250510145437-5sxhs', // 'doubao-1.5-thinking-vision-pro',
     apiKey: process.env.ARK_API_KEY,
+    // id: 'ep-20250613182556-7z8pl', // 'doubao-1.6',
     // useResponseApi: true,
     // TODO: Support Claude 3.7
     // provider: 'azure-openai',
@@ -333,13 +333,9 @@ export const runOptions: AgentRunNonStreamingOptions = {
 async function main() {
   await agent.initialize();
 
-  const start = performance.now();
-
   const answer = await agent.run(runOptions);
 
   console.log(answer);
-
-  console.log('time cost: ', performance.now() - start);
 }
 
 if (require.main === module) {

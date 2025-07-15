@@ -31,6 +31,9 @@ export interface StrategyConfig {
    * Model ID to use for the strategy
    */
   modelId?: string;
+
+  /** thinking mode */
+  thinking?: 'disabled' | 'enabled';
 }
 
 /**

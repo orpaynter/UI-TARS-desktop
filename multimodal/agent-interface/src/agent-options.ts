@@ -70,11 +70,6 @@ export interface AgentModelOptions {
    * Used to control the reasoning content.
    */
   thinking?: LLMReasoningOptions;
-
-  /**
-   * whether to use repsonse api
-   */
-  useResponseApi?: boolean;
 }
 
 /**

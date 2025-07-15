@@ -8,21 +8,20 @@ import { AgentTARS, AgentTARSOptions, LogLevel } from '../src';
 import { TEST_MODEL_PROVIDERS } from '@multimodal/agent/_config';
 
 export const DEFUALT_OPTIONS: AgentTARSOptions = {
-  // workspace: {
-  //   workingDirectory: join(__dirname, './workspace'),
-  // },
+  workspace: {
+    workingDirectory: join(__dirname, './workspace'),
+  },
   model: {
     providers: TEST_MODEL_PROVIDERS,
     //   provider: 'azure-openai',
     //   id: 'aws_sdk_claude37_sonnet',
     provider: 'volcengine',
-    // id: 'ep-20250510145437-5sxhs', // 'doubao-1.5-thinking-vision-pro',
-    id: 'ep-20250613182556-7z8pl',
+    id: 'ep-20250510145437-5sxhs', // 'doubao-1.5-thinking-vision-pro',
+    // id: 'ep-20250613182556-7z8pl',
+    // useResponseApi: true,
     apiKey: process.env.ARK_API_KEY,
-    useResponseApi: true,
   },
-  // toolCallEngine: 'prompt_engineering',
-  toolCallEngine: 'structured_outputs',
+  toolCallEngine: 'prompt_engineering',
   maxIterations: 100,
   // temperature: 0,
   thinking: {
@@ -30,11 +29,6 @@ export const DEFUALT_OPTIONS: AgentTARSOptions = {
   },
   search: {
     provider: 'browser_search',
-  },
-  browser: {
-    type: 'local',
-    headless: false,
-    control: 'visual-grounding',
   },
   experimental: {
     dumpMessageHistory: true,

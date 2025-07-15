@@ -16,10 +16,12 @@ async function test() {
     const gui = new GUIStrategy();
 
     const agent = await gui.createAgent({
-      useResponseApi: false,
-      modelId: 'ep-20250613182556-7z8pl',
-      // modelId: 'ep-20250510145437-5sxhs',
+      useResponseApi: true,
+      modelId: 'ep-20250613182556-7z8pl', // 1.6
+      // modelId: 'ep-20250510145437-5sxhs', // 1.5-vl
       // modelId: 'ep-20250613174618-nld9c', // 1.6-flash
+      // thinking: 'enabled',
+      dumpMessageHistory: true,
     });
 
     const res = await gui.executeTask(agent);

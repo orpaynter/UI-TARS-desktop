@@ -105,7 +105,7 @@ export class BrowserGUIAgent {
 
 ## Action Space
 
-click(point=\\'<point>x1 y1</point>\\')            - Click at the specified coordinates, Output coordinates strictly in the specified format, use \\', \\", and \\n for special characters
+click(point='<point>x1 y1</point>')            - Click at the specified coordinates
 left_double(point='<point>x1 y1</point>')      - Double-click at the specified coordinates
 right_single(point='<point>x1 y1</point>')     - Right-click at the specified coordinates
 drag(start_point='<point>x1 y1</point>', end_point='<point>x2 y2</point>') - Drag from start to end point
@@ -141,7 +141,7 @@ wait()                                         - Wait 5 seconds and take a scree
           const parsed = this.parseAction(action);
           parsed.thought = thought;
 
-          this.logger.info({
+          this.logger.debug({
             thought,
             step,
             action,

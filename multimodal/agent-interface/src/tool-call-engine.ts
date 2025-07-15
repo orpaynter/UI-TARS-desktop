@@ -59,7 +59,7 @@ export interface ParsedModelResponse {
    */
   finishReason?: FinishReason;
   /**
-   * response id of response api
+   * response id of Responses API
    */
   responseId?: string;
 }
@@ -97,8 +97,9 @@ export interface StreamProcessingState {
    * Used to calculate incremental updates for structured outputs
    */
   lastParsedContent?: string;
+
   /**
-   * response id of response api
+   * response id of Responses API
    */
   responseId?: string;
 }

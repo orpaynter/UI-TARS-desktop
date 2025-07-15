@@ -4,6 +4,7 @@
  */
 
 import { TaskStrategy, TaskExecutionResult, StrategyConfig } from '../types';
+import { AgentOptions } from '@multimodal/agent';
 
 /**
  * Function Calling strategy for benchmarking
@@ -46,7 +47,7 @@ export class FCStrategy implements TaskStrategy {
       },
     });
 
-    const agentConfig: any = {
+    const agentConfig: AgentOptions = {
       model: {
         provider: 'volcengine',
         id: config.modelId || 'ep-20250613182556-7z8pl', // Use provided modelId or default doubao-1.6
@@ -54,18 +55,11 @@ export class FCStrategy implements TaskStrategy {
         useResponseApi: config.useResponseApi,
       },
       thinking: {
-        type: 'disabled',
+        type: config.thinking || 'disabled',
       },
       tools: [locationTool, weatherTool],
       logLevel: LogLevel.ERROR, // Reduce noise during benchmarking
     };
-
-    // Add dumpMessageHistory if specified
-    if (config.dumpMessageHistory !== undefined) {
-      agentConfig.experimental = {
-        dumpMessageHistory: config.dumpMessageHistory,
-      };
-    }
 
     console.log('agentConfig: ', agentConfig);
 

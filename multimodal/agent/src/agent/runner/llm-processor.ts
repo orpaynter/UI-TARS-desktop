@@ -320,7 +320,7 @@ export class LLMProcessor {
     // Generate a unique message ID to correlate streaming messages with final message
     const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
 
-    this.logger.info(`llm stream start, streamingMode: `, streamingMode);
+    this.logger.info(`llm stream start`);
 
     // Process each incoming chunk
     for await (const chunk of stream) {

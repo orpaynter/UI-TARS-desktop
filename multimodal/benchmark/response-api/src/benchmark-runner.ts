@@ -31,7 +31,7 @@ export class BenchmarkRunner {
     runsPerStrategy: 3,
     collectMemoryUsage: false,
     saveToDisk: false,
-    outputDir: 'result',
+    outputDir: 'results',
     timeout: 300000, // 5 minutes default timeout
   };
 
@@ -69,6 +69,11 @@ export class BenchmarkRunner {
 
       // Test both API types
       for (const apiType of ['response', 'chat'] as ApiType[]) {
+        // doubao 1.5 does not support responses api
+        if (config.modelId === 'ep-20250510145437-5sxhs' && apiType === 'response') {
+          continue;
+        }
+
         console.log(chalk.yellow(`\n  Testing ${apiType} API...`));
 
         const strategyResults: BenchmarkResult[] = [];
@@ -305,7 +310,7 @@ export class BenchmarkRunner {
    * @param results - Aggregated benchmark results to save
    * @param outputDir - Base output directory
    */
-  private async saveResultsToDisk(
+  public async saveResultsToDisk(
     results: AggregatedBenchmarkResult[],
     outputDir: string,
   ): Promise<void> {

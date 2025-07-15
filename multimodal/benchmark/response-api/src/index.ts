@@ -7,11 +7,23 @@ import { BenchmarkRunner } from './benchmark-runner';
 import { FCStrategy, GUIStrategy, MCPStrategy } from './strategies';
 import { BenchmarkConfig } from './types';
 
+export const MODELS = [
+  {
+    name: 'doubao1.6',
+    modelId: 'ep-20250613182556-7z8pl',
+  },
+  {
+    name: 'doubao1.5vl',
+    modelId: 'ep-20250510145437-5sxhs',
+  },
+];
+
 /**
  * Main entry point for response API benchmark
  *
  * This script tests different task strategies (GUI, FC, MCP) against both
  * response API and chat completion API to compare their performance.
+ * If no model is specified, it will test all models in the MODELS array.
  */
 async function main() {
   // Parse command line arguments
@@ -34,6 +46,8 @@ Examples:
   npm start --runs=5 --save
   npm start --task=gui --dump-history
   npm start --model=ep-20250613182556-7z8pl --runs=1
+
+Note: If no --model is specified, all models will be tested for comparison.
     `);
     process.exit(0);
   }
@@ -44,10 +58,11 @@ Examples:
   );
   const taskType = args.find((arg) => arg.startsWith('--task='))?.split('=')[1];
   const dumpMessageHistory = args.includes('--dump-history') || args.includes('--dump');
-  const modelId = args.find((arg) => arg.startsWith('--model='))?.split('=')[1];
+  const specifiedModelId = args.find((arg) => arg.startsWith('--model='))?.split('=')[1];
 
   // Define strategies to test
   const allStrategies = [new FCStrategy(), new GUIStrategy(), new MCPStrategy()];
+  // const allStrategies = [new GUIStrategy()];
 
   // Filter strategies based on task type if specified
   const strategies = taskType
@@ -61,33 +76,82 @@ Examples:
     process.exit(1);
   }
 
-  const config: BenchmarkConfig = {
-    strategies,
-    runsPerStrategy,
-    collectMemoryUsage: false, // Set to true if --expose-gc flag is used
-    saveToDisk,
-    outputDir: 'result',
-    dumpMessageHistory,
-    modelId,
-    // timeout: 300000, // 5 minutes timeout
-  };
+  // Determine which models to test
+  const modelsToTest = specifiedModelId
+    ? [{ name: 'specified', modelId: specifiedModelId }]
+    : MODELS;
+
+  console.log('🚀 Starting benchmark...');
+  console.log(
+    `📊 Testing ${modelsToTest.length} model(s): ${modelsToTest.map((m) => m.name).join(', ')}`,
+  );
+  console.log(
+    `🎯 Testing ${strategies.length} strategy(ies): ${strategies.map((s) => s.name).join(', ')}`,
+  );
 
   // Initialize benchmark runner
   const benchmarkRunner = new BenchmarkRunner();
 
+  // Collect all results across models
+  const allResults: any[] = [];
+
   try {
-    console.log('🚀 Starting benchmark...');
+    // Run benchmark for each model
+    for (const model of modelsToTest) {
+      console.log(`\n🤖 Testing model: ${model.name} (${model.modelId})`);
 
-    // Run benchmark
-    const results = await benchmarkRunner.runBenchmark(strategies, config);
+      const config: BenchmarkConfig = {
+        strategies,
+        runsPerStrategy,
+        collectMemoryUsage: false, // Set to true if --expose-gc flag is used
+        saveToDisk: false, // We'll save all results together at the end
+        outputDir: 'result',
+        dumpMessageHistory,
+        modelId: model.modelId,
+        // timeout: 300000, // 5 minutes timeout
+      };
 
-    // Present results
-    benchmarkRunner.presentResults(results);
+      // Run benchmark for this model
+      const modelResults = await benchmarkRunner.runBenchmark(strategies, config);
 
-    console.log('\n✅ Benchmark completed successfully!');
+      // Add model information to results
+      const enhancedResults = modelResults.map((result) => ({
+        ...result,
+        modelName: model.name,
+        modelId: model.modelId,
+        strategyName: `${result.strategyName} [${model.name}]`, // Add model name to strategy name for display
+      }));
 
+      allResults.push(...enhancedResults);
+    }
+
+    // Present combined results
+    console.log('\n🏆 Combined Results Across All Models');
+    benchmarkRunner.presentResults(allResults);
+
+    // Save combined results if requested
     if (saveToDisk) {
-      console.log(`📁 Results saved to: ${config.outputDir}`);
+      const config: BenchmarkConfig = {
+        strategies,
+        runsPerStrategy,
+        collectMemoryUsage: false,
+        saveToDisk: true,
+        outputDir: 'result',
+        dumpMessageHistory,
+        modelId: undefined, // Multiple models tested
+      };
+
+      // Save results with model comparison
+      await benchmarkRunner.saveResultsToDisk(allResults, config.outputDir!);
+      console.log(`📁 Combined results saved to: ${config.outputDir}`);
+    }
+
+    console.log('\n✅ Multi-model benchmark completed successfully!');
+
+    if (modelsToTest.length > 1) {
+      console.log(
+        `📊 Tested ${modelsToTest.length} models with ${strategies.length} strategies each`,
+      );
     }
   } catch (error) {
     console.error('❌ Benchmark failed:', error);

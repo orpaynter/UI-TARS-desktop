@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { MCPAgentOptions, MCPAgent } from '@mcp-agent/core';
 import { TaskStrategy, TaskExecutionResult, StrategyConfig } from '../types';
 
 /**
@@ -16,9 +17,9 @@ export class MCPStrategy implements TaskStrategy {
 
   async createAgent(config: StrategyConfig): Promise<any> {
     // Import dynamically to avoid module resolution issues during build
-    const { MCPAgent } = await import('@mcp-agent/core');
+    // const { MCPAgent } = await import('@mcp-agent/core');
 
-    const agentConfig: any = {
+    const agentConfig: MCPAgentOptions = {
       instructions:
         'You are Agent TARS, a helpful assistant that can use the tools available to help users with their questions.',
       mcpServers: {
@@ -33,14 +34,10 @@ export class MCPStrategy implements TaskStrategy {
         apiKey: process.env.ARK_API_KEY,
         useResponseApi: config.useResponseApi,
       },
+      thinking: {
+        type: config.thinking || 'disabled',
+      },
     };
-
-    // Add dumpMessageHistory if specified
-    if (config.dumpMessageHistory !== undefined) {
-      agentConfig.experimental = {
-        dumpMessageHistory: config.dumpMessageHistory,
-      };
-    }
 
     console.log('agentConfig: ', agentConfig);
 

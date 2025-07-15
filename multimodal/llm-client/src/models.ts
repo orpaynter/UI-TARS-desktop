@@ -15,7 +15,7 @@ export const TableDisplayNames = {
   supportsImages: 'Image Input',
   supportsToolCalls: 'Function Calling',
   supportsN: 'N > 1',
-  supportResponseApi: 'Response API',
+  supportResponseApi: 'Responses API',
 };
 export const models = {
   openai: {

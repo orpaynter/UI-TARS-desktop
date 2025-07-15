@@ -19,21 +19,16 @@ export class GUIStrategy implements TaskStrategy {
     const option: AgentTARSOptions = {
       model: {
         provider: 'volcengine',
-        id:
-          config.modelId ||
-          // There is a problem with parseAction when running GUI tasks in 1.6
-          (config.useResponseApi ? 'ep-20250613182556-7z8pl' : 'ep-20250510145437-5sxhs'),
+        id: config.modelId || 'ep-20250613182556-7z8pl',
         apiKey: process.env.ARK_API_KEY,
         useResponseApi: config.useResponseApi,
       },
       toolCallEngine: 'structured_outputs',
       thinking: {
-        type: 'disabled',
+        type: config.thinking || 'disabled',
       },
-      logLevel: LogLevel.DEBUG,
+      logLevel: LogLevel.INFO,
       browser: {
-        type: 'local',
-        headless: false,
         control: 'visual-grounding',
       },
     };
@@ -58,7 +53,11 @@ export class GUIStrategy implements TaskStrategy {
 
       const answer = await agent.run({
         input: [
-          { type: 'text', text: 'please book me the earliest flight from beijing to shanghai' },
+          {
+            type: 'text',
+            // text: 'please book me the earliest flight from beijing to shanghai',
+            text: 'Open https://2captcha.com/demo/normal and pass it',
+          },
         ],
         stream: false,
       });

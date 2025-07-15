@@ -7,9 +7,7 @@
  * An example of a basic tool call, using `zod` to describe the
  * tool parameters, defaults to OpenAI provider.
  */
-
-import { AgentEventStream } from '@multimodal/agent-interface';
-import { Agent, LogLevel, Tool, z } from '../../src';
+import { Agent, AgentRunNonStreamingOptions, LogLevel, Tool, z } from '../../src';
 
 const locationTool = new Tool({
   id: 'getCurrentLocation',
@@ -42,32 +40,22 @@ const weatherTool = new Tool({
 export const agent = new Agent({
   model: {
     provider: 'volcengine',
-    // id: 'ep-20250510145437-5sxhs', // 'doubao-1.5-thinking-vision-pro',
-    id: 'ep-20250613182556-7z8pl', // 'doubao-1.6',
+    id: 'ep-20250510145437-5sxhs', // 'doubao-1.5-thinking-vision-pro',
     apiKey: process.env.ARK_API_KEY,
-    useResponseApi: true,
-  },
-  thinking: {
-    type: 'disabled',
+    // id: 'ep-20250613182556-7z8pl', // 'doubao-1.6',
+    // useResponseApi: true,
   },
   tools: [locationTool, weatherTool],
   logLevel: LogLevel.DEBUG,
 });
 
-async function main() {
-  const stream = true;
+export const runOptions: AgentRunNonStreamingOptions = {
+  input: "How's the weather today?",
+};
 
-  const answer = await agent.run({
-    input: "How's the weather today?",
-    stream,
-  });
-  if (stream) {
-    for await (const chunk of answer as unknown as AsyncIterable<AgentEventStream.Event>) {
-      'content' in chunk && console.log('answer chunk: ', chunk.content);
-    }
-  } else {
-    console.log('answer resp: ', answer);
-  }
+async function main() {
+  const answer = await agent.run(runOptions);
+  console.log(answer);
 }
 
 if (require.main === module) {
