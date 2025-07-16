@@ -174,7 +174,9 @@ describe('StructuredOutputsToolCallEngine', () => {
         accumulatedContent += result.content;
       });
 
-      expect(accumulatedContent).toBe('Calculating the sum of two numbers');
+      expect(accumulatedContent).toBe(
+        'Calculating the sum of two numbers, "toolCall": {"name": "add", "args": {"x": 1, "y": 2}}}',
+      );
     });
 
     it('should finalize streaming correctly', () => {

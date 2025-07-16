@@ -408,7 +408,7 @@ export class LLMProcessor {
       parsedResponse.toolCalls || [],
       parsedResponse.reasoningContent || '',
       parsedResponse.finishReason || 'stop',
-      parsedResponse.responseId || '',
+      parsedResponse.responseId,
       messageId, // Pass the message ID to final events,
     );
 
@@ -477,7 +477,7 @@ export class LLMProcessor {
     currentToolCalls: ChatCompletionMessageToolCall[],
     reasoningBuffer: string,
     finishReason: string,
-    responseId: string,
+    responseId?: string,
     messageId?: string,
   ): void {
     // If we have complete content, create a consolidated assistant message event
@@ -488,7 +488,7 @@ export class LLMProcessor {
         toolCalls: currentToolCalls.length > 0 ? currentToolCalls : undefined,
         finishReason: finishReason,
         messageId: messageId, // Include the message ID in the final message
-        responseId,
+        responseId: responseId || undefined,
       });
 
       this.eventStream.sendEvent(assistantEvent);
