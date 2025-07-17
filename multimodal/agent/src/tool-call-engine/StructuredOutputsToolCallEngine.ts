@@ -307,7 +307,7 @@ ${structuredOutputInstructions}`;
     newContent: string;
   }) {
     const { state, hasToolCallUpdatePrev, newContent } = option;
-    let content = newContent;
+    let content = '';
     let hasToolCallUpdateNext = hasToolCallUpdatePrev;
 
     if (this.mightBeCollectingJson(state.contentBuffer)) {
@@ -351,6 +351,8 @@ ${structuredOutputInstructions}`;
         // Don't send any content in this case
         content = '';
       }
+    } else {
+      content = newContent;
     }
 
     return {
