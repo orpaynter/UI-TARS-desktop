@@ -212,12 +212,24 @@ importers:
 
   seed-gui-agent:
     dependencies:
+      '@agent-infra/browser':
+        specifier: 0.1.1
+        version: 0.1.1
       '@agent-infra/logger':
         specifier: 0.0.2-beta.2
         version: 0.0.2-beta.2
+      '@gui-agent/operator-browser':
+        specifier: workspace:*
+        version: link:../gui-agent/operator-browser
       '@tarko/agent':
         specifier: workspace:*
         version: link:../tarko/agent
+      '@tarko/agent-interface':
+        specifier: workspace:*
+        version: link:../tarko/agent-interface
+      '@ui-tars/action-parser':
+        specifier: 1.2.3
+        version: 1.2.3
       jsonrepair:
         specifier: 3.12.0
         version: 3.12.0
