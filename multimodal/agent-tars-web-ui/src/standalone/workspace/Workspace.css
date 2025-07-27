@@ -1,9 +1,9 @@
-/* 玻璃卡片效果 */
+/* Glass card effect */
 .glass-card {
   @apply backdrop-blur-md bg-white/70 dark:bg-gray-800/40 border border-gray-100/30 dark:border-gray-700/20 shadow-md;
 }
 
-/* 卡片样式 */
+/* Card styles */
 .elegant-card {
   @apply bg-white dark:bg-gray-800 border border-gray-100/80 dark:border-gray-700/30 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-md;
 }
