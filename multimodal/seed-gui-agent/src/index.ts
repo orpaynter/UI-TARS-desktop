@@ -9,6 +9,8 @@ import { getAndroidDeviceId, AdbOperator } from '@ui-tars/operator-adb';
 import { SeedGUIAgent } from './SeedGUIAgent';
 import { env } from 'process';
 
+export { SeedGUIAgent as default } from './SeedGUIAgent';
+
 async function testOperators() {
   if (!env.SEED_BASE_URL || !env.SEED_MODEL || !env.SEED_API_KEY) {
     console.error('❌ 缺少必需的环境变量:');
@@ -34,6 +36,7 @@ async function testOperators() {
   });
   await browser.launch();
   const openingPage = await browser.createPage();
+
   await openingPage.goto('https://www.google.com/', {
     waitUntil: 'networkidle2',
   });

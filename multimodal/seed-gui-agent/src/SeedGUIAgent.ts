@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { Operator } from '@ui-tars/sdk/core';
-import { Agent, LLMRequestHookPayload, LogLevel, Tool } from '@multimodal/agent';
+import { Agent, LLMRequestHookPayload, LogLevel, Tool } from '@tarko/agent';
 import { SeedGUIAgentToolCallEngine } from './SeedGUIAgentToolCallEngine';
 import { SYSTEM_PROMPT } from './constants';
 import { getScreenInfo, setScreenInfo } from './shared';
@@ -34,6 +34,8 @@ export interface GUIAgentConfig<TOperator> {
 }
 
 export class SeedGUIAgent<T extends Operator> extends Agent {
+  static label = 'Seed GUI Agent';
+
   private operator: Operator;
 
   constructor(config: GUIAgentConfig<T>) {
@@ -45,9 +47,9 @@ export class SeedGUIAgent<T extends Operator> extends Agent {
       toolCallEngine: SeedGUIAgentToolCallEngine,
       model: {
         provider: 'volcengine',
-        baseURL: model.baseURL,
-        id: model.id,
-        apiKey: model.apiKey,
+        baseURL: model?.baseURL,
+        id: model?.id,
+        apiKey: model?.apiKey,
       },
       maxIterations: maxLoopCount ?? 100,
       logLevel: LogLevel.DEBUG,

@@ -12,7 +12,7 @@ import {
   ParsedModelResponse,
   StreamProcessingState,
   StreamChunkResult,
-} from '@multimodal/agent-interface';
+} from '@tarko/agent-interface';
 import { actionParser } from '@ui-tars/action-parser';
 import { getScreenInfo } from './shared';
 

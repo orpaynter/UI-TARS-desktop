@@ -20,6 +20,7 @@
     "dist"
   ],
   "scripts": {
+    "dev:agent": "tarko --agent ./",
     "dev": "rslib build --watch",
     "build": "rslib build",
     "prepublishOnly": "pnpm run build",
@@ -45,6 +46,7 @@
     "@agent-infra/logger": "0.0.2-beta.2"
   },
   "devDependencies": {
+    "@tarko/agent-cli": "workspace:*",
     "@types/uuid": "^9.0.8",
     "@agent-infra/shared": "0.0.2",
     "@rslib/core": "0.10.0",
