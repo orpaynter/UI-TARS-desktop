@@ -8,6 +8,8 @@ import { getLogger } from '@tarko/shared-utils';
 import { ImageCompressor, formatBytes } from '@tarko/shared-media-utils';
 import { ChatCompletionContentPart, ChatCompletionContentPartImage } from '@tarko/interface';
 import { createErrorResponse } from '../../utils/error-handler';
+import fs from 'fs';
+import path from 'path';
 
 const imageCompressor = new ImageCompressor({
   quality: 5,
@@ -16,7 +18,6 @@ const imageCompressor = new ImageCompressor({
 
 const logger = getLogger('Controller-Queries');
 
-getLogger;
 /**
  * Compress images in query content if present
  * @param query - The query content that may contain images
@@ -106,6 +107,89 @@ async function compressImageUrl(
 }
 
 /**
+ * Process contextual references in query content
+ * Expands @file: and @dir: references to actual content
+ */
+function processContextualReferences(
+  query: string | ChatCompletionContentPart[],
+  workspacePath: string,
+): string | ChatCompletionContentPart[] {
+  // Only process string queries for now
+  if (typeof query !== 'string') {
+    return query;
+  }
+
+  // Find all contextual references
+  const contextualReferencePattern = /@(file|dir):([^\s]+)/g;
+  const matches = Array.from(query.matchAll(contextualReferencePattern));
+  
+  if (matches.length === 0) {
+    return query;
+  }
+
+  let processedQuery = query;
+  
+  for (const match of matches) {
+    const [fullMatch, type, relativePath] = match;
+    
+    try {
+      const absolutePath = path.resolve(workspacePath, relativePath);
+      
+      // Security check: ensure path is within workspace
+      const normalizedWorkspace = path.resolve(workspacePath);
+      const normalizedTarget = path.resolve(absolutePath);
+      
+      if (!normalizedTarget.startsWith(normalizedWorkspace)) {
+        console.warn(`Contextual reference outside workspace: ${relativePath}`);
+        continue;
+      }
+      
+      if (!fs.existsSync(absolutePath)) {
+        console.warn(`Contextual reference not found: ${relativePath}`);
+        continue;
+      }
+      
+      const stats = fs.statSync(absolutePath);
+      let expandedContent = '';
+      
+      if (type === 'file' && stats.isFile()) {
+        // Read file content
+        try {
+          const fileContent = fs.readFileSync(absolutePath, 'utf8');
+          expandedContent = `\n\n=== File: ${relativePath} ===\n${fileContent}\n=== End of File ===\n`;
+        } catch (error) {
+          console.error(`Failed to read file ${relativePath}:`, error);
+          expandedContent = `\n\n=== Error reading file: ${relativePath} ===\n`;
+        }
+      } else if (type === 'dir' && stats.isDirectory()) {
+        // List directory contents
+        try {
+          const files = fs.readdirSync(absolutePath);
+          const fileList = files
+            .map((fileName) => {
+              const filePath = path.join(absolutePath, fileName);
+              const fileStats = fs.statSync(filePath);
+              return `${fileStats.isDirectory() ? '[DIR]' : '[FILE]'} ${fileName}`;
+            })
+            .join('\n');
+          expandedContent = `\n\n=== Directory: ${relativePath} ===\n${fileList}\n=== End of Directory ===\n`;
+        } catch (error) {
+          console.error(`Failed to read directory ${relativePath}:`, error);
+          expandedContent = `\n\n=== Error reading directory: ${relativePath} ===\n`;
+        }
+      }
+      
+      // Replace the reference with expanded content
+      processedQuery = processedQuery.replace(fullMatch, expandedContent);
+    } catch (error) {
+      console.error(`Failed to process contextual reference ${fullMatch}:`, error);
+    }
+  }
+  
+  return processedQuery;
+}
+
+/**
  * Execute a non-streaming query
  */
 export async function executeQuery(req: Request, res: Response) {
@@ -116,8 +200,15 @@ export async function executeQuery(req: Request, res: Response) {
   }
 
   try {
-    // Compress images in query before processing
-    const compressedQuery = await compressImagesInQuery(query);
+    // Get server instance to access workspace path
+    const server = req.app.locals.server;
+    const workspacePath = server.getCurrentWorkspace();
+    
+    // Process contextual references first
+    const processedQuery = processContextualReferences(query, workspacePath);
+    
+    // Compress images in processed query
+    const compressedQuery = await compressImagesInQuery(processedQuery);
 
     // Use enhanced error handling in runQuery
     const response = await req.session!.runQuery(compressedQuery);
@@ -151,8 +242,15 @@ export async function executeStreamingQuery(req: Request, res: Response) {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    // Compress images in query before processing
-    const compressedQuery = await compressImagesInQuery(query);
+    // Get server instance to access workspace path
+    const server = req.app.locals.server;
+    const workspacePath = server.getCurrentWorkspace();
+    
+    // Process contextual references first
+    const processedQuery = processContextualReferences(query, workspacePath);
+    
+    // Compress images in processed query
+    const compressedQuery = await compressImagesInQuery(processedQuery);
 
     // Get streaming response - any errors will be returned as events
     const eventStream = await req.session!.runQueryStreaming(compressedQuery);
