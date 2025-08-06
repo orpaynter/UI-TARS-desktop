@@ -1,90 +1,113 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useSession } from '@/common/hooks/useSession';
 import { FiSend, FiX, FiRefreshCw, FiImage, FiLoader } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConnectionStatus } from '@/common/types';
-import { useLocation } from 'react-router-dom';
-import './MessageInput.css';
 import { ChatCompletionContentPart } from '@tarko/agent-interface';
-import { ImagePreview } from './ImagePreview';
-import { ContextualSelector, ContextualItem } from './ContextualSelector';
-import { ContextualTags } from './ContextualTags';
+import { useSession } from '@/common/hooks/useSession';
+import { ContextualSelector, ContextualItem } from '../ContextualSelector';
 
-interface MessageInputProps {
-  isDisabled?: boolean;
-  onReconnect?: () => void;
+interface MessageInputFieldProps {
+  input: string;
+  setInput: (input: string) => void;
+  contextualItems: ContextualItem[];
+  setContextualItems: (items: ContextualItem[] | ((prev: ContextualItem[]) => ContextualItem[])) => void;
+  uploadedImages: ChatCompletionContentPart[];
+  setUploadedImages: (images: ChatCompletionContentPart[] | ((prev: ChatCompletionContentPart[]) => ChatCompletionContentPart[])) => void;
+  isDisabled: boolean;
+  isProcessing: boolean;
   connectionStatus?: ConnectionStatus;
-  initialQuery?: string;
+  onSubmit: () => Promise<void>;
+  onReconnect?: () => void;
 }
 
 /**
- * MessageInput Component - Core message input functionality with contextual file selector
+ * MessageInputField - Handles text input and contextual selector
  *
- * Handles text input, image uploads, multimodal message composition, and contextual file selection.
- * Context expansion is handled on the server side for better security and performance.
+ * Manages text input, @ symbol detection, contextual selector, and file uploads
  */
-export const MessageInput: React.FC<MessageInputProps> = ({
-  isDisabled = false,
-  onReconnect,
+export const MessageInputField: React.FC<MessageInputFieldProps> = ({
+  input,
+  setInput,
+  contextualItems,
+  setContextualItems,
+  uploadedImages,
+  setUploadedImages,
+  isDisabled,
+  isProcessing,
   connectionStatus,
+  onSubmit,
+  onReconnect,
 }) => {
-  const [input, setInput] = useState('');
   const [isAborting, setIsAborting] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<ChatCompletionContentPart[]>([]);
-  const [contextualItems, setContextualItems] = useState<ContextualItem[]>([]);
-  
-  // Contextual selector state
   const [showSelector, setShowSelector] = useState(false);
   const [selectorQuery, setSelectorQuery] = useState('');
   const [cursorPosition, setCursorPosition] = useState(0);
   
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
 
-  const { sendMessage, isProcessing, abortQuery, activeSessionId, checkSessionStatus } =
-    useSession();
+  const { abortQuery } = useSession();
 
   // Check if contextual selector is enabled
   const isContextualSelectorEnabled = window.AGENT_WEB_UI_CONFIG?.enableContextualSelector ?? false;
 
-  // Auto-submit query from URL parameters for direct navigation
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const query = searchParams.get('q');
-
-    if (query && !isProcessing && activeSessionId) {
-      setInput(query);
-
-      const submitQuery = async () => {
-        try {
-          await sendMessage(query);
-          setInput('');
-        } catch (error) {
-          console.error('Failed to send message:', error);
-        }
+  // Parse contextual references from input text
+  const parseContextualReferences = (text: string): ContextualItem[] => {
+    const contextualReferencePattern = /@(file|dir):([^\s]+)/g;
+    const matches = Array.from(text.matchAll(contextualReferencePattern));
+    
+    return matches.map((match, index) => {
+      const [fullMatch, type, relativePath] = match;
+      const name = relativePath.split(/[/\\]/).pop() || relativePath;
+      
+      return {
+        id: `${type}-${relativePath}-${index}`,
+        type: type as 'file' | 'directory',
+        name,
+        path: relativePath,
+        relativePath,
       };
+    });
+  };
 
-      submitQuery();
-    }
-  }, [location.search, activeSessionId, isProcessing, sendMessage]);
+  // Parse workspace references from input text
+  const parseWorkspaceReferences = (text: string): ContextualItem[] => {
+    const workspacePattern = /@workspace/g;
+    const matches = Array.from(text.matchAll(workspacePattern));
+    
+    return matches.map((match, index) => ({
+      id: `workspace-${index}`,
+      type: 'workspace' as const,
+      name: 'workspace',
+      path: '/',
+      relativePath: '.',
+    }));
+  };
 
-  // Enhanced session status monitoring during active connections
+  // Sync contextual items with input content
   useEffect(() => {
-    if (activeSessionId && connectionStatus?.connected) {
-      checkSessionStatus(activeSessionId);
-
-      const intervalId = setInterval(() => {
-        checkSessionStatus(activeSessionId);
-      }, 2000);
-
-      return () => clearInterval(intervalId);
+    if (!isContextualSelectorEnabled) return;
+    
+    const contextualRefs = parseContextualReferences(input);
+    const workspaceRefs = parseWorkspaceReferences(input);
+    const allRefs = [...contextualRefs, ...workspaceRefs];
+    
+    // Update contextual items if they differ from current state
+    const currentIds = contextualItems.map(item => `${item.type}-${item.relativePath}`).sort();
+    const newIds = allRefs.map(item => `${item.type}-${item.relativePath}`).sort();
+    
+    if (JSON.stringify(currentIds) !== JSON.stringify(newIds)) {
+      setContextualItems(allRefs);
     }
-  }, [activeSessionId, connectionStatus?.connected, checkSessionStatus]);
+  }, [input, isContextualSelectorEnabled, contextualItems, setContextualItems]);
 
-  // Enhanced @ symbol detection for contextual selector
+  useEffect(() => {
+    if (!isDisabled && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isDisabled]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const target = e.target;
     const newValue = target.value;
@@ -111,8 +134,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       if (isValidAtPosition) {
         const queryAfterAt = textBeforeCursor.slice(lastAtIndex + 1);
         
-        // Only show selector if there's no space after @
-        if (!queryAfterAt.includes(' ')) {
+        // Only show selector if there's no space after @ and not already a complete reference
+        if (!queryAfterAt.includes(' ') && !queryAfterAt.includes(':')) {
           setSelectorQuery(queryAfterAt);
           setShowSelector(true);
           return;
@@ -130,12 +153,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const handleContextualSelect = (item: ContextualItem) => {
     setShowSelector(false);
     setSelectorQuery('');
-    
-    // Add to contextual items if not already present
-    const isDuplicate = contextualItems.some(existingItem => existingItem.id === item.id);
-    if (!isDuplicate) {
-      setContextualItems(prev => [...prev, item]);
-    }
     
     // Remove the @query part from input and replace with tag reference
     const textBeforeCursor = input.slice(0, cursorPosition);
@@ -166,58 +183,24 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
   };
 
-  const handleRemoveContextualItem = (id: string) => {
-    setContextualItems(prev => prev.filter(item => item.id !== id));
+  const handleSelectorClose = () => {
+    setShowSelector(false);
+    setSelectorQuery('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if ((!input.trim() && uploadedImages.length === 0) || isDisabled) return;
-
-    // Hide contextual selector if open
     setShowSelector(false);
     setSelectorQuery('');
-
-    // Prepare message content - server will handle contextual expansion
-    const messageToSend = input.trim();
-    
-    // Clear input and contextual items
-    setInput('');
-    setContextualItems([]);
-
-    // Compose multimodal content when images are present
-    const messageContent =
-      uploadedImages.length > 0
-        ? [
-            ...uploadedImages,
-            ...(messageToSend
-              ? [{ type: 'text', text: messageToSend } as ChatCompletionContentPart]
-              : []),
-          ]
-        : messageToSend;
-
-    setUploadedImages([]);
 
     // Reset textarea height
     if (inputRef.current) {
       inputRef.current.style.height = 'auto';
     }
 
-    try {
-      await sendMessage(messageContent);
-    } catch (error) {
-      console.error('Failed to send message:', error);
-    }
+    await onSubmit();
   };
 
-  // Handle selector close
-  const handleSelectorClose = () => {
-    setShowSelector(false);
-    setSelectorQuery('');
-  };
-
-  // Ctrl+Enter shortcut for power users, Enter alone doesn't send
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && e.ctrlKey) {
       e.preventDefault();
@@ -240,12 +223,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       setIsAborting(false);
     }
   };
-
-  useEffect(() => {
-    if (!isDisabled && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isDisabled]);
 
   const handleFileUpload = () => {
     if (fileInputRef.current) {
@@ -320,15 +297,8 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     }
   };
 
-  const handleRemoveImage = (index: number) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
-  };
-
   return (
-    <div ref={containerRef} className="relative">
-      {/* Contextual tags */}
-      <ContextualTags items={contextualItems} onRemove={handleRemoveContextualItem} />
-      
+    <>
       {/* Contextual selector - positioned above input */}
       {isContextualSelectorEnabled && showSelector && (
         <div className="absolute left-0 right-0 bottom-full mb-2 z-50">
@@ -342,14 +312,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       )}
       
       <form onSubmit={handleSubmit}>
-        {uploadedImages.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {uploadedImages.map((image, index) => (
-              <ImagePreview key={index} image={image} onRemove={() => handleRemoveImage(index)} />
-            ))}
-          </div>
-        )}
-
         <div
           className={`relative overflow-hidden rounded-3xl transition-all duration-300 ${
             isFocused ? 'shadow-md' : ''
@@ -518,6 +480,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           </motion.span>
         )}
       </div>
-    </div>
+    </>
   );
 };
