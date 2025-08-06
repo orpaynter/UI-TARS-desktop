@@ -1,19 +1,20 @@
 import React from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { ChatCompletionContentPart } from '@tarko/agent-interface';
+import { useSetAtom } from 'jotai';
 import { ImagePreview } from '../ImagePreview';
 import { ContextualTags } from '../ContextualTags';
 import { ContextualItem } from '../ContextualSelector';
+import { removeContextualItemAction } from '@/common/state/atoms/contextualSelector';
 
 interface MessageAttachmentsProps {
   images: ChatCompletionContentPart[];
   contextualItems: ContextualItem[];
   onRemoveImage: (index: number) => void;
-  onRemoveContextualItem: (id: string) => void;
 }
 
 /**
- * MessageAttachments - Displays image previews and contextual tags
+ * MessageAttachments - Displays image previews and contextual tags with jotai integration
  *
  * Manages the display of all attachments (images and contextual file references)
  */
@@ -21,8 +22,9 @@ export const MessageAttachments: React.FC<MessageAttachmentsProps> = ({
   images,
   contextualItems,
   onRemoveImage,
-  onRemoveContextualItem,
 }) => {
+  const removeContextualItem = useSetAtom(removeContextualItemAction);
+
   // Check if contextual selector is enabled
   const isContextualSelectorEnabled = window.AGENT_WEB_UI_CONFIG?.enableContextualSelector ?? false;
 
@@ -36,7 +38,7 @@ export const MessageAttachments: React.FC<MessageAttachmentsProps> = ({
     <>
       {/* Contextual tags */}
       {isContextualSelectorEnabled && contextualItems.length > 0 && (
-        <ContextualTags items={contextualItems} onRemove={onRemoveContextualItem} />
+        <ContextualTags items={contextualItems} onRemove={removeContextualItem} />
       )}
       
       {/* Image previews */}

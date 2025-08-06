@@ -4,13 +4,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ConnectionStatus } from '@/common/types';
 import { ChatCompletionContentPart } from '@tarko/agent-interface';
 import { useSession } from '@/common/hooks/useSession';
+import { useAtom, useSetAtom } from 'jotai';
+import { 
+  contextualSelectorAtom, 
+  addContextualItemAction,
+  updateSelectorStateAction 
+} from '@/common/state/atoms/contextualSelector';
 import { ContextualSelector, ContextualItem } from '../ContextualSelector';
 
 interface MessageInputFieldProps {
-  input: string;
-  setInput: (input: string) => void;
-  contextualItems: ContextualItem[];
-  setContextualItems: (items: ContextualItem[] | ((prev: ContextualItem[]) => ContextualItem[])) => void;
   uploadedImages: ChatCompletionContentPart[];
   setUploadedImages: (images: ChatCompletionContentPart[] | ((prev: ChatCompletionContentPart[]) => ChatCompletionContentPart[])) => void;
   isDisabled: boolean;
@@ -21,15 +23,11 @@ interface MessageInputFieldProps {
 }
 
 /**
- * MessageInputField - Handles text input and contextual selector
+ * MessageInputField - Handles text input and contextual selector with jotai state management
  *
  * Manages text input, @ symbol detection, contextual selector, and file uploads
  */
 export const MessageInputField: React.FC<MessageInputFieldProps> = ({
-  input,
-  setInput,
-  contextualItems,
-  setContextualItems,
   uploadedImages,
   setUploadedImages,
   isDisabled,
@@ -40,9 +38,10 @@ export const MessageInputField: React.FC<MessageInputFieldProps> = ({
 }) => {
   const [isAborting, setIsAborting] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const [showSelector, setShowSelector] = useState(false);
-  const [selectorQuery, setSelectorQuery] = useState('');
-  const [cursorPosition, setCursorPosition] = useState(0);
+  
+  const [contextualState, setContextualState] = useAtom(contextualSelectorAtom);
+  const addContextualItem = useSetAtom(addContextualItemAction);
+  const updateSelectorState = useSetAtom(updateSelectorStateAction);
   
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,56 +50,6 @@ export const MessageInputField: React.FC<MessageInputFieldProps> = ({
 
   // Check if contextual selector is enabled
   const isContextualSelectorEnabled = window.AGENT_WEB_UI_CONFIG?.enableContextualSelector ?? false;
-
-  // Parse contextual references from input text
-  const parseContextualReferences = (text: string): ContextualItem[] => {
-    const contextualReferencePattern = /@(file|dir):([^\s]+)/g;
-    const matches = Array.from(text.matchAll(contextualReferencePattern));
-    
-    return matches.map((match, index) => {
-      const [fullMatch, type, relativePath] = match;
-      const name = relativePath.split(/[/\\]/).pop() || relativePath;
-      
-      return {
-        id: `${type}-${relativePath}-${index}`,
-        type: type as 'file' | 'directory',
-        name,
-        path: relativePath,
-        relativePath,
-      };
-    });
-  };
-
-  // Parse workspace references from input text
-  const parseWorkspaceReferences = (text: string): ContextualItem[] => {
-    const workspacePattern = /@workspace/g;
-    const matches = Array.from(text.matchAll(workspacePattern));
-    
-    return matches.map((match, index) => ({
-      id: `workspace-${index}`,
-      type: 'workspace' as const,
-      name: 'workspace',
-      path: '/',
-      relativePath: '.',
-    }));
-  };
-
-  // Sync contextual items with input content
-  useEffect(() => {
-    if (!isContextualSelectorEnabled) return;
-    
-    const contextualRefs = parseContextualReferences(input);
-    const workspaceRefs = parseWorkspaceReferences(input);
-    const allRefs = [...contextualRefs, ...workspaceRefs];
-    
-    // Update contextual items if they differ from current state
-    const currentIds = contextualItems.map(item => `${item.type}-${item.relativePath}`).sort();
-    const newIds = allRefs.map(item => `${item.type}-${item.relativePath}`).sort();
-    
-    if (JSON.stringify(currentIds) !== JSON.stringify(newIds)) {
-      setContextualItems(allRefs);
-    }
-  }, [input, isContextualSelectorEnabled, contextualItems, setContextualItems]);
 
   useEffect(() => {
     if (!isDisabled && inputRef.current) {
@@ -113,12 +62,17 @@ export const MessageInputField: React.FC<MessageInputFieldProps> = ({
     const newValue = target.value;
     const newCursorPosition = target.selectionStart;
     
-    setInput(newValue);
-    setCursorPosition(newCursorPosition);
-
     // Dynamic height adjustment
     target.style.height = 'auto';
     target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
+
+    // Update contextual state with new input and cursor position
+    setContextualState(prev => ({
+      ...prev,
+      input: newValue,
+      cursorPosition: newCursorPosition,
+      contextualItems: parseContextualReferences(newValue),
+    }));
 
     if (!isContextualSelectorEnabled) return;
 
@@ -136,31 +90,63 @@ export const MessageInputField: React.FC<MessageInputFieldProps> = ({
         
         // Only show selector if there's no space after @ and not already a complete reference
         if (!queryAfterAt.includes(' ') && !queryAfterAt.includes(':')) {
-          setSelectorQuery(queryAfterAt);
-          setShowSelector(true);
+          updateSelectorState({
+            showSelector: true,
+            selectorQuery: queryAfterAt,
+          });
           return;
         }
       }
     }
     
     // Hide selector if conditions are not met
-    if (showSelector) {
-      setShowSelector(false);
-      setSelectorQuery('');
+    if (contextualState.showSelector) {
+      updateSelectorState({
+        showSelector: false,
+        selectorQuery: '',
+      });
     }
   };
 
-  const handleContextualSelect = (item: ContextualItem) => {
-    setShowSelector(false);
-    setSelectorQuery('');
+  // Parse contextual references from input text
+  const parseContextualReferences = (text: string): ContextualItem[] => {
+    const contextualReferencePattern = /@(file|dir):([^\s]+)/g;
+    const workspacePattern = /@workspace/g;
     
-    // Remove the @query part from input and replace with tag reference
-    const textBeforeCursor = input.slice(0, cursorPosition);
+    const contextualRefs = Array.from(text.matchAll(contextualReferencePattern)).map((match, index) => {
+      const [fullMatch, type, relativePath] = match;
+      const name = relativePath.split(/[/\\]/).pop() || relativePath;
+      
+      return {
+        id: `${type}-${relativePath}-${index}`,
+        type: type as 'file' | 'directory',
+        name,
+        path: relativePath,
+        relativePath,
+      };
+    });
+    
+    const workspaceRefs = Array.from(text.matchAll(workspacePattern)).map((match, index) => ({
+      id: `workspace-${index}`,
+      type: 'workspace' as const,
+      name: 'workspace',
+      path: '/',
+      relativePath: '.',
+    }));
+    
+    return [...contextualRefs, ...workspaceRefs];
+  };
+
+  const handleContextualSelect = (item: ContextualItem) => {
+    addContextualItem(item);
+    
+    // Calculate the correct cursor position after insertion
+    const textBeforeCursor = contextualState.input.slice(0, contextualState.cursorPosition);
     const lastAtIndex = textBeforeCursor.lastIndexOf('@');
     
     if (lastAtIndex !== -1) {
-      const textBefore = input.slice(0, lastAtIndex);
-      const textAfter = input.slice(cursorPosition);
+      const textBefore = contextualState.input.slice(0, lastAtIndex);
+      const textAfter = contextualState.input.slice(contextualState.cursorPosition);
       
       let tagText: string;
       if (item.type === 'workspace') {
@@ -170,28 +156,34 @@ export const MessageInputField: React.FC<MessageInputFieldProps> = ({
       }
       
       const newInput = textBefore + tagText + ' ' + textAfter;
-      setInput(newInput);
+      const newCursorPos = lastAtIndex + tagText.length + 1; // +1 for the space after
       
-      // Focus back to input
+      // Focus back to input and set correct cursor position
       setTimeout(() => {
         if (inputRef.current) {
-          const newCursorPos = lastAtIndex + tagText.length + 1;
           inputRef.current.focus();
           inputRef.current.setSelectionRange(newCursorPos, newCursorPos);
+          
+          // Update contextual state with the new cursor position
+          setContextualState(prev => ({
+            ...prev,
+            cursorPosition: newCursorPos,
+          }));
         }
       }, 0);
     }
   };
 
   const handleSelectorClose = () => {
-    setShowSelector(false);
-    setSelectorQuery('');
+    updateSelectorState({
+      showSelector: false,
+      selectorQuery: '',
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowSelector(false);
-    setSelectorQuery('');
+    handleSelectorClose();
 
     // Reset textarea height
     if (inputRef.current) {
@@ -205,7 +197,7 @@ export const MessageInputField: React.FC<MessageInputFieldProps> = ({
     if (e.key === 'Enter' && e.ctrlKey) {
       e.preventDefault();
       handleSubmit(e);
-    } else if (e.key === 'Escape' && showSelector) {
+    } else if (e.key === 'Escape' && contextualState.showSelector) {
       e.preventDefault();
       handleSelectorClose();
     }
@@ -300,11 +292,11 @@ export const MessageInputField: React.FC<MessageInputFieldProps> = ({
   return (
     <>
       {/* Contextual selector - positioned above input */}
-      {isContextualSelectorEnabled && showSelector && (
+      {isContextualSelectorEnabled && contextualState.showSelector && (
         <div className="absolute left-0 right-0 bottom-full mb-2 z-50">
           <ContextualSelector
-            isOpen={showSelector}
-            query={selectorQuery}
+            isOpen={contextualState.showSelector}
+            query={contextualState.selectorQuery}
             onSelect={handleContextualSelect}
             onClose={handleSelectorClose}
           />
@@ -319,7 +311,7 @@ export const MessageInputField: React.FC<MessageInputFieldProps> = ({
         >
           <div
             className={`absolute inset-0 bg-gradient-to-r ${
-              isFocused || input.trim() || uploadedImages.length > 0 || contextualItems.length > 0
+              isFocused || contextualState.input.trim() || uploadedImages.length > 0 || contextualState.contextualItems.length > 0
                 ? 'from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 animate-border-flow'
                 : 'from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700'
             } bg-[length:200%_200%] ${isFocused ? 'opacity-100' : 'opacity-70'}`}
@@ -332,7 +324,7 @@ export const MessageInputField: React.FC<MessageInputFieldProps> = ({
           >
             <textarea
               ref={inputRef}
-              value={input}
+              value={contextualState.input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onFocus={() => setIsFocused(true)}
@@ -427,9 +419,9 @@ export const MessageInputField: React.FC<MessageInputFieldProps> = ({
                   whileTap={{ scale: 0.9 }}
                   whileHover={{ scale: 1.05 }}
                   type="submit"
-                  disabled={(!input.trim() && uploadedImages.length === 0) || isDisabled}
+                  disabled={(!contextualState.input.trim() && uploadedImages.length === 0) || isDisabled}
                   className={`absolute right-3 bottom-2 p-3 rounded-full ${
-                    (!input.trim() && uploadedImages.length === 0) || isDisabled
+                    (!contextualState.input.trim() && uploadedImages.length === 0) || isDisabled
                       ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
                       : 'bg-gradient-to-r from-indigo-500 to-purple-500 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 text-white dark:text-gray-900 shadow-sm'
                   } transition-all duration-200`}

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useAtom, useSetAtom } from 'jotai';
 import { useSession } from '@/common/hooks/useSession';
 import { ConnectionStatus } from '@/common/types';
 import { useLocation } from 'react-router-dom';
 import { ChatCompletionContentPart } from '@tarko/agent-interface';
 import { MessageInputField } from './MessageInputField';
 import { MessageAttachments } from './MessageAttachments';
-import { ContextualItem } from '../ContextualSelector';
+import { contextualSelectorAtom, clearContextualStateAction } from '@/common/state/atoms/contextualSelector';
 
 interface MessageInputProps {
   isDisabled?: boolean;
@@ -15,7 +16,7 @@ interface MessageInputProps {
 }
 
 /**
- * MessageInput Component - Main container for message composition
+ * MessageInput Component - Main container for message composition with jotai state management
  *
  * Handles overall state coordination and message sending logic
  */
@@ -24,9 +25,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   onReconnect,
   connectionStatus,
 }) => {
-  const [input, setInput] = useState('');
   const [uploadedImages, setUploadedImages] = useState<ChatCompletionContentPart[]>([]);
-  const [contextualItems, setContextualItems] = useState<ContextualItem[]>([]);
+  const [contextualState, setContextualState] = useAtom(contextualSelectorAtom);
+  const clearContextualState = useSetAtom(clearContextualStateAction);
   
   const location = useLocation();
   const { sendMessage, isProcessing, activeSessionId, checkSessionStatus } = useSession();
@@ -36,13 +37,17 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     const searchParams = new URLSearchParams(location.search);
     const query = searchParams.get('q');
 
-    if (query && !isProcessing && activeSessionId) {
-      setInput(query);
+    if (query && !isProcessing && activeSessionId && !contextualState.input) {
+      setContextualState(prev => ({
+        ...prev,
+        input: query,
+        contextualItems: [],
+      }));
 
       const submitQuery = async () => {
         try {
           await sendMessage(query);
-          setInput('');
+          clearContextualState();
         } catch (error) {
           console.error('Failed to send message:', error);
         }
@@ -50,7 +55,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
       submitQuery();
     }
-  }, [location.search, activeSessionId, isProcessing, sendMessage]);
+  }, [location.search, activeSessionId, isProcessing, sendMessage, contextualState.input, setContextualState, clearContextualState]);
 
   // Enhanced session status monitoring during active connections
   useEffect(() => {
@@ -66,14 +71,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   }, [activeSessionId, connectionStatus?.connected, checkSessionStatus]);
 
   const handleSubmit = async () => {
-    if ((!input.trim() && uploadedImages.length === 0) || isDisabled) return;
+    if ((!contextualState.input.trim() && uploadedImages.length === 0) || isDisabled) return;
 
     // Prepare message content - server will handle contextual expansion
-    const messageToSend = input.trim();
+    const messageToSend = contextualState.input.trim();
     
-    // Clear input and contextual items
-    setInput('');
-    setContextualItems([]);
+    // Clear all state
+    clearContextualState();
 
     // Compose multimodal content when images are present
     const messageContent =
@@ -99,57 +103,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleRemoveContextualItem = (id: string) => {
-    // Find the item to remove
-    const itemToRemove = contextualItems.find(item => item.id === id);
-    if (!itemToRemove) return;
-    
-    // Generate the tag text that should be removed from input
-    let tagText: string;
-    if (itemToRemove.type === 'workspace') {
-      tagText = '@workspace';
-    } else {
-      tagText = `${itemToRemove.type === 'directory' ? '@dir:' : '@file:'}${itemToRemove.relativePath}`;
-    }
-    
-    // Remove the tag from input text
-    let newInput = input;
-    
-    // Try to find and remove the exact tag (with potential trailing space)
-    const tagWithSpace = tagText + ' ';
-    const tagIndex = newInput.indexOf(tagWithSpace);
-    
-    if (tagIndex !== -1) {
-      // Remove tag with trailing space
-      newInput = newInput.slice(0, tagIndex) + newInput.slice(tagIndex + tagWithSpace.length);
-    } else {
-      // Try to remove tag without trailing space
-      const tagOnlyIndex = newInput.indexOf(tagText);
-      if (tagOnlyIndex !== -1) {
-        newInput = newInput.slice(0, tagOnlyIndex) + newInput.slice(tagOnlyIndex + tagText.length);
-      }
-    }
-    
-    setInput(newInput);
-    
-    // Update contextual items state
-    setContextualItems(prev => prev.filter(item => item.id !== id));
-  };
-
   return (
     <div className="relative">
       <MessageAttachments 
         images={uploadedImages}
-        contextualItems={contextualItems}
+        contextualItems={contextualState.contextualItems}
         onRemoveImage={handleRemoveImage}
-        onRemoveContextualItem={handleRemoveContextualItem}
       />
       
       <MessageInputField
-        input={input}
-        setInput={setInput}
-        contextualItems={contextualItems}
-        setContextualItems={setContextualItems}
         uploadedImages={uploadedImages}
         setUploadedImages={setUploadedImages}
         isDisabled={isDisabled}

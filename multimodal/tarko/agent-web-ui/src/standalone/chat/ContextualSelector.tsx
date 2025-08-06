@@ -4,6 +4,9 @@ import { FiFile, FiFolder, FiLoader, FiHome } from 'react-icons/fi';
 import { apiService, WorkspaceItem } from '@/common/services/apiService';
 import { useSession } from '@/common/hooks/useSession';
 
+/**
+ * Re-export ContextualItem interface for consistency
+ */
 export interface ContextualItem {
   id: string;
   type: 'file' | 'directory' | 'workspace';
