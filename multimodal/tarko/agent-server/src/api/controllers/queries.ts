@@ -1,13 +1,9 @@
-/*
- * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Request, Response } from 'express';
 import { getLogger } from '@tarko/shared-utils';
 import { ImageCompressor, formatBytes } from '@tarko/shared-media-utils';
 import { ChatCompletionContentPart, ChatCompletionContentPartImage } from '@tarko/interface';
 import { createErrorResponse } from '../../utils/error-handler';
+import { DirectoryExpander } from '../../utils/directory-expander';
 import fs from 'fs';
 import path from 'path';
 
@@ -110,10 +106,10 @@ async function compressImageUrl(
  * Process contextual references in query content
  * Expands @file: and @dir: references to actual content
  */
-function processContextualReferences(
+async function processContextualReferences(
   query: string | ChatCompletionContentPart[],
   workspacePath: string,
-): string | ChatCompletionContentPart[] {
+): Promise<string | ChatCompletionContentPart[]> {
   // Only process string queries for now
   if (typeof query !== 'string') {
     return query;
@@ -122,70 +118,140 @@ function processContextualReferences(
   // Find all contextual references
   const contextualReferencePattern = /@(file|dir):([^\s]+)/g;
   const matches = Array.from(query.matchAll(contextualReferencePattern));
-  
+
   if (matches.length === 0) {
     return query;
   }
 
-  let processedQuery = query;
-  
+  // Separate file and directory references
+  const fileReferences: string[] = [];
+  const dirReferences: string[] = [];
+
   for (const match of matches) {
-    const [fullMatch, type, relativePath] = match;
-    
+    const [, type, relativePath] = match;
+    if (type === 'file') {
+      fileReferences.push(relativePath);
+    } else if (type === 'dir') {
+      dirReferences.push(relativePath);
+    }
+  }
+
+  let processedQuery = query;
+
+  // Process directory references with high-performance expansion
+  if (dirReferences.length > 0) {
     try {
-      const absolutePath = path.resolve(workspacePath, relativePath);
-      
+      const directoryExpander = new DirectoryExpander({
+        maxFileSize: 2 * 1024 * 1024, // 2MB limit for LLM context
+        ignoreExtensions: [
+          '.jpg',
+          '.jpeg',
+          '.png',
+          '.gif',
+          '.webp',
+          '.svg',
+          '.pdf',
+          '.zip',
+          '.tar',
+          '.gz',
+          '.exe',
+          '.dll',
+        ],
+        ignoreDirs: [
+          'node_modules',
+          '.git',
+          '.next',
+          'dist',
+          'build',
+          'coverage',
+          '.vscode',
+          '.idea',
+        ],
+        maxDepth: 8,
+      });
+
+      const expansionResult = await directoryExpander.expandDirectories(
+        dirReferences,
+        workspacePath,
+      );
+
+      // Replace all @dir: references with the expanded content
+      for (const dirRef of dirReferences) {
+        const pattern = new RegExp(`@dir:${dirRef.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g');
+        processedQuery = processedQuery.replace(
+          pattern,
+          `\n\n${expansionResult.expandedContent}\n\n`,
+        );
+      }
+
+      // Log expansion statistics
+      console.log('Directory expansion completed:', {
+        directories: expansionResult.processedDirectories.length,
+        files: expansionResult.stats.totalFiles,
+        totalSize: expansionResult.stats.totalSize,
+        errors: expansionResult.stats.errorCount,
+      });
+    } catch (error) {
+      console.error('Failed to expand directories:', error);
+
+      // Fallback to original simple directory listing for error cases
+      for (const dirRef of dirReferences) {
+        const pattern = new RegExp(`@dir:${dirRef.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g');
+        processedQuery = processedQuery.replace(
+          pattern,
+          `\n\n=== Error expanding directory: ${dirRef} ===\n`,
+        );
+      }
+    }
+  }
+
+  // Process individual file references (keep existing logic)
+  for (const fileRef of fileReferences) {
+    try {
+      const absolutePath = path.resolve(workspacePath, fileRef);
+
       // Security check: ensure path is within workspace
       const normalizedWorkspace = path.resolve(workspacePath);
       const normalizedTarget = path.resolve(absolutePath);
-      
+
       if (!normalizedTarget.startsWith(normalizedWorkspace)) {
-        console.warn(`Contextual reference outside workspace: ${relativePath}`);
+        console.warn(`File reference outside workspace: ${fileRef}`);
         continue;
       }
-      
+
       if (!fs.existsSync(absolutePath)) {
-        console.warn(`Contextual reference not found: ${relativePath}`);
+        console.warn(`File reference not found: ${fileRef}`);
         continue;
       }
-      
+
       const stats = fs.statSync(absolutePath);
-      let expandedContent = '';
-      
-      if (type === 'file' && stats.isFile()) {
-        // Read file content
+      if (stats.isFile()) {
         try {
           const fileContent = fs.readFileSync(absolutePath, 'utf8');
-          expandedContent = `\n\n=== File: ${relativePath} ===\n${fileContent}\n=== End of File ===\n`;
+          const expandedContent = `\n\n=== File: ${fileRef} ===\n${fileContent}\n=== End of File ===\n`;
+
+          const pattern = new RegExp(
+            `@file:${fileRef.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+            'g',
+          );
+          processedQuery = processedQuery.replace(pattern, expandedContent);
         } catch (error) {
-          console.error(`Failed to read file ${relativePath}:`, error);
-          expandedContent = `\n\n=== Error reading file: ${relativePath} ===\n`;
-        }
-      } else if (type === 'dir' && stats.isDirectory()) {
-        // List directory contents
-        try {
-          const files = fs.readdirSync(absolutePath);
-          const fileList = files
-            .map((fileName) => {
-              const filePath = path.join(absolutePath, fileName);
-              const fileStats = fs.statSync(filePath);
-              return `${fileStats.isDirectory() ? '[DIR]' : '[FILE]'} ${fileName}`;
-            })
-            .join('\n');
-          expandedContent = `\n\n=== Directory: ${relativePath} ===\n${fileList}\n=== End of Directory ===\n`;
-        } catch (error) {
-          console.error(`Failed to read directory ${relativePath}:`, error);
-          expandedContent = `\n\n=== Error reading directory: ${relativePath} ===\n`;
+          console.error(`Failed to read file ${fileRef}:`, error);
+          const pattern = new RegExp(
+            `@file:${fileRef.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+            'g',
+          );
+          processedQuery = processedQuery.replace(
+            pattern,
+            `\n\n=== Error reading file: ${fileRef} ===\n`,
+          );
         }
       }
-      
-      // Replace the reference with expanded content
-      processedQuery = processedQuery.replace(fullMatch, expandedContent);
     } catch (error) {
-      console.error(`Failed to process contextual reference ${fullMatch}:`, error);
+      console.error(`Failed to process file reference ${fileRef}:`, error);
     }
   }
-  
+
   return processedQuery;
 }
 
@@ -203,10 +269,10 @@ export async function executeQuery(req: Request, res: Response) {
     // Get server instance to access workspace path
     const server = req.app.locals.server;
     const workspacePath = server.getCurrentWorkspace();
-    
+
     // Process contextual references first
-    const processedQuery = processContextualReferences(query, workspacePath);
-    
+    const processedQuery = await processContextualReferences(query, workspacePath);
+
     // Compress images in processed query
     const compressedQuery = await compressImagesInQuery(processedQuery);
 
@@ -245,10 +311,10 @@ export async function executeStreamingQuery(req: Request, res: Response) {
     // Get server instance to access workspace path
     const server = req.app.locals.server;
     const workspacePath = server.getCurrentWorkspace();
-    
+
     // Process contextual references first
-    const processedQuery = processContextualReferences(query, workspacePath);
-    
+    const processedQuery = await processContextualReferences(query, workspacePath);
+
     // Compress images in processed query
     const compressedQuery = await compressImagesInQuery(processedQuery);
 
