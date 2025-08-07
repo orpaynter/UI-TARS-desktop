@@ -51,6 +51,7 @@
   },
   "devDependencies": {
     "@tarko/agent-interface": "workspace:*",
+    "repomix": "1.2.1",
     "vitest": "3.2.4",
     "@rslib/core": "0.10.0",
     "@types/js-yaml": "4.0.9",

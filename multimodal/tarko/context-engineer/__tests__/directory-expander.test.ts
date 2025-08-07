@@ -1,7 +1,11 @@
 import { it, expect } from 'vitest';
 import { DirectoryExpander } from '../src';
+import path from 'path';
 
-it('DirectoryExpander', () => {
+const AgentServer = path.join(__dirname, '../../agent-server');
+
+it('DirectoryExpander', async () => {
   const directoryExpander = new DirectoryExpander();
-  expect(directoryExpander).toBeDefined();
+  const result = await directoryExpander.expandDirectories(['src'], AgentServer);
+  expect(result).toMatchSnapshot();
 });
