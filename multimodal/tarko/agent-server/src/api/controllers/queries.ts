@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Request, Response } from 'express';
 import { getLogger } from '@tarko/shared-utils';
 import { ImageCompressor, formatBytes } from '@tarko/shared-media-utils';
