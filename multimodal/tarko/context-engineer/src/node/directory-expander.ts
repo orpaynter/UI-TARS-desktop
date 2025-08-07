@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import fs from 'fs/promises';
 import fsSync from 'fs';
 import path from 'path';
@@ -53,14 +58,25 @@ interface DirectoryExpansionOptions {
  */
 const DEFAULT_OPTIONS: Required<DirectoryExpansionOptions> = {
   maxFileSize: 1024 * 1024, // 1MB
-  ignoreExtensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.pdf', '.zip', '.tar', '.gz'],
+  ignoreExtensions: [
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.webp',
+    '.svg',
+    '.pdf',
+    '.zip',
+    '.tar',
+    '.gz',
+  ],
   ignoreDirs: ['node_modules', '.git', '.next', 'dist', 'build', 'coverage'],
   maxDepth: 10,
 };
 
 /**
  * DirectoryExpander - High-performance directory content reader
- * 
+ *
  * Features:
  * - Parallel file reading for optimal performance
  * - Automatic deduplication of directory paths
@@ -248,7 +264,7 @@ export class DirectoryExpander {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       return {
         relativePath,
         content: `[Error reading file: ${errorMessage}]`,
@@ -282,7 +298,7 @@ export class DirectoryExpander {
 
     // Group files by directory for better organization
     const filesByDirectory = new Map<string, FileInfo[]>();
-    
+
     for (const file of files) {
       const dir = path.dirname(file.relativePath);
       if (!filesByDirectory.has(dir)) {
@@ -295,9 +311,9 @@ export class DirectoryExpander {
     const sortedDirectories = Array.from(filesByDirectory.keys()).sort();
 
     for (const dir of sortedDirectories) {
-      const dirFiles = filesByDirectory.get(dir)!.sort((a, b) => 
-        a.relativePath.localeCompare(b.relativePath)
-      );
+      const dirFiles = filesByDirectory
+        .get(dir)!
+        .sort((a, b) => a.relativePath.localeCompare(b.relativePath));
 
       sections.push(`=== Directory: ${dir || '.'} ===`);
 
@@ -321,11 +337,11 @@ export class DirectoryExpander {
    */
   private formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 B';
-    
+
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   }
 }
