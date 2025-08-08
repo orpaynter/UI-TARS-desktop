@@ -96,7 +96,8 @@ async function* createSyntheticStream(response: ChatCompletion): StreamCompletio
         {
           index: choice.index,
           delta: {},
-          finish_reason: choice.finish_reason,
+          // When model does not return "finish_reason", we think that the "finish_reason" is "stop"
+          finish_reason: choice.finish_reason ?? 'stop',
           logprobs: null,
         },
       ],
@@ -126,6 +127,8 @@ export class OpenAINonStreamingHandler extends BaseHandler<OpenAIModel> {
     if (body.stream) {
       const nonStreamingParams = { ...params, stream: false };
       const response = await openai.chat.completions.create(nonStreamingParams);
+      console.log('response', JSON.stringify(response));
+
       return createSyntheticStream(response as unknown as ChatCompletion);
     } else {
       // For non-streaming requests, just pass through

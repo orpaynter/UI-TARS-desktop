@@ -223,7 +223,7 @@ export class Agent<T extends AgentOptions = AgentOptions>
   public getTools(): Tool[] {
     const allTools = this.toolManager.getTools();
     const toolFilterOptions = this.options.tool;
-    
+
     return filterTools(allTools, toolFilterOptions);
   }
 
@@ -371,6 +371,8 @@ Provide concise and accurate responses.`;
 
       // Check if streaming is requested
       if (isAgentRunObjectOptions(runOptions) && isStreamingOptions(normalizedOptions)) {
+        console.log('isStreamingOptions');
+
         // Execute in streaming mode - we return the stream directly but also need to handle cleanup
         const stream = this.runner.executeStreaming(
           normalizedOptions,
@@ -380,6 +382,8 @@ Provide concise and accurate responses.`;
 
         // In stream mode, we need to wait for the stream created and send the start event.
         this.eventStream.sendEvent(runStartEvent);
+
+        console.log('registerCleanupHandler');
 
         // Register a cleanup handler for when execution completes
         this.executionController.registerCleanupHandler(async () => {
