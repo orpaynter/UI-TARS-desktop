@@ -31,7 +31,7 @@ export default class OmniTARSAgent extends ComposableAgent {
         mcpPlugin,
         guiPlugin,
         codePlugin,
-        new SnapshotPlugin({ baseDir: path.resolve(__dirname, '../snapshot') }),
+        // new SnapshotPlugin({ baseDir: path.resolve(__dirname, '../snapshot') }),
       ],
       toolCallEngine,
     });

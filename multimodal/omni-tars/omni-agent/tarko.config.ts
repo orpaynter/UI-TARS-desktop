@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { defineConfig, LogLevel } from '@tarko/agent-cli';
+import path from 'path';
 
 export default defineConfig({
   model: {
@@ -12,6 +13,10 @@ export default defineConfig({
     id: process.env.OMNI_TARS_MODEL_ID,
   },
   logLevel: LogLevel.DEBUG,
+  snapshot: {
+    enable: true,
+    storageDirectory: path.join(__dirname, 'snapshots'),
+  },
   webui: {
     logo: 'https://lf3-static.bytednsdoc.com/obj/eden-cn/zyha-aulnh/ljhwZthlaukjlkulzlp/appicon.png',
     title: 'Omni TARS Agent',
