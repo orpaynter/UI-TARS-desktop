@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* secretlint-disable */
 /*
  * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
  * SPDX-License-Identifier: Apache-2.0
@@ -8,9 +9,32 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { buildAppConfig } from '../src/config/builder';
 import { AgentCLIArguments, AgentAppConfig, LogLevel, Tool } from '@tarko/interface';
 
+// Mock the display module
+vi.mock('../src/config/display', () => ({
+  displayBuildStart: vi.fn(),
+  displayMergeSummary: vi.fn(),
+  displayDeprecatedWarning: vi.fn(),
+  displayServerConfig: vi.fn(),
+  displayConfigComplete: vi.fn(),
+  displayDebugInfo: vi.fn(),
+}));
+
 // Mock the utils module
 vi.mock('../src/utils', () => ({
   resolveValue: vi.fn((value: string) => value),
+  elegantOutput: {
+    configStart: vi.fn(),
+    configSuccess: vi.fn(),
+    configInfo: vi.fn(),
+    configWarn: vi.fn(),
+    configError: vi.fn(),
+    configDetail: vi.fn(),
+    configItem: vi.fn(),
+    configSection: vi.fn(),
+    configKeys: vi.fn(),
+    configPath: vi.fn(),
+    configSummary: vi.fn(),
+  },
 }));
 
 /**
@@ -44,6 +68,7 @@ describe('buildAppConfig', () => {
         model: {
           provider: 'anthropic',
           id: 'claude-3',
+          // secretlint-disable-line
           apiKey: 'user-key',
         },
       };
@@ -83,6 +108,7 @@ describe('buildAppConfig', () => {
         model: {
           provider: 'openai',
           id: 'gpt-4',
+          // secretlint-disable-line
           apiKey: 'test-key',
           baseURL: 'https://api.test.com',
         },
@@ -93,6 +119,7 @@ describe('buildAppConfig', () => {
       expect(result.model).toEqual({
         provider: 'openai',
         id: 'gpt-4',
+        // secretlint-disable-line
         apiKey: 'test-key',
         baseURL: 'https://api.test.com',
       });
@@ -193,6 +220,7 @@ describe('buildAppConfig', () => {
       const userConfig: AgentAppConfig = {
         model: {
           id: 'existing-model',
+          // secretlint-disable-line
           apiKey: 'existing-key',
         },
       };
@@ -202,6 +230,7 @@ describe('buildAppConfig', () => {
       expect(result.model).toEqual({
         provider: 'openai', // Added from CLI
         id: 'existing-model', // Preserved from user config
+        // secretlint-disable-line
         apiKey: 'existing-key', // Preserved from user config
       });
     });
@@ -252,6 +281,7 @@ describe('buildAppConfig', () => {
 
       const cliArgs: AgentCLIArguments = {
         model: {
+          // secretlint-disable-line
           apiKey: 'OPENAI_API_KEY',
           baseURL: 'OPENAI_BASE_URL',
         },
@@ -264,6 +294,7 @@ describe('buildAppConfig', () => {
       expect(resolveValue).toHaveBeenCalledWith('OPENAI_API_KEY', 'API key');
       expect(resolveValue).toHaveBeenCalledWith('OPENAI_BASE_URL', 'base URL');
       expect(result.model).toEqual({
+        // secretlint-disable-line
         apiKey: 'resolved-api-key',
         baseURL: 'resolved-base-url',
       });
@@ -296,6 +327,7 @@ describe('buildAppConfig', () => {
       const userConfig: AgentAppConfig = {
         model: {
           id: 'user-model',
+          // secretlint-disable-line
           apiKey: 'user-key',
         },
         tools: [
@@ -362,12 +394,14 @@ describe('buildAppConfig', () => {
 
     it('should handle deprecated --apiKey option', () => {
       const cliArgs: AgentCLIArguments = {
+        // secretlint-disable-line
         apiKey: 'test-key',
       };
 
       const result = buildAppConfig(cliArgs, {});
 
       expect(result.model).toEqual({
+        // secretlint-disable-line
         apiKey: 'test-key',
       });
     });
@@ -414,6 +448,7 @@ describe('buildAppConfig', () => {
     it('should handle multiple deprecated options together', () => {
       const cliArgs: AgentCLIArguments = {
         provider: 'openai',
+        // secretlint-disable-line
         apiKey: 'test-key',
         baseURL: 'https://api.test.com',
         shareProvider: 'https://share.test.com',
@@ -486,6 +521,7 @@ describe('buildAppConfig', () => {
     it('should create empty model object when no model config exists but deprecated options are present', () => {
       const cliArgs: AgentCLIArguments = {
         provider: 'openai', // Deprecated option
+        // secretlint-disable-line
         apiKey: 'test-key', // Deprecated option
       };
 
@@ -493,6 +529,7 @@ describe('buildAppConfig', () => {
 
       expect(result.model).toEqual({
         provider: 'openai',
+        // secretlint-disable-line
         apiKey: 'test-key',
       });
     });
@@ -501,6 +538,7 @@ describe('buildAppConfig', () => {
       const cliArgs: AgentCLIArguments = {
         model: 'gpt-4' as any,
         provider: 'openai',
+        // secretlint-disable-line
         apiKey: 'test-key',
         baseURL: 'https://api.test.com',
       };
@@ -510,6 +548,7 @@ describe('buildAppConfig', () => {
       expect(result.model).toEqual({
         id: 'gpt-4', // String converted to id
         provider: 'openai',
+        // secretlint-disable-line
         apiKey: 'test-key',
         baseURL: 'https://api.test.com',
       });
@@ -523,6 +562,7 @@ describe('buildAppConfig', () => {
 
       const userConfig: AgentAppConfig = {
         model: {
+          // secretlint-disable-line
           apiKey: 'existing-key',
         },
       };
@@ -532,6 +572,7 @@ describe('buildAppConfig', () => {
       expect(result.model).toEqual({
         id: 'gpt-4', // Converted from string
         provider: 'openai', // From deprecated option
+        // secretlint-disable-line
         apiKey: 'existing-key', // Preserved from user config
       });
     });

@@ -8,8 +8,15 @@ import { deepMerge } from '@tarko/shared-utils';
 import { loadConfig } from '@tarko/config-loader';
 import { AgentAppConfig } from '@tarko/interface';
 import fetch from 'node-fetch';
-import { logger } from '../utils';
+import chalk from 'chalk';
+
 import { CONFIG_FILES } from './paths';
+import {
+  displayConfigStart,
+  displayConfigLoaded,
+  displayConfigError,
+  displayDebugInfo,
+} from './display';
 
 /**
  * Load remote configuration from URL
@@ -20,8 +27,6 @@ import { CONFIG_FILES } from './paths';
  */
 async function loadRemoteConfig(url: string, isDebug = false): Promise<AgentAppConfig> {
   try {
-    logger.info(`Loading remote config from: ${url}`);
-
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -29,13 +34,12 @@ async function loadRemoteConfig(url: string, isDebug = false): Promise<AgentAppC
     }
 
     const contentType = response.headers.get('content-type') || '';
-    logger.debug(`Remote config content type: ${contentType}`);
+    displayDebugInfo(`Remote config content type`, contentType, isDebug);
 
     let config: AgentAppConfig;
     if (contentType.includes('application/json')) {
       config = await response.json();
     } else {
-      logger.warn(`Remote config has non-JSON content type: ${contentType}`);
       const text = await response.text();
       try {
         config = JSON.parse(text);
@@ -46,16 +50,12 @@ async function loadRemoteConfig(url: string, isDebug = false): Promise<AgentAppC
       }
     }
 
-    logger.success(`✓ Successfully loaded remote config from: ${url}`);
-    if (isDebug) {
-      logger.debug(`Remote config keys: [${Object.keys(config).join(', ')}]`);
-    }
+    displayConfigLoaded(`Remote: ${url}`, Object.keys(config));
+    displayDebugInfo(`Remote config keys`, Object.keys(config), isDebug);
 
     return config;
   } catch (error) {
-    logger.error(
-      `✗ Failed to load remote config from ${url}: ${error instanceof Error ? error.message : String(error)}`,
-    );
+    displayConfigError(`Remote: ${url}`, error instanceof Error ? error.message : String(error));
     return {};
   }
 }
@@ -79,12 +79,11 @@ export async function loadAgentConfig(
   configPaths?: string[],
   isDebug = false,
 ): Promise<AgentAppConfig> {
-  logger.info('🔧 Starting configuration loading process');
+  displayConfigStart();
 
   // Handle no config case - try to load from default locations
   if (!configPaths || configPaths.length === 0) {
-    logger.info('No config paths provided, searching for default config files');
-    logger.debug(`Default config files: [${CONFIG_FILES.join(', ')}]`);
+    displayDebugInfo('Searching for default config files', CONFIG_FILES, isDebug);
 
     try {
       const { content, filePath } = await loadConfig<AgentAppConfig>({
@@ -93,32 +92,28 @@ export async function loadAgentConfig(
       });
 
       if (filePath) {
-        logger.success(`✓ Loaded default config from: ${filePath}`);
-        if (isDebug) {
-          logger.debug(`Default config keys: [${Object.keys(content).join(', ')}]`);
-        }
+        displayConfigLoaded(`Default: ${filePath}`, Object.keys(content));
+        displayDebugInfo(`Default config keys`, Object.keys(content), isDebug);
       }
 
       return content;
     } catch (err) {
-      logger.warn(
-        `No default configuration found: ${err instanceof Error ? err.message : String(err)}`,
-      );
-      logger.info('Using empty configuration as fallback');
+      displayConfigError('Default config search', err instanceof Error ? err.message : String(err));
       return {};
     }
   }
 
-  logger.info(
-    `Loading configuration from ${configPaths.length} source(s): [${configPaths.join(', ')}]`,
-  );
   let mergedConfig: AgentAppConfig = {};
   const loadedSources: string[] = [];
   const failedSources: string[] = [];
 
   // Process each config path in order, merging sequentially
   for (const [index, path] of configPaths.entries()) {
-    logger.debug(`[${index + 1}/${configPaths.length}] Processing config source: ${path}`);
+    displayDebugInfo(
+      `Processing config source [${index + 1}/${configPaths.length}]`,
+      path,
+      isDebug,
+    );
     let config: AgentAppConfig = {};
 
     if (isUrl(path)) {
@@ -138,18 +133,14 @@ export async function loadAgentConfig(
         });
 
         if (filePath) {
-          logger.success(`✓ Loaded config from: ${filePath}`);
-          if (isDebug) {
-            logger.debug(`Config keys from ${filePath}: [${Object.keys(content).join(', ')}]`);
-          }
+          displayConfigLoaded(filePath, Object.keys(content));
+          displayDebugInfo(`Config keys from ${filePath}`, Object.keys(content), isDebug);
           loadedSources.push(filePath);
         }
 
         config = content;
       } catch (err) {
-        logger.error(
-          `✗ Failed to load configuration from ${path}: ${err instanceof Error ? err.message : String(err)}`,
-        );
+        displayConfigError(path, err instanceof Error ? err.message : String(err));
         failedSources.push(path);
         continue;
       }
@@ -170,29 +161,35 @@ export async function loadAgentConfig(
       );
 
       if (newKeys.length > 0) {
-        logger.debug(`New config keys added: [${newKeys.join(', ')}]`);
+        displayDebugInfo(`New config keys added`, newKeys, isDebug);
       }
       if (overriddenKeys.length > 0) {
-        logger.debug(`Config keys merged/overridden: [${overriddenKeys.join(', ')}]`);
+        displayDebugInfo(`Config keys merged/overridden`, overriddenKeys, isDebug);
       }
     }
   }
 
-  // Log final summary
-  logger.info(`🎯 Configuration loading completed:`);
-  logger.info(`  ✓ Successfully loaded: ${loadedSources.length} source(s)`);
+  // Display final summary
   if (loadedSources.length > 0) {
-    loadedSources.forEach((source) => logger.info(`    - ${source}`));
+    console.log(
+      '\n' +
+        chalk.bold.green('✅ ') +
+        chalk.bold(
+          `Loaded ${loadedSources.length} config source${loadedSources.length > 1 ? 's' : ''}`,
+        ),
+    );
   }
 
   if (failedSources.length > 0) {
-    logger.warn(`  ✗ Failed to load: ${failedSources.length} source(s)`);
-    failedSources.forEach((source) => logger.warn(`    - ${source}`));
+    console.log(
+      chalk.bold.yellow('⚠️  ') +
+        chalk.italic(
+          `Failed to load ${failedSources.length} source${failedSources.length > 1 ? 's' : ''}`,
+        ),
+    );
   }
 
-  if (isDebug) {
-    logger.debug(`Final merged config keys: [${Object.keys(mergedConfig).join(', ')}]`);
-  }
+  displayDebugInfo(`Final merged config keys`, Object.keys(mergedConfig), isDebug);
 
   return mergedConfig;
 }
