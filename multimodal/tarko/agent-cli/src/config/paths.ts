@@ -50,25 +50,30 @@ export function buildConfigPaths({
   globalWorkspaceDir?: string;
   isDebug?: boolean;
 }): string[] {
+  logger.info('📋 Building configuration paths');
+  logger.debug('Config path priority: Workspace > Global Workspace > CLI Files > Remote');
+
   const configPaths: string[] = [];
+  const pathSources: string[] = [];
 
   // L4: Remote config has lower priority
   if (remoteConfig) {
     configPaths.push(remoteConfig);
-    if (isDebug) {
-      logger.debug(`Adding remote config: ${remoteConfig}`);
-    }
+    pathSources.push(`Remote: ${remoteConfig}`);
+    logger.debug(`[L4] Adding remote config: ${remoteConfig}`);
   }
 
   // L3: CLI config files
-  configPaths.push(...cliConfigPaths);
-  if (isDebug && cliConfigPaths.length > 0) {
-    logger.debug(`Adding CLI config paths: ${cliConfigPaths.join(', ')}`);
+  if (cliConfigPaths.length > 0) {
+    configPaths.push(...cliConfigPaths);
+    pathSources.push(`CLI Files: [${cliConfigPaths.join(', ')}]`);
+    logger.debug(`[L3] Adding CLI config paths: ${cliConfigPaths.join(', ')}`);
   }
 
   // L2: Global workspace config file
   if (globalWorkspaceEnabled) {
     const globalWorkspacePath = path.join(os.homedir(), globalWorkspaceDir);
+    logger.debug(`[L2] Searching for global workspace config in: ${globalWorkspacePath}`);
     let foundGlobalConfig = false;
 
     for (const file of CONFIG_FILES) {
@@ -76,20 +81,20 @@ export function buildConfigPaths({
       if (fs.existsSync(configPath)) {
         configPaths.push(configPath);
         foundGlobalConfig = true;
-        if (isDebug) {
-          logger.debug(`Adding global workspace config: ${configPath}`);
-        }
+        pathSources.push(`Global Workspace: ${configPath}`);
+        logger.success(`[L2] ✓ Found global workspace config: ${configPath}`);
         break;
       }
     }
 
-    if (!foundGlobalConfig && isDebug) {
-      logger.debug(`No global workspace config found in: ${globalWorkspacePath}`);
+    if (!foundGlobalConfig) {
+      logger.debug(`[L2] No global workspace config found in: ${globalWorkspacePath}`);
     }
   }
 
   // L1: Workspace config file (highest priority among config files)
   if (workspace) {
+    logger.debug(`[L1] Searching for workspace config in: ${workspace}`);
     let foundWorkspaceConfig = false;
 
     for (const file of CONFIG_FILES) {
@@ -97,16 +102,23 @@ export function buildConfigPaths({
       if (fs.existsSync(configPath)) {
         configPaths.push(configPath);
         foundWorkspaceConfig = true;
-        if (isDebug) {
-          logger.debug(`Adding workspace config: ${configPath}`);
-        }
+        pathSources.push(`Workspace: ${configPath}`);
+        logger.success(`[L1] ✓ Found workspace config: ${configPath}`);
         break;
       }
     }
 
-    if (!foundWorkspaceConfig && isDebug) {
-      logger.debug(`No config file found in workspace: ${workspace}`);
+    if (!foundWorkspaceConfig) {
+      logger.debug(`[L1] No config file found in workspace: ${workspace}`);
     }
+  }
+
+  // Log summary
+  if (configPaths.length > 0) {
+    logger.info(`📋 Configuration path summary (${configPaths.length} source(s)):`);
+    pathSources.forEach((source) => logger.info(`  - ${source}`));
+  } else {
+    logger.warn('📋 No configuration paths found, will use defaults');
   }
 
   return configPaths;

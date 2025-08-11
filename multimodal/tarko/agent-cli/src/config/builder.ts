@@ -13,7 +13,7 @@ import {
   LogLevel,
   isAgentWebUIImplementationType,
 } from '@tarko/interface';
-import { resolveValue } from '../utils';
+import { resolveValue, logger } from '../utils';
 
 /**
  * Handler for processing deprecated CLI options
@@ -44,12 +44,39 @@ export function buildAppConfig<
   appDefaults?: Partial<U>,
   cliOptionsEnhancer?: CLIOptionsEnhancer<T, U>,
 ): U {
+  logger.info('🏗️  Building application configuration');
+  logger.debug(
+    'Configuration priority order: CLI Args > Workspace > Global > Config Files > Remote > Defaults',
+  );
+
   // Start with app defaults (L5 - lowest priority)
   let config: Partial<U> = appDefaults ? { ...appDefaults } : {};
+  if (appDefaults && Object.keys(appDefaults).length > 0) {
+    logger.debug(`Applied app defaults: [${Object.keys(appDefaults).join(', ')}]`);
+  }
 
   // Merge with user config (L4-L1 based on file loading order)
+  const beforeUserConfig = Object.keys(config);
   // @ts-expect-error
   config = deepMerge(config, userConfig);
+  const afterUserConfig = Object.keys(config);
+
+  if (Object.keys(userConfig).length > 0) {
+    const newKeysFromUser = afterUserConfig.filter(
+      (configKey) => !beforeUserConfig.includes(configKey),
+    );
+    const overriddenByUser = beforeUserConfig.filter((configKey) =>
+      Object.keys(userConfig).includes(configKey),
+    );
+
+    logger.info(`📁 Applied user configuration: [${Object.keys(userConfig).join(', ')}]`);
+    if (newKeysFromUser.length > 0) {
+      logger.debug(`  New keys from user config: [${newKeysFromUser.join(', ')}]`);
+    }
+    if (overriddenByUser.length > 0) {
+      logger.debug(`  Overridden by user config: [${overriddenByUser.join(', ')}]`);
+    }
+  }
 
   // Extract CLI-specific properties that need special handling
   const {
@@ -73,21 +100,34 @@ export function buildAppConfig<
   } = cliArguments;
 
   // Handle core deprecated options
-  handleCoreDeprecatedOptions(cliConfigProps, {
-    provider,
-    apiKey,
-    baseURL,
-    shareProvider,
-  });
+  const deprecatedOptions = { provider, apiKey: apiKey || undefined, baseURL, shareProvider };
+  const hasDeprecatedOptions = Object.values(deprecatedOptions).some((val) => val !== undefined);
+  if (hasDeprecatedOptions) {
+    logger.warn('⚠️  Using deprecated CLI options, consider updating to config file format');
+    logger.debug(
+      `Deprecated options: ${Object.entries(deprecatedOptions)
+        .filter(([, value]) => value !== undefined)
+        .map(([optionName]) => optionName)
+        .join(', ')}`,
+    );
+  }
+  handleCoreDeprecatedOptions(cliConfigProps, deprecatedOptions);
 
   // Handle tool filter options
+  if (tool) {
+    logger.debug('Applying tool filter options from CLI');
+  }
   handleToolFilterOptions(cliConfigProps, { tool });
 
   // Handle MCP server filter options
+  if (mcpServer) {
+    logger.debug('Applying MCP server filter options from CLI');
+  }
   handleMCPServerFilterOptions(cliConfigProps, { mcpServer });
 
   // Allow external handler to process additional options
   if (cliOptionsEnhancer) {
+    logger.debug('Applying external CLI options enhancer');
     cliOptionsEnhancer(cliArguments, config);
   }
 
@@ -95,8 +135,25 @@ export function buildAppConfig<
   resolveModelSecrets(cliConfigProps);
 
   // Merge CLI configuration properties (L0 - highest priority)
+  const beforeCLI = Object.keys(config);
   // @ts-expect-error TypeScript cannot infer the complex generic relationship
   config = deepMerge(config, cliConfigProps);
+  const afterCLI = Object.keys(config);
+
+  if (Object.keys(cliConfigProps).length > 0) {
+    const newKeysFromCLI = afterCLI.filter((configKey) => !beforeCLI.includes(configKey));
+    const overriddenByCLI = beforeCLI.filter((configKey) =>
+      Object.keys(cliConfigProps).includes(configKey),
+    );
+
+    logger.info(`⚡ Applied CLI arguments: [${Object.keys(cliConfigProps).join(', ')}]`);
+    if (newKeysFromCLI.length > 0) {
+      logger.debug(`  New keys from CLI: [${newKeysFromCLI.join(', ')}]`);
+    }
+    if (overriddenByCLI.length > 0) {
+      logger.debug(`  Overridden by CLI: [${overriddenByCLI.join(', ')}]`);
+    }
+  }
 
   // Apply CLI shortcuts and special handling
   applyLoggingShortcuts(config, { debug, quiet });
@@ -104,6 +161,9 @@ export function buildAppConfig<
 
   // Apply WebUI defaults after all merging is complete
   applyWebUIDefaults(config as AgentAppConfig);
+
+  logger.success('✅ Application configuration built successfully');
+  logger.debug(`Final configuration keys: [${Object.keys(config).join(', ')}]`);
 
   return config as U;
 }
@@ -120,10 +180,10 @@ function handleCoreDeprecatedOptions(
     shareProvider?: string;
   },
 ): void {
-  const { provider, apiKey, baseURL, shareProvider } = deprecated;
+  const { provider, apiKey: deprecatedApiKey, baseURL, shareProvider } = deprecated;
 
   // Handle deprecated model configuration
-  if (provider || apiKey || baseURL) {
+  if (provider || deprecatedApiKey || baseURL) {
     if (config.model) {
       if (typeof config.model === 'string') {
         config.model = {
@@ -138,8 +198,8 @@ function handleCoreDeprecatedOptions(
       config.model.provider = provider as ModelProviderName;
     }
 
-    if (apiKey && !config.model.apiKey) {
-      config.model.apiKey = apiKey;
+    if (deprecatedApiKey && !config.model.apiKey) {
+      config.model['apiKey'] = deprecatedApiKey;
     }
 
     if (baseURL && !config.model.baseURL) {
@@ -166,17 +226,25 @@ function applyLoggingShortcuts(
   config: AgentAppConfig,
   shortcuts: { debug?: boolean; quiet?: boolean },
 ): void {
+  const originalLogLevel = config.logLevel;
+
   if (config.logLevel) {
     // @ts-expect-error
     config.logLevel = parseLogLevel(config.logLevel);
   }
 
   if (shortcuts.quiet) {
+    logger.debug('Setting log level to SILENT due to --quiet flag');
     config.logLevel = LogLevel.SILENT;
   }
 
   if (shortcuts.debug) {
+    logger.debug('Setting log level to DEBUG due to --debug flag');
     config.logLevel = LogLevel.DEBUG;
+  }
+
+  if (originalLogLevel !== config.logLevel) {
+    logger.debug(`Log level changed: ${originalLogLevel || 'default'} → ${config.logLevel}`);
   }
 }
 
@@ -198,20 +266,35 @@ function parseLogLevel(level: string): LogLevel | undefined {
  * Apply server configuration with defaults
  */
 function applyServerConfiguration(config: AgentAppConfig, serverOptions: { port?: number }): void {
+  let serverConfigChanged = false;
+
   if (!config.server) {
     config.server = {
       port: 8888,
     };
+    logger.debug('Applied default server configuration: port 8888');
+    serverConfigChanged = true;
   }
 
   if (!config.server.storage || !config.server.storage.type) {
     config.server.storage = {
       type: 'sqlite',
     };
+    logger.debug('Applied default storage configuration: sqlite');
+    serverConfigChanged = true;
   }
 
   if (serverOptions.port) {
+    const originalPort = config.server.port;
     config.server.port = serverOptions.port;
+    logger.debug(`Server port overridden by CLI: ${originalPort} → ${serverOptions.port}`);
+    serverConfigChanged = true;
+  }
+
+  if (serverConfigChanged) {
+    logger.debug(
+      `Final server config: port=${config.server.port}, storage=${config.server.storage?.type}`,
+    );
   }
 }
 
@@ -221,7 +304,9 @@ function applyServerConfiguration(config: AgentAppConfig, serverOptions: { port?
 function resolveModelSecrets(cliConfigProps: Partial<AgentAppConfig>): void {
   if (cliConfigProps.model) {
     if (cliConfigProps.model.apiKey) {
-      cliConfigProps.model.apiKey = resolveValue(cliConfigProps.model.apiKey, 'API key');
+      const modelApiKey = cliConfigProps.model.apiKey;
+      const resolvedApiKey = resolveValue(modelApiKey, 'API key');
+      cliConfigProps.model['apiKey'] = resolvedApiKey;
     }
 
     if (cliConfigProps.model.baseURL) {
