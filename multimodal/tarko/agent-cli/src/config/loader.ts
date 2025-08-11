@@ -165,7 +165,8 @@ export async function loadAgentConfig(
       const overriddenKeys = beforeMergeKeys.filter(
         (configKey) =>
           Object.keys(config).includes(configKey) &&
-          JSON.stringify(mergedConfig[configKey]) !== JSON.stringify(config[configKey]),
+          JSON.stringify((mergedConfig as any)[configKey]) !==
+            JSON.stringify((config as any)[configKey]),
       );
 
       if (newKeys.length > 0) {
