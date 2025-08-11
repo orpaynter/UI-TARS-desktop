@@ -621,6 +621,11 @@ export async function validateWorkspacePaths(req: Request, res: Response) {
 
     res.status(200).json({ results: validationResults });
   } catch (error) {
+    // FIXME: Security - Log injection vulnerability
+    // The sessionId comes from user input and is directly interpolated into the log message.
+    // This could allow attackers to inject malicious content into logs.
+    // Solution: Use structured logging or sanitize the sessionId before logging.
+    // Example: console.error('Error validating workspace paths:', { sessionId: sessionId?.substring(0, 8) + '***' }, error);
     console.error(`Error validating workspace paths for session ${sessionId}:`, error);
     res.status(500).json({
       error: 'Failed to validate workspace paths',
