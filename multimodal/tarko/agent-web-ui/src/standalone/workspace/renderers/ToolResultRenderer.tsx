@@ -10,6 +10,8 @@ import { PlanViewerRenderer } from './PlanViewerRenderer';
 import { ResearchReportRenderer } from './ResearchReportRenderer';
 import { GenericResultRenderer } from './generic/GenericResultRenderer';
 import { DeliverableRenderer } from './DeliverableRenderer';
+import { OmniTarsSearchRenderer } from './OmniTarsSearchRenderer';
+import { OmniTarsLinkReaderRenderer } from './OmniTarsLinkReaderRenderer';
 import { FileDisplayMode, ToolResultContentPart } from '../types';
 
 /**
@@ -36,6 +38,9 @@ const CONTENT_RENDERERS: Record<
   json: GenericResultRenderer,
   deliverable: DeliverableRenderer,
   file_result: GenericResultRenderer,
+  // Omni TARS specific renderers
+  omni_search: OmniTarsSearchRenderer,
+  omni_link_reader: OmniTarsLinkReaderRenderer,
 };
 
 interface ToolResultRendererProps {
@@ -61,6 +66,29 @@ interface ToolResultRendererProps {
 }
 
 /**
+ * Get the appropriate renderer for a content part
+ * Prioritizes tool name matching for Omni TARS tools
+ */
+function getRenderer(
+  part: ToolResultContentPart
+): React.FC<{
+  part: ToolResultContentPart;
+  onAction?: (action: string, data: any) => void;
+  displayMode?: FileDisplayMode;
+}> {
+  // Priority 1: Omni TARS tool name matching
+  if (part.name === 'Search') {
+    return OmniTarsSearchRenderer;
+  }
+  if (part.name === 'LinkReader') {
+    return OmniTarsLinkReaderRenderer;
+  }
+
+  // Priority 2: Content type matching
+  return CONTENT_RENDERERS[part.type] || GenericResultRenderer;
+}
+
+/**
  * Renders tool result content parts using the appropriate renderer for each part
  */
 export const ToolResultRenderer: React.FC<ToolResultRendererProps> = ({
@@ -82,16 +110,16 @@ export const ToolResultRenderer: React.FC<ToolResultRendererProps> = ({
       {content.map((part, index) => {
         if (part.type === 'json') {
           return (
-            <div key={`json-${part.name || ''}-${index}`} className="tool-result-part">
+            <div key={`json-part-${part.name || 'unnamed'}-${index}`} className="tool-result-part">
               <GenericResultRenderer part={part} onAction={onAction} displayMode={displayMode} />
             </div>
           );
         }
 
-        const Renderer = CONTENT_RENDERERS[part.type] || GenericResultRenderer;
+        const Renderer = getRenderer(part);
 
         return (
-          <div key={`${part.type}-${part.name || ''}-${index}`} className="tool-result-part">
+          <div key={`${part.type}-part-${part.name || 'unnamed'}-${index}`} className="tool-result-part">
             <Renderer part={part} onAction={onAction} displayMode={displayMode} />
           </div>
         );
