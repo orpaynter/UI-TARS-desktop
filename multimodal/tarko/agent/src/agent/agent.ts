@@ -69,7 +69,7 @@ export class Agent<T extends AgentOptions = AgentOptions>
   private reasoningOptions: LLMReasoningOptions;
   public readonly runner: AgentRunner;
   public logger = getLogger('Core');
-  protected executionController: AgentExecutionController;
+  public executionController: AgentExecutionController;
   private customLLMClient?: OpenAI;
   public initialized = false;
   public isReplaySnapshot = false;
@@ -223,7 +223,7 @@ export class Agent<T extends AgentOptions = AgentOptions>
   public getTools(): Tool[] {
     const allTools = this.toolManager.getTools();
     const toolFilterOptions = this.options.tool;
-    
+
     return filterTools(allTools, toolFilterOptions);
   }
 

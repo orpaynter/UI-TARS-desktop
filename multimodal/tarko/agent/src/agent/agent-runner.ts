@@ -12,6 +12,7 @@ import {
   ToolCallEngineType,
   AgentContextAwarenessOptions,
   TConstructor,
+  AgentStatus,
 } from '@tarko/agent-interface';
 import { ToolManager } from './tool-manager';
 import { ResolvedModel, LLMReasoningOptions } from '@tarko/model-provider';
@@ -358,6 +359,8 @@ export class AgentRunner {
       })
       .finally(async () => {
         await this.agent.onAgentLoopEnd(sessionId);
+        // Ensure cleanup handlers are executed to send agent_run_end event
+        await this.agent.executionController.endExecution(AgentStatus.IDLE);
       });
 
     return stream;
