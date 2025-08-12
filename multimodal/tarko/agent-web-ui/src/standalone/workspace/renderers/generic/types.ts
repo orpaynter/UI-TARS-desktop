@@ -10,7 +10,7 @@ export type ResultType = 'success' | 'error' | 'info' | 'empty';
 /**
  * Operation type for specialized UI treatments
  */
-export type OperationType = 'navigate' | 'click' | 'type' | 'scroll' | 'browser' | '';
+export type OperationType = 'navigate' | 'click' | 'type' | 'scroll' | 'browser' | 'edit' | '';
 
 /**
  * Analyzed result information extracted from raw tool output

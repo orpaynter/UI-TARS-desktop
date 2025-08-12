@@ -14,6 +14,7 @@ import {
   FiImage,
   FiCode,
   FiDatabase,
+  FiEdit3,
 } from 'react-icons/fi';
 import { AnalyzedResult, ResultType, OperationType } from './types';
 
@@ -123,6 +124,7 @@ export function analyzeResult(content: any, toolName?: string): AnalyzedResult {
     else if (toolName.includes('type')) operation = 'type';
     else if (toolName.includes('scroll')) operation = 'scroll';
     else if (toolName.includes('browser')) operation = 'browser';
+    else if (toolName.includes('edit_file')) operation = 'edit';
   }
 
   // Handle empty content
@@ -202,6 +204,7 @@ export function analyzeResult(content: any, toolName?: string): AnalyzedResult {
       if (['status', 'message', 'error', 'msg', 'title', 'url'].includes(key)) continue;
 
       // Special handling for pagination info
+      // secretlint-disable-next-line @secretlint/secretlint-rule-pattern
       if (key === 'pagination' && typeof value === 'object') {
         for (const [pKey, pValue] of Object.entries(value)) {
           result.details[`pagination.${pKey}`] = pValue;
@@ -252,6 +255,12 @@ export function getStatusIcon(type: ResultType, operation?: OperationType): Reac
         return (
           <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400">
             <FiGlobe size={16} />
+          </div>
+        );
+      case 'edit':
+        return (
+          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-amber-50 dark:bg-amber-900/20 text-amber-500 dark:text-amber-400">
+            <FiEdit3 size={16} />
           </div>
         );
     }
@@ -309,6 +318,8 @@ export function getOperationDescription(
       return 'Page Scroll';
     case 'browser':
       return 'Browser Operation';
+    case 'edit':
+      return 'File Edit';
     default:
       return 'Operation Completed';
   }
@@ -340,6 +351,7 @@ export function getHeaderClasses(type: ResultType): string {
  * @param key - The raw key name
  * @returns Formatted key name
  */
+// secretlint-disable-next-line @secretlint/secretlint-rule-pattern
 export function formatKey(key: string): string {
   return key
     .replace(/([A-Z])/g, ' $1') // Insert space before capital letters
@@ -408,6 +420,27 @@ export function formatValue(value: any): React.ReactNode {
   }
 
   return String(value);
+}
+
+/**
+ * Check if content is a git-style diff
+ */
+export function isDiffContent(text: string): boolean {
+  if (!text || typeof text !== 'string') return false;
+
+  // Check for git diff headers and hunk markers
+  const diffPatterns = [
+    /^diff --git/m,
+    /^index [a-f0-9]+\.\.[a-f0-9]+/m,
+    /^@@\s+-\d+(?:,\d+)?\s+\+\d+(?:,\d+)?\s+@@/m,
+    /^[+-]{3}\s+/m, // +++ or --- lines
+  ];
+
+  // Must have at least hunk headers and some diff content
+  const hasHunkHeader = /^@@\s+-\d+(?:,\d+)?\s+\+\d+(?:,\d+)?\s+@@/m.test(text);
+  const hasDiffLines = /^[+-]/m.test(text);
+
+  return hasHunkHeader && hasDiffLines;
 }
 
 /**
