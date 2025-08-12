@@ -29,6 +29,15 @@ export interface NormalizedSearchData {
   relatedSearches?: string[];
 }
 
+export interface NormalizedLinkReaderData {
+  type: 'link_reader';
+  name: 'LINK_READER_RESULTS';
+  results: StandardSearchResult[];
+  query: string;
+  data?: unknown; // Preserve original data for full content access
+  text?: string; // Preserve original text for full content access
+}
+
 export interface SearchDataExtraction {
   results: StandardSearchResult[];
   query: string;
@@ -58,6 +67,18 @@ interface WebSearchResult {
 interface OmniTarsTextContent {
   type: 'text';
   text: string;
+}
+
+interface LinkReaderResult {
+  url: string;
+  raw_content: string;
+  images?: string[];
+}
+
+interface LinkReaderResponse {
+  results: LinkReaderResult[];
+  failed_results?: unknown[];
+  response_time?: number;
 }
 
 interface MCPWrappedContent {
@@ -93,6 +114,8 @@ export class SearchService {
         return this.normalizeOmniTarsSearch(unwrappedContent, args);
       case TOOL_NAMES.WEB_SEARCH:
         return this.normalizeWebSearch(unwrappedContent, args);
+      case TOOL_NAMES.LINK_READER:
+        return this.normalizeLinkReaderContent(unwrappedContent, args);
       default:
         return content;
     }
@@ -128,7 +151,7 @@ export class SearchService {
    * Check if tool is search-related
    */
   static isSearchTool(toolName: string): boolean {
-    return toolName === TOOL_NAMES.SEARCH || toolName === TOOL_NAMES.WEB_SEARCH;
+    return toolName === TOOL_NAMES.SEARCH || toolName === TOOL_NAMES.WEB_SEARCH || toolName === TOOL_NAMES.LINK_READER;
   }
 
   /**
@@ -194,6 +217,43 @@ export class SearchService {
     return content;
   }
 
+  private static normalizeLinkReaderContent(
+    content: RawSearchContent,
+    args: ToolArguments,
+  ): NormalizedLinkReaderData[] | RawSearchContent {
+    if (this.isLinkReaderTextContentArray(content)) {
+      try {
+        const textContent = content[0].text;
+        const parsedContent: unknown = JSON.parse(textContent);
+
+        if (this.isValidLinkReaderResponse(parsedContent)) {
+          return this.createNormalizedLinkReaderResult({
+            results: parsedContent.results.map((item) => {
+              let hostname: string;
+              try {
+                hostname = new URL(item.url).hostname;
+              } catch {
+                hostname = item.url;
+              }
+              return {
+                title: this.extractTitleFromContent(item.raw_content) || hostname,
+                url: item.url,
+                snippet: this.truncateContent(item.raw_content, 200),
+              };
+            }),
+            query: this.extractQueryFromArgs(args) || 'Link content',
+            data: content,
+            text: textContent,
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to parse LinkReader result:', error);
+      }
+    }
+
+    return content;
+  }
+
   private static createNormalizedResult(data: {
     results: StandardSearchResult[];
     query: string;
@@ -206,6 +266,24 @@ export class SearchService {
         results: data.results,
         query: data.query,
         relatedSearches: data.relatedSearches,
+      },
+    ];
+  }
+
+  private static createNormalizedLinkReaderResult(data: {
+    results: StandardSearchResult[];
+    query: string;
+    data?: unknown;
+    text?: string;
+  }): NormalizedLinkReaderData[] {
+    return [
+      {
+        type: 'link_reader',
+        name: 'LINK_READER_RESULTS',
+        results: data.results,
+        query: data.query,
+        data: data.data,
+        text: data.text,
       },
     ];
   }
@@ -229,6 +307,47 @@ export class SearchService {
   private static extractQueryFromArgs(args: ToolArguments): string {
     const query = args?.query || args?.q;
     return typeof query === 'string' ? query : '';
+  }
+
+  private static extractTitleFromContent(content: string): string | null {
+    // Try to extract title from common patterns
+    const titlePatterns = [
+      /<title[^>]*>([^<]+)<\/title>/i,
+      /^#\s+(.+)$/m, // Markdown h1
+      /^(.+)\n[=]{3,}$/m, // Underlined title
+      /^\*\*(.+)\*\*$/m, // Bold title
+    ];
+
+    for (const pattern of titlePatterns) {
+      const match = content.match(pattern);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+
+    // Fallback: use first line if it's not too long
+    const firstLine = content.split('\n')[0]?.trim();
+    if (firstLine && firstLine.length > 0 && firstLine.length <= 100) {
+      return firstLine;
+    }
+
+    return null;
+  }
+
+  private static truncateContent(content: string, maxLength: number): string {
+    if (content.length <= maxLength) {
+      return content;
+    }
+
+    // Try to truncate at word boundary
+    const truncated = content.substring(0, maxLength);
+    const lastSpaceIndex = truncated.lastIndexOf(' ');
+    
+    if (lastSpaceIndex > maxLength * 0.8) {
+      return truncated.substring(0, lastSpaceIndex) + '...';
+    }
+
+    return truncated + '...';
   }
 
   // ============================================================================
@@ -294,6 +413,39 @@ export class SearchService {
         'string' &&
       'organic' in data &&
       Array.isArray((data as Record<string, unknown>).organic)
+    );
+  }
+
+  private static isLinkReaderTextContentArray(
+    content: RawSearchContent,
+  ): content is OmniTarsTextContent[] {
+    return (
+      Array.isArray(content) &&
+      content.length > 0 &&
+      typeof content[0] === 'object' &&
+      content[0] !== null &&
+      'type' in content[0] &&
+      content[0].type === 'text' &&
+      'text' in content[0] &&
+      typeof content[0].text === 'string'
+    );
+  }
+
+  private static isValidLinkReaderResponse(data: unknown): data is LinkReaderResponse {
+    return (
+      typeof data === 'object' &&
+      data !== null &&
+      'results' in data &&
+      Array.isArray((data as Record<string, unknown>).results) &&
+      (data as Record<string, unknown>).results.every(
+        (item: unknown) =>
+          typeof item === 'object' &&
+          item !== null &&
+          'url' in item &&
+          'raw_content' in item &&
+          typeof (item as Record<string, unknown>).url === 'string' &&
+          typeof (item as Record<string, unknown>).raw_content === 'string',
+      )
     );
   }
 }
