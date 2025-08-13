@@ -3,10 +3,9 @@ import { motion } from 'framer-motion';
 import { FileDisplayMode, ToolResultContentPart } from '../../../types';
 import { MessageContent } from './MessageContent';
 import { DisplayMode } from '../types';
-import { MonacoCodeEditor, DiffViewer } from '@/sdk/code-editor';
+import { MonacoCodeEditor } from '@/sdk/code-editor';
 import { useStableCodeContent } from '@/common/hooks/useStableValue';
 import { ThrottledHtmlRenderer } from '../../../components/ThrottledHtmlRenderer';
-import { isDiffContent } from '../utils';
 
 // Constants
 const MAX_HEIGHT_CALC = 'calc(100vh - 215px)';
@@ -37,13 +36,6 @@ export const FileResultRenderer: React.FC<FileResultRendererProps> = ({
   const isImageFile = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'].includes(fileExtension);
   const isMarkdownFile = ['md', 'markdown'].includes(fileExtension);
   const isCodeFile = fileType === 'code';
-  const isDiff = isDiffContent(stableContent);
-
-  // Extract diff content from code blocks if needed
-  const getDiffContent = (content: string): string => {
-    const codeBlockMatch = content.match(/^```(?:diff)?\n([\s\S]*?)\n```/m);
-    return codeBlockMatch ? codeBlockMatch[1] : content;
-  };
 
   const approximateSize =
     typeof part.content === 'string' ? formatBytes(part.content.length) : 'Unknown size';
@@ -113,19 +105,7 @@ export const FileResultRenderer: React.FC<FileResultRendererProps> = ({
       <div className="overflow-hidden">
         {/* File content display */}
         <div className="overflow-hidden">
-          {isDiff ? (
-            <div className="p-0">
-              <DiffViewer
-                diffContent={getDiffContent(stableContent)}
-                fileName={fileName}
-                filePath={part.path}
-                fileSize={approximateSize}
-                maxHeight={MAX_HEIGHT_CALC}
-                className="rounded-none border-0"
-                onCopy={handleDownload}
-              />
-            </div>
-          ) : isHtmlFile && displayMode === 'rendered' ? (
+          {isHtmlFile && displayMode === 'rendered' ? (
             <ThrottledHtmlRenderer content={stableContent} isStreaming={isStreaming} />
           ) : isImageFile ? (
             <div className="text-center p-4">

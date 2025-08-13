@@ -423,33 +423,6 @@ export function formatValue(value: any): React.ReactNode {
 }
 
 /**
- * Check if content is a git-style diff
- */
-export function isDiffContent(text: string): boolean {
-  if (!text || typeof text !== 'string') return false;
-
-  // Handle markdown code blocks containing diff
-  const codeBlockMatch = text.match(/^```(?:diff)?\n([\s\S]*?)\n```/m);
-  if (codeBlockMatch) {
-    text = codeBlockMatch[1];
-  }
-
-  // Check for git diff headers and hunk markers
-  const diffPatterns = [
-    /^diff --git/m,
-    /^index [a-f0-9]+\.\.[a-f0-9]+/m,
-    /^@@\s+-\d+(?:,\d+)?\s+\+\d+(?:,\d+)?\s+@@/m,
-    /^[+-]{3}\s+/m, // +++ or --- lines
-  ];
-
-  // Must have at least hunk headers and some diff content
-  const hasHunkHeader = /^@@\s+-\d+(?:,\d+)?\s+\+\d+(?:,\d+)?\s+@@/m.test(text);
-  const hasDiffLines = /^[+-]/m.test(text);
-
-  return hasHunkHeader && hasDiffLines;
-}
-
-/**
  * Check if content is possibly Markdown
  */
 export function isPossibleMarkdown(text: string): boolean {
