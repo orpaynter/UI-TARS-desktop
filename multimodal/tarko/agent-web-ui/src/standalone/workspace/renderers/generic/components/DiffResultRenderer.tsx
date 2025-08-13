@@ -15,11 +15,32 @@ interface DiffResultRendererProps {
  * Provides clean separation from FileResultRenderer
  */
 export const DiffResultRenderer: React.FC<DiffResultRendererProps> = ({ part, onAction }) => {
-  // Only render for file results with diff content
-  if (part.type !== 'file_result') return null;
+  // Handle both file_result and json types (edit_file can come as either)
+  if (part.type !== 'file_result' && part.type !== 'json') return null;
 
-  const content = part.content || '';
-  const fileName = part.path ? part.path.split('/').pop() || part.path : 'diff';
+  // Extract content from different data structures
+  let content = '';
+  let fileName = 'diff';
+
+  if (part.type === 'file_result') {
+    content = part.content || '';
+    fileName = part.path ? part.path.split('/').pop() || part.path : 'diff';
+  } else if (part.type === 'json' && Array.isArray(part.data)) {
+    // Handle JSON_DATA structure from edit_file
+    const textItem = part.data.find(
+      (item: any) => item.type === 'text' && item.name === 'JSON_DATA',
+    );
+    if (textItem && typeof textItem.text === 'string') {
+      content = textItem.text;
+      // Try to extract filename from diff content
+      const fileMatch = content.match(/\+\+\+ b\/(.+?)\n/);
+      if (fileMatch) {
+        fileName = fileMatch[1].split('/').pop() || fileMatch[1];
+      }
+    }
+  }
+
+  if (!content) return null;
 
   // Extract diff content from markdown code blocks if needed
   const getDiffContent = (content: string): string => {
@@ -27,8 +48,7 @@ export const DiffResultRenderer: React.FC<DiffResultRendererProps> = ({ part, on
     return codeBlockMatch ? codeBlockMatch[1] : content;
   };
 
-  const approximateSize =
-    typeof content === 'string' ? formatBytes(content.length) : 'Unknown size';
+  const approximateSize = formatBytes(content.length);
 
   // Handle file download
   const handleDownload = () => {

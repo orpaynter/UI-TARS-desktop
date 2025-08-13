@@ -67,6 +67,20 @@ export function determineToolType(name: string, content: any): string {
 
   // Content-based detection for edge cases
   if (Array.isArray(content)) {
+    // Special handling for edit_file results that come as JSON_DATA
+    if (
+      name === 'edit_file' &&
+      content.some(
+        (item) =>
+          item.type === 'text' &&
+          item.name === 'JSON_DATA' &&
+          typeof item.text === 'string' &&
+          (item.text.includes('@@') || item.text.includes('diff --git')),
+      )
+    ) {
+      return 'diff_result';
+    }
+
     if (
       content.some(
         (item) => item.type === 'text' && (item.name === 'RESULTS' || item.name === 'QUERY'),
