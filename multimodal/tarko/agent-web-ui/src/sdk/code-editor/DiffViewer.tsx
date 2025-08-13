@@ -4,15 +4,16 @@ import type { editor } from 'monaco-editor';
 import { FiCopy, FiCheck, FiGitBranch } from 'react-icons/fi';
 import './MonacoCodeEditor.css';
 
-interface SimpleDiffViewerProps {
+interface DiffViewerProps {
   diffContent: string;
   fileName?: string;
   maxHeight?: string;
   className?: string;
   viewMode?: 'unified' | 'split';
+  onCopy?: () => void;
 }
 
-// 简化的 diff 解析器
+// Simplified diff parser
 function parseDiff(diffContent: string) {
   const lines = diffContent.split('\n');
   let original = '';
@@ -25,7 +26,8 @@ function parseDiff(diffContent: string) {
       line.startsWith('@@') ||
       line.startsWith('---') ||
       line.startsWith('+++') ||
-      line.startsWith('diff ')
+      line.startsWith('diff ') ||
+      line.startsWith('index ')
     ) {
       continue;
     }
@@ -46,41 +48,42 @@ function parseDiff(diffContent: string) {
   return { original: original.trim(), modified: modified.trim(), additions, deletions };
 }
 
-// Monaco 编辑器默认配置
+// Monaco editor default configuration
 const DEFAULT_EDITOR_OPTIONS: editor.IStandaloneDiffEditorConstructionOptions = {
   readOnly: true,
   minimap: { enabled: false },
   scrollBeyondLastLine: false,
   lineNumbers: 'on',
-  renderSideBySide: false, // 默认统一视图
+  renderSideBySide: false, // Default unified view
   fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
   fontSize: 13,
   automaticLayout: true,
 };
 
 /**
- * 简化的 Diff 查看器组件
- * - 移除了复杂的工具提示逻辑
- * - 简化了状态管理
- * - 保留核心功能：diff 显示、复制、视图切换
+ * Simplified Diff Viewer component
+ * - Removed complex tooltip logic
+ * - Simplified state management
+ * - Retained core functionality: diff display, copy, view toggle
  */
-export const DiffViewer: React.FC<SimpleDiffViewerProps> = ({
+export const DiffViewer: React.FC<DiffViewerProps> = ({
   diffContent,
   fileName = 'diff',
   maxHeight = '400px',
   className = '',
   viewMode = 'unified',
+  onCopy,
 }) => {
   const [copied, setCopied] = useState(false);
   const [currentViewMode, setCurrentViewMode] = useState(viewMode);
 
-  // 解析 diff 内容
+  // Parse diff content
   const { original, modified, additions, deletions } = useMemo(
     () => parseDiff(diffContent),
     [diffContent],
   );
 
-  // 获取文件语言
+  // Get file language
   const language = useMemo(() => {
     const ext = fileName.split('.').pop()?.toLowerCase() || '';
     const langMap: Record<string, string> = {
@@ -97,20 +100,21 @@ export const DiffViewer: React.FC<SimpleDiffViewerProps> = ({
     return langMap[ext] || 'plaintext';
   }, [fileName]);
 
-  // 编辑器配置
+  // Editor configuration
   const editorOptions = useMemo(
     () => ({ ...DEFAULT_EDITOR_OPTIONS, renderSideBySide: currentViewMode === 'split' }),
     [currentViewMode],
   );
 
-  // 复制功能
+  // Copy functionality
   const handleCopy = () => {
     navigator.clipboard.writeText(diffContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    onCopy?.();
   };
 
-  // 切换视图模式
+  // Toggle view mode
   const toggleViewMode = () => {
     setCurrentViewMode((prev) => (prev === 'unified' ? 'split' : 'unified'));
   };
@@ -118,7 +122,7 @@ export const DiffViewer: React.FC<SimpleDiffViewerProps> = ({
   return (
     <div className={`code-editor-container ${className}`}>
       <div className="code-editor-wrapper">
-        {/* 简化的头部 */}
+        {/* Simplified header */}
         <div className="code-editor-header">
           <div className="code-editor-header-left">
             <div className="code-editor-controls">
@@ -155,7 +159,7 @@ export const DiffViewer: React.FC<SimpleDiffViewerProps> = ({
           </div>
         </div>
 
-        {/* Diff 编辑器 */}
+        {/* Diff editor */}
         <div className="code-editor-monaco-container" style={{ height: maxHeight }}>
           <DiffEditor
             original={original}
@@ -171,7 +175,7 @@ export const DiffViewer: React.FC<SimpleDiffViewerProps> = ({
           />
         </div>
 
-        {/* 简化的状态栏 */}
+        {/* Simplified status bar */}
         <div className="code-editor-status-bar">
           <div className="code-editor-status-left">
             <span className="code-editor-status-item text-green-400">+{additions}</span>

@@ -38,6 +38,7 @@ export const MultimodalContent: React.FC<MultimodalContentProps> = ({
         >
           {imageContents.map((part, index) => (
             <motion.div
+              // secretlint-disable-next-line @secretlint/secretlint-rule-pattern
               key={`image-${index}`}
               whileHover={{ scale: 1.02 }}
               onClick={() =>
@@ -68,8 +69,9 @@ export const MultimodalContent: React.FC<MultimodalContentProps> = ({
 
       {/* Render text content - ensure text is visible in user messages */}
       {textContents.map((part, index) => (
-        <div key={`text-${index}`} className="text-current">
-          <MarkdownRenderer key={`text-${index}`} content={part.text} />
+        // secretlint-disable-next-line @secretlint/secretlint-rule-pattern
+        <div key={`text-${index}`} className="text-current" style={{ whiteSpace: 'break-spaces' }}>
+          {part.text}
         </div>
       ))}
     </>
