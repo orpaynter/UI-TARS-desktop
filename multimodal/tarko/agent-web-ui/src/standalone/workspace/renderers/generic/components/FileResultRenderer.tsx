@@ -39,6 +39,12 @@ export const FileResultRenderer: React.FC<FileResultRendererProps> = ({
   const isCodeFile = fileType === 'code';
   const isDiff = isDiffContent(stableContent);
 
+  // Extract diff content from code blocks if needed
+  const getDiffContent = (content: string): string => {
+    const codeBlockMatch = content.match(/^```(?:diff)?\n([\s\S]*?)\n```/m);
+    return codeBlockMatch ? codeBlockMatch[1] : content;
+  };
+
   const approximateSize =
     typeof part.content === 'string' ? formatBytes(part.content.length) : 'Unknown size';
 
@@ -110,7 +116,7 @@ export const FileResultRenderer: React.FC<FileResultRendererProps> = ({
           {isDiff ? (
             <div className="p-0">
               <DiffViewer
-                diffContent={stableContent}
+                diffContent={getDiffContent(stableContent)}
                 fileName={fileName}
                 filePath={part.path}
                 fileSize={approximateSize}

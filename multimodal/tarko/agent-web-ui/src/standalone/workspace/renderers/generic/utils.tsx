@@ -428,6 +428,12 @@ export function formatValue(value: any): React.ReactNode {
 export function isDiffContent(text: string): boolean {
   if (!text || typeof text !== 'string') return false;
 
+  // Handle markdown code blocks containing diff
+  const codeBlockMatch = text.match(/^```(?:diff)?\n([\s\S]*?)\n```/m);
+  if (codeBlockMatch) {
+    text = codeBlockMatch[1];
+  }
+
   // Check for git diff headers and hunk markers
   const diffPatterns = [
     /^diff --git/m,
