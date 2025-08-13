@@ -1,9 +1,8 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import Editor from '@monaco-editor/react';
+import { DiffEditor } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import { FiCopy, FiCheck, FiInfo, FiFolder, FiGitBranch } from 'react-icons/fi';
-import { parsePatch } from 'diff';
 import './MonacoCodeEditor.css';
 
 interface DiffViewerProps {
@@ -45,7 +44,6 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   onCopy,
   viewMode = 'unified',
 }) => {
-  debugger;
   const [copied, setCopied] = useState(false);
   const [pathCopied, setPathCopied] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -64,39 +62,45 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
     };
   }, []);
 
-  // Parse diff content using the diff library
+  // Parse diff content manually
   const parsedDiff = useMemo((): ParsedDiff => {
     try {
-      const patches = parsePatch(diffContent);
-      if (patches.length === 0) {
-        return {
-          originalContent: '',
-          modifiedContent: '',
-          additions: 0,
-          deletions: 0,
-          hunks: 0,
-        };
-      }
-
-      const patch = patches[0];
+      const lines = diffContent.split('\n');
       let originalContent = '';
       let modifiedContent = '';
       let additions = 0;
       let deletions = 0;
+      let hunks = 0;
+      let inHunk = false;
 
-      // Reconstruct original and modified content from hunks
-      for (const hunk of patch.hunks) {
-        for (const line of hunk.lines) {
-          const content = line.slice(1); // Remove +/- prefix
+      for (const line of lines) {
+        // Check for hunk header
+        if (line.startsWith('@@')) {
+          hunks++;
+          inHunk = true;
+          continue;
+        }
 
+        // Skip file headers
+        if (
+          line.startsWith('---') ||
+          line.startsWith('+++') ||
+          line.startsWith('diff ') ||
+          line.startsWith('index ')
+        ) {
+          continue;
+        }
+
+        if (inHunk) {
           if (line.startsWith('-')) {
-            originalContent += content + '\n';
+            originalContent += line.slice(1) + '\n';
             deletions++;
           } else if (line.startsWith('+')) {
-            modifiedContent += content + '\n';
+            modifiedContent += line.slice(1) + '\n';
             additions++;
-          } else {
-            // Context line (starts with ' ' or no prefix)
+          } else if (line.startsWith(' ') || line === '') {
+            // Context line
+            const content = line.startsWith(' ') ? line.slice(1) : line;
             originalContent += content + '\n';
             modifiedContent += content + '\n';
           }
@@ -108,7 +112,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         modifiedContent: modifiedContent.trim(),
         additions,
         deletions,
-        hunks: patch.hunks.length,
+        hunks,
       };
     } catch (error) {
       console.error('Failed to parse diff:', error);
@@ -166,7 +170,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       occurrencesHighlight: false,
       overviewRulerLanes: 0,
       hideCursorInOverviewRuler: true,
-      renderValidationDecorations: 'off',
+      renderValidationDecorations: 'off' as const,
       fontFamily:
         "'JetBrains Mono', 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace",
       fontSize: 13,
@@ -370,7 +374,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           className="code-editor-monaco-container"
           style={{ height: maxHeight !== 'none' ? maxHeight : '400px' }}
         >
-          <Editor
+          <DiffEditor
             original={parsedDiff.originalContent}
             modified={parsedDiff.modifiedContent}
             language={language}
