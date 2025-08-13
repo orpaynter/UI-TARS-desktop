@@ -19,7 +19,28 @@ export interface ToolResultContentPart {
   metadata?: Record<string, any>;
 
   /** Actual content - could be text, base64 image, or other data */
+  // secretlint-disable-next-line @secretlint/secretlint-rule-pattern
   [key: string]: any;
+}
+
+/**
+ * Specific content part types for better type safety
+ */
+export interface DiffResultContentPart extends ToolResultContentPart {
+  type: 'diff_result';
+  content: string;
+  path?: string;
+}
+
+export interface FileResultContentPart extends ToolResultContentPart {
+  type: 'file_result';
+  content: string;
+  path: string;
+}
+
+export interface JsonContentPart extends ToolResultContentPart {
+  type: 'json';
+  data: any;
 }
 
 /**

@@ -256,6 +256,18 @@ export function handleLinkReaderContent(
 }
 
 export function handleDefaultContent(source: unknown): ToolResultContentPart[] {
+  // Check if this is diff content (git-style diff)
+  if (typeof source === 'string' && isDiffContent(source)) {
+    return [
+      {
+        type: 'diff_result',
+        name: 'DIFF_CONTENT',
+        content: source,
+        path: extractFileNameFromDiff(source),
+      },
+    ];
+  }
+
   if (typeof source === 'object' && source !== null) {
     return [
       {
@@ -272,4 +284,42 @@ export function handleDefaultContent(source: unknown): ToolResultContentPart[] {
       text: typeof source === 'string' ? source : JSON.stringify(source, null, 2),
     },
   ];
+}
+
+/**
+ * Check if content is a git-style diff
+ */
+function isDiffContent(text: string): boolean {
+  if (!text || typeof text !== 'string') return false;
+
+  // Handle markdown code blocks containing diff
+  const codeBlockMatch = text.match(/^```(?:diff)?\n([\s\S]*?)\n```/m);
+  if (codeBlockMatch) {
+    text = codeBlockMatch[1];
+  }
+
+  // Must have at least hunk headers and some diff content
+  const hasHunkHeader = /^@@\s+-\d+(?:,\d+)?\s+\+\d+(?:,\d+)?\s+@@/m.test(text);
+  const hasDiffLines = /^[+-]/m.test(text);
+
+  return hasHunkHeader && hasDiffLines;
+}
+
+/**
+ * Extract filename from diff content
+ */
+function extractFileNameFromDiff(diffContent: string): string {
+  // Try to extract from +++ b/filename line
+  const fileMatch = diffContent.match(/\+\+\+ b\/(.+?)\n/);
+  if (fileMatch) {
+    return fileMatch[1].split('/').pop() || fileMatch[1];
+  }
+
+  // Try to extract from diff --git line
+  const gitMatch = diffContent.match(/diff --git a\/(.+?) b\/(.+?)\n/);
+  if (gitMatch) {
+    return gitMatch[2].split('/').pop() || gitMatch[2];
+  }
+
+  return 'diff';
 }
