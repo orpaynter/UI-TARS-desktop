@@ -33,6 +33,11 @@ export function standardizeContent(panelContent: StandardPanelContent): ToolResu
     ];
   }
 
+  // Handle pre-structured content (already in ToolResultContentPart format)
+  if (Array.isArray(source) && source.length > 0 && source[0].type) {
+    return source as ToolResultContentPart[];
+  }
+
   // Handle file operations with explicit path or content
   if (type === 'file' && (toolArguments?.path || toolArguments?.content)) {
     const content = toolArguments.content || (typeof source === 'string' ? source : null);

@@ -15,6 +15,7 @@ interface DiffResultRendererProps {
  * Only handles diff_result type with clean architecture
  */
 export const DiffResultRenderer: React.FC<DiffResultRendererProps> = ({ part, onAction }) => {
+  debugger;
   // Only handle diff_result type
   if (part.type !== 'diff_result') return null;
 

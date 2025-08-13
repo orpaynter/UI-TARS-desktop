@@ -452,6 +452,25 @@ function normalizeSearchResult(toolName: string, content: any, args: any): any {
   return content;
 }
 
+// Helper function to extract filename from diff content
+function extractFileNameFromDiff(diffContent: string): string {
+  if (typeof diffContent !== 'string') return 'diff';
+
+  // Try to extract from +++ b/filename line
+  const fileMatch = diffContent.match(/\+\+\+ b\/(.+?)\n/);
+  if (fileMatch) {
+    return fileMatch[1].split('/').pop() || fileMatch[1];
+  }
+
+  // Try to extract from diff --git line
+  const gitMatch = diffContent.match(/diff --git a\/(.+?) b\/(.+?)\n/);
+  if (gitMatch) {
+    return gitMatch[2].split('/').pop() || gitMatch[2];
+  }
+
+  return 'diff';
+}
+
 function handleToolResult(
   get: Getter,
   set: Setter,
@@ -559,6 +578,25 @@ function handleToolResult(
             arguments: args,
           };
         }
+      });
+    } else if (result.type === 'diff_result') {
+      // Special handling for diff results - provide pre-structured content
+      set(activePanelContentAtom, {
+        type: result.type,
+        source: [
+          {
+            type: 'diff_result',
+            name: 'DIFF_CONTENT',
+            content: result.content,
+            path: args?.path || extractFileNameFromDiff(result.content),
+          },
+        ],
+        title: result.name,
+        timestamp: result.timestamp,
+        toolCallId: result.toolCallId,
+        error: result.error,
+        arguments: args,
+        _extra: result._extra,
       });
     } else {
       set(activePanelContentAtom, {
