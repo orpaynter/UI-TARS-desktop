@@ -1,5 +1,4 @@
-import { ChatCompletionContentPart } from '@tarko/agent-interface';
-import { MultimodalContent, SearchResult, CommandResult, FileResult, ScriptResult } from './types';
+import { MultimodalContent, CommandResult, FileResult, ScriptResult } from './types';
 
 export function isMultimodalContent(source: unknown): source is MultimodalContent[] {
   return (
@@ -10,8 +9,6 @@ export function isMultimodalContent(source: unknown): source is MultimodalConten
     'type' in source[0]
   );
 }
-
-
 
 export function isCommandResult(source: unknown): source is CommandResult {
   return (
@@ -30,5 +27,3 @@ export function isScriptResult(source: unknown): source is ScriptResult {
     source !== null && typeof source === 'object' && ('script' in source || 'interpreter' in source)
   );
 }
-
-

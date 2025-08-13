@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Editor from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import { FiCopy, FiCheck, FiInfo, FiFolder, FiGitBranch } from 'react-icons/fi';
+import { parsePatch } from 'diff';
 import './MonacoCodeEditor.css';
 
 interface DiffViewerProps {
@@ -19,22 +20,9 @@ interface DiffViewerProps {
 interface ParsedDiff {
   originalContent: string;
   modifiedContent: string;
-  hunks: DiffHunk[];
-}
-
-interface DiffHunk {
-  originalStart: number;
-  originalLength: number;
-  modifiedStart: number;
-  modifiedLength: number;
-  lines: DiffLine[];
-}
-
-interface DiffLine {
-  type: 'add' | 'remove' | 'context';
-  content: string;
-  originalLineNumber?: number;
-  modifiedLineNumber?: number;
+  additions: number;
+  deletions: number;
+  hunks: number;
 }
 
 /**
@@ -57,6 +45,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   onCopy,
   viewMode = 'unified',
 }) => {
+  debugger;
   const [copied, setCopied] = useState(false);
   const [pathCopied, setPathCopied] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -75,82 +64,62 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
     };
   }, []);
 
-  // Parse diff content into structured format
+  // Parse diff content using the diff library
   const parsedDiff = useMemo((): ParsedDiff => {
-    const lines = diffContent.split('\n');
-    let originalContent = '';
-    let modifiedContent = '';
-    const hunks: DiffHunk[] = [];
-    let currentHunk: DiffHunk | null = null;
-    let originalLineNum = 1;
-    let modifiedLineNum = 1;
-
-    for (const line of lines) {
-      // Skip diff headers
-      if (
-        line.startsWith('diff --git') ||
-        line.startsWith('index ') ||
-        line.startsWith('+++') ||
-        line.startsWith('---')
-      ) {
-        continue;
-      }
-
-      // Parse hunk header
-      const hunkMatch = line.match(/^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/);
-      if (hunkMatch) {
-        if (currentHunk) {
-          hunks.push(currentHunk);
-        }
-        currentHunk = {
-          originalStart: parseInt(hunkMatch[1]),
-          originalLength: parseInt(hunkMatch[2] || '1'),
-          modifiedStart: parseInt(hunkMatch[3]),
-          modifiedLength: parseInt(hunkMatch[4] || '1'),
-          lines: [],
+    try {
+      const patches = parsePatch(diffContent);
+      if (patches.length === 0) {
+        return {
+          originalContent: '',
+          modifiedContent: '',
+          additions: 0,
+          deletions: 0,
+          hunks: 0,
         };
-        originalLineNum = parseInt(hunkMatch[1]);
-        modifiedLineNum = parseInt(hunkMatch[3]);
-        continue;
       }
 
-      if (!currentHunk) continue;
+      const patch = patches[0];
+      let originalContent = '';
+      let modifiedContent = '';
+      let additions = 0;
+      let deletions = 0;
 
-      // Parse diff lines
-      if (line.startsWith('-')) {
-        const content = line.substring(1);
-        currentHunk.lines.push({
-          type: 'remove',
-          content,
-          originalLineNumber: originalLineNum++,
-        });
-        originalContent += content + '\n';
-      } else if (line.startsWith('+')) {
-        const content = line.substring(1);
-        currentHunk.lines.push({
-          type: 'add',
-          content,
-          modifiedLineNumber: modifiedLineNum++,
-        });
-        modifiedContent += content + '\n';
-      } else if (line.startsWith(' ') || line === '') {
-        const content = line.startsWith(' ') ? line.substring(1) : line;
-        currentHunk.lines.push({
-          type: 'context',
-          content,
-          originalLineNumber: originalLineNum++,
-          modifiedLineNumber: modifiedLineNum++,
-        });
-        originalContent += content + '\n';
-        modifiedContent += content + '\n';
+      // Reconstruct original and modified content from hunks
+      for (const hunk of patch.hunks) {
+        for (const line of hunk.lines) {
+          const content = line.slice(1); // Remove +/- prefix
+
+          if (line.startsWith('-')) {
+            originalContent += content + '\n';
+            deletions++;
+          } else if (line.startsWith('+')) {
+            modifiedContent += content + '\n';
+            additions++;
+          } else {
+            // Context line (starts with ' ' or no prefix)
+            originalContent += content + '\n';
+            modifiedContent += content + '\n';
+          }
+        }
       }
-    }
 
-    if (currentHunk) {
-      hunks.push(currentHunk);
+      return {
+        originalContent: originalContent.trim(),
+        modifiedContent: modifiedContent.trim(),
+        additions,
+        deletions,
+        hunks: patch.hunks.length,
+      };
+    } catch (error) {
+      console.error('Failed to parse diff:', error);
+      return {
+        originalContent: '',
+        modifiedContent: diffContent,
+        additions: 0,
+        deletions: 0,
+        hunks: 0,
+      };
     }
-
-    return { originalContent, modifiedContent, hunks };
   }, [diffContent]);
 
   // Get file language from filename
@@ -289,18 +258,11 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   const hasFileInfo = filePath || fileSize;
   const language = fileName ? getLanguageFromFileName(fileName) : 'plaintext';
 
-  // Calculate diff stats
-  const stats = useMemo(() => {
-    let additions = 0;
-    let deletions = 0;
-    parsedDiff.hunks.forEach((hunk) => {
-      hunk.lines.forEach((line) => {
-        if (line.type === 'add') additions++;
-        if (line.type === 'remove') deletions++;
-      });
-    });
-    return { additions, deletions };
-  }, [parsedDiff]);
+  // Use pre-calculated stats from parsedDiff
+  const stats = {
+    additions: parsedDiff.additions,
+    deletions: parsedDiff.deletions,
+  };
 
   return (
     <div className={`code-editor-container ${className}`}>
@@ -426,7 +388,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         {/* Status bar */}
         <div className="code-editor-status-bar">
           <div className="code-editor-status-left">
-            <span className="code-editor-status-item">{parsedDiff.hunks.length} hunks</span>
+            <span className="code-editor-status-item">{parsedDiff.hunks} hunks</span>
             <span className="code-editor-status-item text-green-400">
               +{stats.additions} additions
             </span>
