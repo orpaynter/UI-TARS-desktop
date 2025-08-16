@@ -46,34 +46,7 @@ export async function createSession(req: Request, res: Response) {
     const server = req.app.locals.server;
     const sessionId = nanoid();
 
-    // Get session metadata if it exists (for restored sessions)
-    let sessionMetadata = null;
-    if (server.storageProvider) {
-      try {
-        sessionMetadata = await server.storageProvider.getSessionMetadata(sessionId);
-      } catch (error) {
-        // Session doesn't exist yet, will be created below
-      }
-    }
-
-    // Pass custom AGIO provider and session metadata if available
-    const session = new AgentSession(
-      server,
-      sessionId,
-      server.getCustomAgioProvider(),
-      sessionMetadata || undefined,
-    );
-
-    server.sessions[sessionId] = session;
-
-    const { storageUnsubscribe } = await session.initialize();
-
-    // Save unsubscribe function for cleanup
-    if (storageUnsubscribe) {
-      server.storageUnsubscribes[sessionId] = storageUnsubscribe;
-    }
-
-    // Store session metadata if we have storage
+    // Store session metadata immediately if we have storage
     if (server.storageProvider) {
       const metadata: SessionMetadata = {
         id: sessionId,
@@ -85,7 +58,85 @@ export async function createSession(req: Request, res: Response) {
       await server.storageProvider.createSession(metadata);
     }
 
+    // Return session ID immediately
     res.status(201).json({ sessionId });
+
+    // Initialize session asynchronously
+    setImmediate(async () => {
+      try {
+        // Emit initialization started event
+        server.io?.emit('session-initialization', {
+          type: 'started',
+          sessionId,
+          message: 'Agent initialization started',
+          timestamp: Date.now(),
+        });
+
+        // Get session metadata if it exists (for restored sessions)
+        let sessionMetadata = null;
+        if (server.storageProvider) {
+          try {
+            sessionMetadata = await server.storageProvider.getSessionMetadata(sessionId);
+          } catch (error) {
+            // Session doesn't exist yet, will be created below
+          }
+        }
+
+        // Pass custom AGIO provider and session metadata if available
+        const session = new AgentSession(
+          server,
+          sessionId,
+          server.getCustomAgioProvider(),
+          sessionMetadata || undefined,
+        );
+
+        server.sessions[sessionId] = session;
+
+        // Emit MCP connecting event
+        server.io?.emit('session-initialization', {
+          type: 'mcp-connecting',
+          sessionId,
+          message: 'Connecting to MCP servers...',
+          timestamp: Date.now(),
+        });
+
+        const { storageUnsubscribe } = await session.initialize();
+
+        // Save unsubscribe function for cleanup
+        if (storageUnsubscribe) {
+          server.storageUnsubscribes[sessionId] = storageUnsubscribe;
+        }
+
+        // Emit initialization completed event
+        server.io?.emit('session-initialization', {
+          type: 'completed',
+          sessionId,
+          message: 'Agent initialization completed',
+          timestamp: Date.now(),
+        });
+
+        console.log(`Session ${sessionId} initialized successfully`);
+      } catch (error) {
+        console.error(`Failed to initialize session ${sessionId}:`, error);
+        
+        // Clean up failed session
+        if (server.sessions[sessionId]) {
+          delete server.sessions[sessionId];
+        }
+        if (server.storageUnsubscribes[sessionId]) {
+          delete server.storageUnsubscribes[sessionId];
+        }
+
+        // Emit initialization error event
+        server.io?.emit('session-initialization', {
+          type: 'error',
+          sessionId,
+          message: 'Agent initialization failed',
+          error: error instanceof Error ? error.message : String(error),
+          timestamp: Date.now(),
+        });
+      }
+    });
   } catch (error) {
     console.error('Failed to create session:', error);
     res.status(500).json({ error: 'Failed to create session' });

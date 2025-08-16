@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { sessionsAtom, activeSessionIdAtom } from '../state/atoms/session';
+import { sessionsAtom, activeSessionIdAtom, sessionInitializationAtom } from '../state/atoms/session';
 import { messagesAtom, groupedMessagesAtom } from '../state/atoms/message';
 import { toolResultsAtom } from '../state/atoms/tool';
 import { plansAtom, planUIStateAtom } from '../state/atoms/plan';
@@ -41,6 +41,7 @@ export function useSession() {
   // State
   const [sessions, setSessions] = useAtom(sessionsAtom);
   const [activeSessionId, setActiveSessionId] = useAtom(activeSessionIdAtom);
+  const [sessionInitialization, setSessionInitialization] = useAtom(sessionInitializationAtom);
   const messages = useAtomValue(messagesAtom);
   const groupedMessages = useAtomValue(groupedMessagesAtom);
   const toolResults = useAtomValue(toolResultsAtom);
@@ -99,27 +100,68 @@ export function useSession() {
     [setIsProcessing, setAgentStatus, isReplayMode],
   );
 
+  // Handle session initialization events
+  const handleSessionInitialization = useCallback(
+    (event: any) => {
+      if (!event.sessionId) return;
+
+      setSessionInitialization((prev) => {
+        const current = prev[event.sessionId] || {
+          isInitializing: true,
+          message: '',
+          events: [],
+        };
+
+        const newEvent = {
+          type: event.type,
+          message: event.message,
+          timestamp: event.timestamp || Date.now(),
+          error: event.error,
+        };
+
+        const updatedStatus = {
+          ...current,
+          message: event.message,
+          events: [...current.events, newEvent],
+          isInitializing: event.type !== 'completed' && event.type !== 'error',
+        };
+
+        return {
+          ...prev,
+          [event.sessionId]: updatedStatus,
+        };
+      });
+    },
+    [setSessionInitialization],
+  );
+
   // Set up socket event handlers when active session changes - do not set up socket event handling in replay mode
   useEffect(() => {
-    if (!activeSessionId || !socketService.isConnected() || isReplayMode) return;
+    if (!socketService.isConnected() || isReplayMode) return;
 
-    // Join session and listen for status updates
-    socketService.joinSession(
-      activeSessionId,
-      () => {
-        /* existing event handling */
-      },
-      handleSessionStatusUpdate,
-    );
+    // Register global initialization handler
+    socketService.on('session-initialization', handleSessionInitialization);
 
-    // Register global status handler
-    socketService.on('agent-status', handleSessionStatusUpdate);
+    if (activeSessionId) {
+      // Join session and listen for status updates
+      socketService.joinSession(
+        activeSessionId,
+        () => {
+          /* existing event handling */
+        },
+        handleSessionStatusUpdate,
+      );
+
+      // Register global status handler
+      socketService.on('agent-status', handleSessionStatusUpdate);
+    }
 
     return () => {
       // Clean up handlers
       socketService.off('agent-status', handleSessionStatusUpdate);
+      socketService.off('session-initialization', handleSessionInitialization);
     };
-  }, [activeSessionId, handleSessionStatusUpdate, isReplayMode]);
+  }, [activeSessionId, handleSessionStatusUpdate, handleSessionInitialization, isReplayMode]);
 
   // Auto-show plan when it's first created - do not automatically show plan in replay mode
   useEffect(() => {
@@ -142,6 +184,7 @@ export function useSession() {
       // State
       sessions,
       activeSessionId,
+      sessionInitialization,
       messages,
       groupedMessages,
       toolResults,
@@ -181,6 +224,7 @@ export function useSession() {
     [
       sessions,
       activeSessionId,
+      sessionInitialization,
       messages,
       groupedMessages,
       toolResults,
