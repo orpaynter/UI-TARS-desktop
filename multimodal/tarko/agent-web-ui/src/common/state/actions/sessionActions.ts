@@ -1,7 +1,7 @@
 import { atom, Getter, Setter } from 'jotai';
 import { v4 as uuidv4 } from 'uuid';
 import { apiService } from '../../services/apiService';
-import { sessionsAtom, activeSessionIdAtom } from '../atoms/session';
+import { sessionsAtom, activeSessionIdAtom, sessionInitializationAtom } from '../atoms/session';
 import { messagesAtom } from '../atoms/message';
 import { toolResultsAtom, toolCallResultMap } from '../atoms/tool';
 import { isProcessingAtom, activePanelContentAtom, modelInfoAtom } from '../atoms/ui';
@@ -101,8 +101,24 @@ export const createSessionAction = atom(null, async (get, set) => {
       [newSession.id]: [],
     }));
 
+    // Set initial initialization status
+    set(sessionInitializationAtom, (prev) => ({
+      ...prev,
+      [newSession.id]: {
+        isInitializing: true,
+        message: 'Agent initialization started',
+        events: [{
+          type: 'started',
+          message: 'Agent initialization started',
+          timestamp: Date.now(),
+        }],
+      },
+    }));
+
     set(activePanelContentAtom, null);
     set(activeSessionIdAtom, newSession.id);
+
+    console.log('🚀 [CreateSession] Session created and initialization status set:', newSession.id);
 
     return newSession.id;
   } catch (error) {
