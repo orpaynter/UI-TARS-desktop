@@ -30,6 +30,7 @@ import {
   checkConnectionStatusAction,
 } from '../state/actions/connectionActions';
 import { socketService } from '../services/socketService';
+import { SOCKET_EVENTS } from '../constants';
 
 import { useEffect, useCallback, useMemo } from 'react';
 import { useReplayMode } from '../hooks/useReplayMode';
@@ -103,7 +104,12 @@ export function useSession() {
   // Handle session initialization events
   const handleSessionInitialization = useCallback(
     (event: any) => {
-      if (!event.sessionId) return;
+      console.log('🔄 [SessionInit] Received initialization event:', event);
+      
+      if (!event.sessionId) {
+        console.warn('⚠️ [SessionInit] Event missing sessionId:', event);
+        return;
+      }
 
       setSessionInitialization((prev) => {
         const current = prev[event.sessionId] || {
@@ -126,6 +132,8 @@ export function useSession() {
           isInitializing: event.type !== 'completed' && event.type !== 'error',
         };
 
+        console.log('✅ [SessionInit] Updated status for session', event.sessionId, ':', updatedStatus);
+
         return {
           ...prev,
           [event.sessionId]: updatedStatus,
@@ -137,10 +145,15 @@ export function useSession() {
 
   // Set up socket event handlers when active session changes - do not set up socket event handling in replay mode
   useEffect(() => {
-    if (!socketService.isConnected() || isReplayMode) return;
+    if (!socketService.isConnected() || isReplayMode) {
+      console.log('🔌 [SessionInit] Socket not connected or in replay mode, skipping event setup');
+      return;
+    }
 
+    console.log('🔌 [SessionInit] Setting up socket event handlers');
+    
     // Register global initialization handler
-    socketService.on('session-initialization', handleSessionInitialization);
+    socketService.on(SOCKET_EVENTS.SESSION_INITIALIZATION, handleSessionInitialization);
 
     if (activeSessionId) {
       // Join session and listen for status updates
@@ -159,7 +172,7 @@ export function useSession() {
     return () => {
       // Clean up handlers
       socketService.off('agent-status', handleSessionStatusUpdate);
-      socketService.off('session-initialization', handleSessionInitialization);
+      socketService.off(SOCKET_EVENTS.SESSION_INITIALIZATION, handleSessionInitialization);
     };
   }, [activeSessionId, handleSessionStatusUpdate, handleSessionInitialization, isReplayMode]);
 
