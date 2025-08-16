@@ -115,6 +115,33 @@ export const createSessionAction = atom(null, async (get, set) => {
       },
     }));
 
+    // Auto-complete initialization after 10 seconds if no WebSocket events received
+    setTimeout(() => {
+      set(sessionInitializationAtom, (prev) => {
+        const current = prev[newSession.id];
+        if (current && current.isInitializing && current.events.length <= 1) {
+          console.log('⏰ [CreateSession] Auto-completing initialization for session:', newSession.id);
+          return {
+            ...prev,
+            [newSession.id]: {
+              ...current,
+              isInitializing: false,
+              message: 'Agent is ready',
+              events: [
+                ...current.events,
+                {
+                  type: 'completed',
+                  message: 'Agent initialization completed',
+                  timestamp: Date.now(),
+                },
+              ],
+            },
+          };
+        }
+        return prev;
+      });
+    }, 10000);
+
     set(activePanelContentAtom, null);
     set(activeSessionIdAtom, newSession.id);
 

@@ -15,8 +15,8 @@ export const SessionInitializationStatusComponent: React.FC<SessionInitializatio
   status,
   sessionId,
 }) => {
-  // Only show if initializing or recently completed (hide after 3 seconds)
-  if (!status.isInitializing && status.events.length === 0) {
+  // Show if initializing, or if no events but status exists (fallback)
+  if (!status.isInitializing && status.events.length === 0 && !status.message) {
     return null;
   }
 
