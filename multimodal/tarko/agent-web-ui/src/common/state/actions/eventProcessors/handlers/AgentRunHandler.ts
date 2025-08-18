@@ -23,6 +23,7 @@ export class AgentRunStartHandler implements EventHandler<AgentEventStream.Agent
       });
     }
 
+    // FIXME: Migrate these codes to the server, no need to maintain them on the front-end 🤡
     // Capture and persist agent name in session metadata
     if (event.agentName) {
       set(agentInfoAtom, {

@@ -117,6 +117,7 @@ export const createSessionAction = atom(null, async (get, set) => {
   }
 });
 
+// FIXME: Simplify it or Remove it.
 // Enhanced with automatic workspace panel file selection and replay mode handling
 export const setActiveSessionAction = atom(null, async (get, set, sessionId: string) => {
   try {
