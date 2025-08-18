@@ -230,8 +230,7 @@ export class AgentServer<T extends AgentAppConfig = AgentAppConfig> {
       }
     }
 
-    // Create Agent with specific model configuration and agent name
-    const agentOptions = {
+    const agentAppOptionsWithModelConfig: T = {
       ...this.appConfig,
       name: this.getCurrentAgentName(),
       model: {
@@ -244,7 +243,7 @@ export class AgentServer<T extends AgentAppConfig = AgentAppConfig> {
     if (!this.currentAgentResolution) {
       throw new Error('Cannot found available resolved agent');
     }
-    return new this.currentAgentResolution.agentConstructor(agentOptions);
+    return new this.currentAgentResolution.agentConstructor(agentAppOptionsWithModelConfig);
   }
 
   /**
@@ -383,7 +382,7 @@ export class AgentServer<T extends AgentAppConfig = AgentAppConfig> {
     if (!this.currentAgentResolution) {
       throw new Error('Cannot found availble resolved agent');
     }
-    const agentOptions = {
+    const agentOptions: T = {
       ...this.appConfig,
       name: this.getCurrentAgentName(),
     };
