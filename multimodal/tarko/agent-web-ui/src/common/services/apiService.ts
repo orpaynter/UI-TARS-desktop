@@ -2,7 +2,6 @@ import { API_BASE_URL, API_ENDPOINTS } from '@/common/constants';
 import {
   AgentEventStream,
   SessionMetadata,
-  AgentInfo,
   SanitizedAgentOptions,
   WorkspaceInfo,
 } from '@/common/types';
@@ -403,31 +402,6 @@ class ApiService {
     } catch (error) {
       console.error('Error getting version info:', error);
       return { version: '0.0.0', buildTime: Date.now() };
-    }
-  }
-
-  /**
-   * Get current agent information
-   */
-  async getAgentInfo(): Promise<AgentInfo> {
-    try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AGENT_INFO}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(3000),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to get agent info: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return {
-        name: data.name || 'Unknown Agent',
-      };
-    } catch (error) {
-      console.error('Error getting agent info:', error);
-      return { name: 'Unknown Agent' };
     }
   }
 
