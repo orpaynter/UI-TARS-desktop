@@ -51,6 +51,7 @@ const DEFAULT_OPTIONS: Partial<AgentCLIInitOptions> = {
       enableContextualSelector: true,
     },
     server: {
+      port: 8888,
       storage: {
         type: 'sqlite',
         baseDir: path.join(homedir(), AGENT_TARS_CONSTANTS.GLOBAL_STORAGE_DIR),
