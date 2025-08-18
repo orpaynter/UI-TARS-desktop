@@ -199,7 +199,7 @@ class ApiService {
    */
   async updateSessionMetadata(
     sessionId: string,
-    updates: { name?: string; tags?: string[]; metadata?: any },
+    updates: Partial<Pick<SessionMetadata, 'metadata'>> & { name?: string; tags?: string[] },
   ): Promise<SessionMetadata> {
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.UPDATE_SESSION}`, {
@@ -570,7 +570,7 @@ class ApiService {
         sessionId,
         provider,
         modelId,
-        endpoint: `${API_BASE_URL}/api/v1/sessions/model`
+        endpoint: `${API_BASE_URL}/api/v1/sessions/model`,
       });
 
       const requestBody = { sessionId, provider, modelId };
@@ -595,7 +595,7 @@ class ApiService {
 
       const { success } = responseData;
       console.log('🎯 [ModelSelector] Update result:', success ? 'SUCCESS' : 'FAILED');
-      
+
       return success;
     } catch (error) {
       console.error('💥 [ModelSelector] Error updating session model:', error);
