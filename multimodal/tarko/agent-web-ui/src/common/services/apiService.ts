@@ -198,13 +198,13 @@ class ApiService {
    */
   async updateSessionMetadata(
     sessionId: string,
-    updates: Partial<Pick<SessionMetadata, 'metadata'>> & { name?: string; tags?: string[] },
+    updates: Partial<SessionMetadata['metadata']>,
   ): Promise<SessionMetadata> {
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.UPDATE_SESSION}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, ...updates }),
+        body: JSON.stringify({ sessionId, metadata: updates }),
       });
 
       if (!response.ok) {
