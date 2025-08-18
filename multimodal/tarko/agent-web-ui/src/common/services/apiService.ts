@@ -199,7 +199,7 @@ class ApiService {
    */
   async updateSessionMetadata(
     sessionId: string,
-    updates: { name?: string; tags?: string[] },
+    updates: { name?: string; tags?: string[]; metadata?: any },
   ): Promise<SessionMetadata> {
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.UPDATE_SESSION}`, {

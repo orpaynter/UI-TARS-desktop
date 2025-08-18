@@ -144,6 +144,11 @@ export interface SessionMetadata {
       configuredAt: number;
       [key: string]: any; // Future agent configurations
     };
+    agentInfo?: {
+      name: string;
+      configuredAt: number;
+      [key: string]: any; // Future agent info fields
+    };
     [key: string]: any; // Future extensible fields
   };
 }
