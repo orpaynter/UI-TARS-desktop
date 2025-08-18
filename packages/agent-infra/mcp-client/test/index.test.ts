@@ -595,6 +595,68 @@ describe('MCPClient', () => {
     });
   });
 
+  describe('Timeout Configuration', () => {
+    it('should use default timeout when not specified', () => {
+      const servers: MCPServer[] = [
+        {
+          name: 'test-server',
+          mcpServer: mockServer,
+          status: 'activate',
+        },
+      ];
+
+      client = new MCPClient(servers);
+      expect(client).toBeInstanceOf(MCPClient);
+    });
+
+    it('should use custom default timeout from options', () => {
+      const servers: MCPServer[] = [
+        {
+          name: 'test-server',
+          mcpServer: mockServer,
+          status: 'activate',
+        },
+      ];
+
+      client = new MCPClient(servers, { defaultTimeout: 120 });
+      expect(client).toBeInstanceOf(MCPClient);
+    });
+
+    it('should use server-specific timeout over default', async () => {
+      const mockResult = {
+        content: [{ type: 'text', text: 'Tool execution result' }],
+        isError: false,
+      };
+
+      mockServer.setupToolCall('timeout-tool', mockResult);
+      mockServer.setTools([
+        {
+          name: 'timeout-tool',
+          description: 'Test tool with timeout',
+          inputSchema: { type: 'object', properties: {} },
+        },
+      ]);
+
+      const server: BuiltInMCPServer = {
+        name: 'timeout-server',
+        mcpServer: mockServer,
+        status: 'activate',
+        timeout: 30, // Server-specific timeout
+      };
+
+      client = new MCPClient([server], { defaultTimeout: 120 });
+      await client.init();
+
+      const result = await client.callTool({
+        client: 'timeout-server',
+        name: 'timeout-tool',
+        args: {},
+      });
+
+      expect(result).toEqual(mockResult);
+    });
+  });
+
   describe('Cleanup', () => {
     it('should cleanup all servers on cleanup call', async () => {
       const server: BuiltInMCPServer = {

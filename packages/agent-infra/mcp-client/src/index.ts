@@ -33,10 +33,17 @@ import {
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
 export { type MCPServer };
+export type { MCPClientOptions };
 
 export interface MCPTool extends Tool {
   id: string;
   serverName: string;
+}
+
+export interface MCPClientOptions {
+  isDebug?: boolean;
+  /** Default timeout for all tool calls in seconds, defaults to 60s */
+  defaultTimeout?: number;
 }
 
 export class MCPClient<
@@ -56,13 +63,15 @@ export class MCPClient<
   private initPromise: Promise<void> | null = null;
   private store: Map<string, any> = new Map();
   private isDebug: boolean;
+  private defaultTimeout: number;
 
   constructor(
     servers: MCPServer<ServerNames>[],
-    options?: { isDebug?: boolean },
+    options?: MCPClientOptions,
   ) {
     super();
     this.isDebug = options?.isDebug || process.env.DEBUG === 'mcp' || false;
+    this.defaultTimeout = options?.defaultTimeout || 60;
     this.store.set(
       'mcp.servers',
       servers.map((s) => ({
@@ -646,6 +655,7 @@ export class MCPClient<
       const server = await this.getServer(client);
 
       this.log('info', '[MCP] Calling:', client, name, args);
+      const timeoutSeconds = server?.timeout ?? this.defaultTimeout;
       const result = await this.clients[client].callTool(
         {
           name,
@@ -653,7 +663,7 @@ export class MCPClient<
         },
         undefined,
         {
-          timeout: server?.timeout ? server?.timeout * 1000 : 60000, // default: 60s
+          timeout: timeoutSeconds * 1000, // convert to milliseconds
         },
       );
       this.log('info', '[MCP] Call Tool Result:', result);
