@@ -129,21 +129,33 @@ export interface SessionMetadata {
   createdAt: number;
   updatedAt: number;
   workspace: string;
-  // All extensible metadata in JSON format - no more schema migrations needed
+  /**
+   * All extensible metadata in JSON format - no more schema migrations needed
+   */
   metadata?: {
-    version?: number; // Schema version for backward compatibility
+    /**
+     * Reserved version interface for backward compatibility
+     */
+    version?: number;
+    /**
+     * Session name
+     */
     name?: string;
+    /**
+     * Session tags
+     */
     tags?: string[];
+    /**
+     * Current using model configuration
+     */
     modelConfig?: {
       provider: string;
       modelId: string;
       configuredAt: number;
     };
-    agentConfig?: {
-      agentId: string;
-      configuredAt: number;
-      [key: string]: any; // Future agent configurations
-    };
+    /**
+     * Current using agent configuration
+     */
     agentInfo?: {
       name: string;
       configuredAt: number;
