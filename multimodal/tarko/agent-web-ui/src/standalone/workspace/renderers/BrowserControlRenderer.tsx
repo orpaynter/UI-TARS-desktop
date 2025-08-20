@@ -73,24 +73,28 @@ export const BrowserControlRenderer: React.FC<BrowserControlRendererProps> = ({
 
   // Find the most recent environment input (screenshot) before this operation
   useEffect(() => {
-    if (!activeSessionId) return;
+    // Initialize: clear current screenshot if no direct environment image provided
+    if (!environmentImage) {
+      setRelatedImage(null);
+    }
+
+    if (!activeSessionId || !toolCallId) return;
 
     const sessionMessages = messages[activeSessionId] || [];
-
-    if (!toolCallId) return;
-
-    // Get the index of current tool call in messages
     const currentToolCallIndex = sessionMessages.findIndex((msg) =>
       msg.toolCalls?.some((tc) => tc.id === toolCallId),
     );
 
-    if (currentToolCallIndex === -1) return;
+    if (currentToolCallIndex === -1) {
+      console.warn(`[BrowserControlRenderer] Tool call ${toolCallId} not found in messages`);
+      if (!environmentImage) setRelatedImage(null);
+      return;
+    }
 
-    // Find the environment input closest to the current tool call
     let foundImage = false;
 
-    // Search forward for environment input, find the most recent screenshot
-    for (let i = currentToolCallIndex; i >= 0; i--) {
+    // Only search for screenshots BEFORE the current tool call
+    for (let i = currentToolCallIndex - 1; i >= 0; i--) {
       const msg = sessionMessages[i];
       if (msg.role === 'environment' && Array.isArray(msg.content)) {
         const imgContent = msg.content.find(
@@ -104,7 +108,15 @@ export const BrowserControlRenderer: React.FC<BrowserControlRendererProps> = ({
         }
       }
     }
-  }, [activeSessionId, messages, toolCallId]);
+
+    // If no valid screenshot found before the tool call, clear the display
+    if (!foundImage && !environmentImage) {
+      console.warn(
+        `[BrowserControlRenderer] No valid screenshot found before toolCallId: ${toolCallId}. Clearing screenshot display.`,
+      );
+      setRelatedImage(null);
+    }
+  }, [activeSessionId, messages, toolCallId, environmentImage]);
 
   // Handler to get image dimensions when loaded
   const handleImageLoad = () => {
