@@ -131,7 +131,7 @@ export const BrowserControlRenderer: React.FC<BrowserControlRendererProps> = ({
   return (
     <div className="space-y-4">
       {/* Screenshot section - moved to the top */}
-      {relatedImage && (
+      {relatedImage ? (
         <div>
           <BrowserShell className="mb-4">
             <div className="relative">
@@ -261,6 +261,23 @@ export const BrowserControlRenderer: React.FC<BrowserControlRendererProps> = ({
                   </div>
                 </motion.div>
               )}
+            </div>
+          </BrowserShell>
+        </div>
+      ) : (
+        // No screenshot available - show placeholder
+        <div>
+          <BrowserShell className="mb-4">
+            <div className="flex items-center justify-center h-64 bg-gray-50 dark:bg-gray-800">
+              <div className="text-center">
+                <FiImage className="mx-auto text-gray-400 dark:text-gray-500 mb-2" size={48} />
+                <p className="text-gray-500 dark:text-gray-400 font-medium">
+                  No Screenshot Available
+                </p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                  Unable to find environment screenshot for this operation
+                </p>
+              </div>
             </div>
           </BrowserShell>
         </div>
