@@ -104,29 +104,6 @@ export const BrowserControlRenderer: React.FC<BrowserControlRendererProps> = ({
         }
       }
     }
-
-    // If no image is found before the current tool call, search all environment messages as fallback
-    if (!foundImage) {
-      console.warn(
-        `[BrowserControlRenderer] Could not find preceding screenshot for toolCallId: ${toolCallId}. Falling back to search all environment messages.`,
-      );
-      const envMessages = sessionMessages.filter(
-        (msg) => msg.role === 'environment' && Array.isArray(msg.content),
-      );
-
-      // Search backwards to find the most recent screenshot
-      for (let i = envMessages.length - 1; i >= 0; i--) {
-        const msg = envMessages[i];
-        const imgContent = msg.content.find(
-          (c) => typeof c === 'object' && 'type' in c && c.type === 'image_url',
-        );
-
-        if (imgContent && 'image_url' in imgContent && imgContent.image_url.url) {
-          setRelatedImage(imgContent.image_url.url);
-          break; // Stop when the latest one is found
-        }
-      }
-    }
   }, [activeSessionId, messages, toolCallId]);
 
   // Handler to get image dimensions when loaded
