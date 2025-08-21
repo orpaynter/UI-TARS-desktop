@@ -179,7 +179,7 @@ export const LinkReaderRenderer: React.FC<LinkReaderRendererProps> = ({ panelCon
 /**
  * Extract LinkReader data from panelContent
  *
- * @example
+ * @example Verion 1
  *
  * {
  *   "type": "link_reader",
@@ -210,6 +210,28 @@ export const LinkReaderRenderer: React.FC<LinkReaderRendererProps> = ({ panelCon
  *       "description": "Summary this link",
  *       "url": "https://seed-tars.com/1.5"
  *   }
+ * }
+ *
+ *
+ * @example Verion 2
+ * {
+ *     "type": "link_reader",
+ *     "source": {
+ *         "content": [
+ *             {
+ *                 "type": "text",
+ *                 "text": "Page url:https://seed-tars.com/1.5/\nPage Summary:\n• Announcement\nIntr ..."
+ *             }
+ *         ],
+ *         "isError": false
+ *     },
+ *     "title": "LinkReader",
+ *     "timestamp": 1755793542304,
+ *     "toolCallId": "call_1755793536036_0vevr8y47",
+ *     "arguments": {
+ *         "description": "Extract and summarize the content of the webpage at https://seed-tars.com/1.5/",
+ *         "url": "https://seed-tars.com/1.5/"
+ *     }
  * }
  */
 function extractLinkReaderData(panelContent: StandardPanelContent): {
