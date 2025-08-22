@@ -2,10 +2,10 @@
  * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
  * SPDX-License-Identifier: Apache-2.0
  */
-import { defineConfig, LogLevel } from '@tarko/agent-cli';
+import { LogLevel } from '@tarko/interface';
 import { resolve } from 'node:path';
 
-export default defineConfig({
+export default {
   model: {
     /** tars */
     provider: 'volcengine',
@@ -26,24 +26,15 @@ export default defineConfig({
       type: 'disabled',
     },
   },
-  logLevel: LogLevel.DEBUG,
-  webui: {
-    logo: 'https://lf3-static.bytednsdoc.com/obj/eden-cn/zyha-aulnh/ljhwZthlaukjlkulzlp/appicon.png',
-    title: 'Omni-TARS Agent',
-    subtitle: 'Offering seamless integration with a wide range of real-world tools.',
-    welcomTitle: 'An multimodal AI agent',
-    welcomePrompts: [
-      'Search for the latest GUI Agent papers',
-      'Find information about UI TARS',
-      'Tell me the top 5 most popular projects on ProductHunt today',
-      'write a tic-tac-toe program in js',
-      'Write hello world using python',
-      'Use jupyter to calculate who is greater in 9.11 and 9.9',
-      'Write a python code to download the paper https://arxiv.org/abs/2505.12370, and convert the pdf to markdown',
-    ],
-  },
   share: {
     provider: process.env.SHARE_PROVIDER,
   },
   snapshot: { storageDirectory: resolve(__dirname, 'snapshots'), enable: true },
-});
+  googleApiKey: process.env.GOOGLE_API_KEY,
+  googleMcpUrl: process.env.GOOGLE_MCP_URL,
+  aioSandboxUrl: process.env.AIO_SANDBOX_URL,
+  // tavilyApiKey: process.env.TAVILY_API_KEY,
+  linkReaderMcpUrl: process.env.LINK_READER_URL,
+  linkReaderAK: process.env.LINK_READER_AK,
+  ignoreSandboxCheck: true,
+};

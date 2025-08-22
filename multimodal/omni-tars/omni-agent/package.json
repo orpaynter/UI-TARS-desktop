@@ -1,6 +1,6 @@
 {
   "name": "@omni-tars/agent",
-  "version": "0.0.1",
+  "version": "0.3.0-beta.5",
   "description": "",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -23,7 +23,7 @@
     "dev": "rslib build --watch",
     "build": "rslib build",
     "test": "vitest",
-    "dev:agent": "tarko run ./"
+    "dev:agent": "../../tarko/agent-cli/bin/cli.js run ./"
   },
   "dependencies": {
     "@omni-tars/code-agent": "workspace:*",
@@ -34,8 +34,8 @@
   },
   "devDependencies": {
     "@rslib/core": "0.10.0",
-    "@tarko/agent-cli": "workspace:*",
     "@tarko/agent-interface": "workspace:*",
+    "@tarko/interface": "workspace:*",
     "@types/node": "22.15.30",
     "openai": "4.93.0",
     "typescript": "^5.5.3",
