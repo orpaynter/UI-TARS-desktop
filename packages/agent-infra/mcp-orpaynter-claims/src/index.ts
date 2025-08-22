@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { createMcpServer } from '@agent-infra/mcp-core';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { ofetch } from 'ofetch';
 
@@ -196,194 +197,207 @@ class OrPaynterClaimsClient {
 const ORPAYNTER_API_BASE = process.env.ORPAYNTER_API_BASE || '';
 const ORPAYNTER_TOKEN = process.env.ORPAYNTER_TOKEN || '';
 
-export const server = createMcpServer('orpaynter-claims', ({ secrets }) => {
-  const client = new OrPaynterClaimsClient(
-    ORPAYNTER_API_BASE,
-    secrets?.ORPAYNTER_TOKEN || ORPAYNTER_TOKEN
-  );
+// Create and start the MCP server
+const client = new OrPaynterClaimsClient(
+  ORPAYNTER_API_BASE,
+  ORPAYNTER_TOKEN
+);
 
-  return {
-    tools: [
-      {
-        name: 'list_claims',
-        description: 'List all insurance claims in the OrPaynter system',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-          required: []
-        },
-        handler: async () => {
-          const claims = await client.getClaims();
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Found ${claims.length} claims:\n\n${claims.map(claim => 
-                  `• ${claim.claimNumber} - ${claim.description} ($${claim.amount.toLocaleString()}) - Status: ${claim.status}`
-                ).join('\n')}`
-              }
-            ]
-          };
-        }
-      },
-      {
-        name: 'get_claim_details',
-        description: 'Get detailed information about a specific insurance claim',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            claimId: {
-              type: 'string',
-              description: 'The ID of the claim to retrieve'
-            }
-          },
-          required: ['claimId']
-        },
-        handler: async ({ claimId }) => {
-          const claim = await client.getClaim(claimId);
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Claim Details:\n\n` +
-                      `Claim Number: ${claim.claimNumber}\n` +
-                      `Property ID: ${claim.propertyId}\n` +
-                      `Status: ${claim.status}\n` +
-                      `Amount: $${claim.amount.toLocaleString()}\n` +
-                      `Description: ${claim.description}\n` +
-                      `Created: ${new Date(claim.dateCreated).toLocaleDateString()}\n` +
-                      `Updated: ${new Date(claim.dateUpdated).toLocaleDateString()}\n` +
-                      (claim.documents ? `Documents: ${claim.documents.length} attached` : 'No documents')
-              }
-            ]
-          };
-        }
-      },
-      {
-        name: 'create_claim',
-        description: 'Create a new insurance claim in the OrPaynter system',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            propertyId: {
-              type: 'string',
-              description: 'The ID of the property for this claim'
-            },
-            amount: {
-              type: 'number',
-              description: 'The claim amount in dollars'
-            },
-            description: {
-              type: 'string',
-              description: 'Description of the damage or incident'
-            }
-          },
-          required: ['propertyId', 'amount', 'description']
-        },
-        handler: async ({ propertyId, amount, description }) => {
-          const claim = await client.createClaim({ propertyId, amount, description });
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `✅ Claim created successfully!\n\n` +
-                      `Claim Number: ${claim.claimNumber}\n` +
-                      `Claim ID: ${claim.id}\n` +
-                      `Amount: $${claim.amount.toLocaleString()}\n` +
-                      `Status: ${claim.status}\n` +
-                      `Description: ${claim.description}`
-              }
-            ]
-          };
-        }
-      },
-      {
-        name: 'update_claim_status',
-        description: 'Update the status of an existing insurance claim',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            claimId: {
-              type: 'string',
-              description: 'The ID of the claim to update'
-            },
-            status: {
-              type: 'string',
-              enum: ['pending', 'approved', 'denied', 'processing'],
-              description: 'The new status for the claim'
-            }
-          },
-          required: ['claimId', 'status']
-        },
-        handler: async ({ claimId, status }) => {
-          const claim = await client.updateClaim(claimId, { status });
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `✅ Claim ${claim.claimNumber} status updated to: ${status}`
-              }
-            ]
-          };
-        }
-      },
-      {
-        name: 'list_properties',
-        description: 'List all properties in the OrPaynter system',
-        inputSchema: {
-          type: 'object',
-          properties: {},
-          required: []
-        },
-        handler: async () => {
-          const properties = await client.getProperties();
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Found ${properties.length} properties:\n\n${properties.map(prop => 
-                  `• ${prop.address} - ${prop.owner} ($${prop.value.toLocaleString()}) - ${prop.type}`
-                ).join('\n')}`
-              }
-            ]
-          };
-        }
-      },
-      {
-        name: 'get_property_details',
-        description: 'Get detailed information about a specific property',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            propertyId: {
-              type: 'string',
-              description: 'The ID of the property to retrieve'
-            }
-          },
-          required: ['propertyId']
-        },
-        handler: async ({ propertyId }) => {
-          const property = await client.getProperty(propertyId);
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Property Details:\n\n` +
-                      `Address: ${property.address}\n` +
-                      `Owner: ${property.owner}\n` +
-                      `Type: ${property.type}\n` +
-                      `Value: $${property.value.toLocaleString()}\n` +
-                      `Insurance Policy: ${property.insurancePolicy || 'Not specified'}`
-              }
-            ]
-          };
-        }
-      }
-    ]
-  };
+const server = new McpServer({
+  name: 'orpaynter-claims',
+  version: '1.0.0',
 });
 
+// Register tools
+server.tool(
+  'list_claims',
+  'List all insurance claims in the OrPaynter system',
+  {
+    type: 'object',
+    properties: {},
+    required: []
+  },
+  async () => {
+    const claims = await client.getClaims();
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Found ${claims.length} claims:\n\n${claims.map(claim => 
+            `• ${claim.claimNumber} - ${claim.description} ($${claim.amount.toLocaleString()}) - Status: ${claim.status}`
+          ).join('\n')}`
+        }
+      ]
+    };
+  }
+);
+
+server.tool(
+  'get_claim_details',
+  'Get detailed information about a specific insurance claim',
+  {
+    type: 'object',
+    properties: {
+      claimId: {
+        type: 'string',
+        description: 'The ID of the claim to retrieve'
+      }
+    },
+    required: ['claimId']
+  },
+  async ({ claimId }) => {
+    const claim = await client.getClaim(claimId);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Claim Details:\n\n` +
+                `Claim Number: ${claim.claimNumber}\n` +
+                `Property ID: ${claim.propertyId}\n` +
+                `Status: ${claim.status}\n` +
+                `Amount: $${claim.amount.toLocaleString()}\n` +
+                `Description: ${claim.description}\n` +
+                `Created: ${new Date(claim.dateCreated).toLocaleDateString()}\n` +
+                `Updated: ${new Date(claim.dateUpdated).toLocaleDateString()}\n` +
+                (claim.documents ? `Documents: ${claim.documents.length} attached` : 'No documents')
+        }
+      ]
+    };
+  }
+);
+
+server.tool(
+  'create_claim',
+  'Create a new insurance claim in the OrPaynter system',
+  {
+    type: 'object',
+    properties: {
+      propertyId: {
+        type: 'string',
+        description: 'The ID of the property for this claim'
+      },
+      amount: {
+        type: 'number',
+        description: 'The claim amount in dollars'
+      },
+      description: {
+        type: 'string',
+        description: 'Description of the damage or incident'
+      }
+    },
+    required: ['propertyId', 'amount', 'description']
+  },
+  async ({ propertyId, amount, description }) => {
+    const claim = await client.createClaim({ propertyId, amount, description });
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `✅ Claim created successfully!\n\n` +
+                `Claim Number: ${claim.claimNumber}\n` +
+                `Claim ID: ${claim.id}\n` +
+                `Amount: $${claim.amount.toLocaleString()}\n` +
+                `Status: ${claim.status}\n` +
+                `Description: ${claim.description}`
+        }
+      ]
+    };
+  }
+);
+
+server.tool(
+  'update_claim_status',
+  'Update the status of an existing insurance claim',
+  {
+    type: 'object',
+    properties: {
+      claimId: {
+        type: 'string',
+        description: 'The ID of the claim to update'
+      },
+      status: {
+        type: 'string',
+        enum: ['pending', 'approved', 'denied', 'processing'],
+        description: 'The new status for the claim'
+      }
+    },
+    required: ['claimId', 'status']
+  },
+  async ({ claimId, status }) => {
+    const claim = await client.updateClaim(claimId, { status });
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `✅ Claim ${claim.claimNumber} status updated to: ${status}`
+        }
+      ]
+    };
+  }
+);
+
+server.tool(
+  'list_properties',
+  'List all properties in the OrPaynter system',
+  {
+    type: 'object',
+    properties: {},
+    required: []
+  },
+  async () => {
+    const properties = await client.getProperties();
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Found ${properties.length} properties:\n\n${properties.map(prop => 
+            `• ${prop.address} - ${prop.owner} ($${prop.value.toLocaleString()}) - ${prop.type}`
+          ).join('\n')}`
+        }
+      ]
+    };
+  }
+);
+
+server.tool(
+  'get_property_details',
+  'Get detailed information about a specific property',
+  {
+    type: 'object',
+    properties: {
+      propertyId: {
+        type: 'string',
+        description: 'The ID of the property to retrieve'
+      }
+    },
+    required: ['propertyId']
+  },
+  async ({ propertyId }) => {
+    const property = await client.getProperty(propertyId);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Property Details:\n\n` +
+                `Address: ${property.address}\n` +
+                `Owner: ${property.owner}\n` +
+                `Type: ${property.type}\n` +
+                `Value: $${property.value.toLocaleString()}\n` +
+                `Insurance Policy: ${property.insurancePolicy || 'Not specified'}`
+        }
+      ]
+    };
+  }
+);
+
+// Start the server
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error('OrPaynter Claims MCP server running on stdio');
+}
+
 // Simple CLI: `mcp-orpaynter-claims` starts the server
-if (import.meta.url === `file://${process.argv[1]}`) {
-  server.connect();
+if (typeof require !== 'undefined' && require.main === module) {
+  main().catch(console.error);
 }

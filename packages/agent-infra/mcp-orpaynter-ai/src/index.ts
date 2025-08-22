@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { createMcpServer } from '@agent-infra/mcp-core';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { ofetch } from 'ofetch';
 
@@ -317,269 +318,283 @@ class OrPaynterAIClient {
 const ORPAYNTER_API_BASE = process.env.ORPAYNTER_API_BASE || '';
 const ORPAYNTER_TOKEN = process.env.ORPAYNTER_TOKEN || '';
 
-export const server = createMcpServer('orpaynter-ai', ({ secrets }) => {
-  const client = new OrPaynterAIClient(
-    ORPAYNTER_API_BASE,
-    secrets?.ORPAYNTER_TOKEN || ORPAYNTER_TOKEN
-  );
-
-  return {
-    tools: [
-      {
-        name: 'analyze_property_damage',
-        description: 'Analyze property for damage using AI-powered assessment',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            propertyId: {
-              type: 'string',
-              description: 'The ID of the property to analyze'
-            },
-            analysisType: {
-              type: 'string',
-              enum: ['damage_assessment', 'risk_evaluation', 'valuation', 'maintenance_prediction'],
-              description: 'Type of analysis to perform'
-            }
-          },
-          required: ['propertyId', 'analysisType']
-        },
-        handler: async ({ propertyId, analysisType }) => {
-          const analysis = await client.analyzeProperty(propertyId, analysisType);
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `🤖 AI Analysis Started\n\n` +
-                      `Analysis ID: ${analysis.id}\n` +
-                      `Property: ${analysis.propertyId}\n` +
-                      `Type: ${analysis.analysisType}\n` +
-                      `Status: ${analysis.status}\n\n` +
-                      `Use 'get_analysis_results' with ID ${analysis.id} to check progress.`
-              }
-            ]
-          };
-        }
-      },
-      {
-        name: 'get_analysis_results',
-        description: 'Get results from a completed AI property analysis',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            analysisId: {
-              type: 'string',
-              description: 'The ID of the analysis to retrieve'
-            }
-          },
-          required: ['analysisId']
-        },
-        handler: async ({ analysisId }) => {
-          const analysis = await client.getPropertyAnalysis(analysisId);
-          
-          let resultText = `🤖 AI Analysis Results\n\n` +
-                          `Analysis ID: ${analysis.id}\n` +
-                          `Status: ${analysis.status}\n`;
-          
-          if (analysis.status === 'completed') {
-            resultText += `Confidence: ${(analysis.confidence * 100).toFixed(1)}%\n\n` +
-                         `📋 Summary:\n${analysis.results.summary}\n\n`;
-            
-            if (analysis.results.details.length > 0) {
-              resultText += `🔍 Detailed Findings:\n`;
-              analysis.results.details.forEach((detail, index) => {
-                resultText += `${index + 1}. ${detail.category} (${detail.severity})\n` +
-                             `   Finding: ${detail.finding}\n`;
-                if (detail.recommendation) {
-                  resultText += `   Recommendation: ${detail.recommendation}\n`;
-                }
-                resultText += `\n`;
-              });
-            }
-            
-            if (analysis.results.estimatedCost) {
-              resultText += `💰 Estimated Cost: $${analysis.results.estimatedCost.toLocaleString()}\n`;
-            }
-            
-            if (analysis.results.riskScore) {
-              resultText += `⚠️ Risk Score: ${analysis.results.riskScore}/100\n`;
-            }
-          } else {
-            resultText += `\nAnalysis is still ${analysis.status}. Please check again later.`;
-          }
-          
-          return {
-            content: [
-              {
-                type: 'text',
-                text: resultText
-              }
-            ]
-          };
-        }
-      },
-      {
-        name: 'analyze_damage_photo',
-        description: 'Analyze a photo for property damage using AI image recognition',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            imageUrl: {
-              type: 'string',
-              description: 'URL of the image to analyze'
-            },
-            analysisType: {
-              type: 'string',
-              enum: ['damage_detection', 'property_features', 'safety_hazards', 'compliance_check'],
-              description: 'Type of image analysis to perform'
-            }
-          },
-          required: ['imageUrl', 'analysisType']
-        },
-        handler: async ({ imageUrl, analysisType }) => {
-          const analysis = await client.analyzeImage(imageUrl, analysisType);
-          
-          let resultText = `📸 AI Image Analysis Results\n\n` +
-                          `Image: ${analysis.imageUrl}\n` +
-                          `Analysis Type: ${analysis.analysisType}\n` +
-                          `Date: ${new Date(analysis.dateAnalyzed).toLocaleString()}\n\n`;
-          
-          if (analysis.results.detectedObjects.length > 0) {
-            resultText += `🔍 Detected Objects:\n`;
-            analysis.results.detectedObjects.forEach((obj, index) => {
-              resultText += `${index + 1}. ${obj.object} (${(obj.confidence * 100).toFixed(1)}% confidence)\n`;
-            });
-            resultText += `\n`;
-          }
-          
-          if (analysis.results.damageAssessment) {
-            const damage = analysis.results.damageAssessment;
-            resultText += `🏠 Damage Assessment:\n` +
-                         `Has Damage: ${damage.hasDamage ? 'Yes' : 'No'}\n`;
-            if (damage.hasDamage) {
-              resultText += `Damage Type: ${damage.damageType}\n` +
-                           `Severity: ${damage.severity}\n`;
-              if (damage.affectedArea) {
-                resultText += `Affected Area: ${damage.affectedArea} sq ft\n`;
-              }
-            }
-            resultText += `\n`;
-          }
-          
-          if (analysis.results.recommendations.length > 0) {
-            resultText += `💡 Recommendations:\n`;
-            analysis.results.recommendations.forEach((rec, index) => {
-              resultText += `${index + 1}. ${rec}\n`;
-            });
-          }
-          
-          return {
-            content: [
-              {
-                type: 'text',
-                text: resultText
-              }
-            ]
-          };
-        }
-      },
-      {
-        name: 'generate_maintenance_schedule',
-        description: 'Generate AI-powered predictive maintenance schedule for a property',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            propertyId: {
-              type: 'string',
-              description: 'The ID of the property to generate schedule for'
-            }
-          },
-          required: ['propertyId']
-        },
-        handler: async ({ propertyId }) => {
-          const schedule = await client.generateMaintenanceSchedule(propertyId);
-          
-          let resultText = `🔧 AI-Generated Maintenance Schedule\n\n` +
-                          `Property ID: ${schedule.propertyId}\n\n` +
-                          `📅 Scheduled Tasks:\n`;
-          
-          schedule.schedule.forEach((task: any, index: number) => {
-            resultText += `${index + 1}. ${task.task}\n` +
-                         `   Frequency: ${task.frequency}\n` +
-                         `   Next Due: ${task.nextDue}\n` +
-                         `   Priority: ${task.priority}\n` +
-                         `   Est. Cost: $${task.estimatedCost}\n\n`;
-          });
-          
-          resultText += `💰 Total Annual Cost: $${schedule.totalAnnualCost}\n` +
-                       `📉 Risk Reduction: ${schedule.riskReduction}%\n\n` +
-                       `Following this schedule can reduce property risks and extend asset life.`;
-          
-          return {
-            content: [
-              {
-                type: 'text',
-                text: resultText
-              }
-            ]
-          };
-        }
-      },
-      {
-        name: 'list_property_analyses',
-        description: 'List all AI analyses for a property or all properties',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            propertyId: {
-              type: 'string',
-              description: 'Optional: Filter analyses for specific property ID'
-            }
-          },
-          required: []
-        },
-        handler: async ({ propertyId }) => {
-          const analyses = await client.getPropertyAnalyses(propertyId);
-          
-          let resultText = `🤖 AI Analysis History\n\n`;
-          
-          if (propertyId) {
-            resultText += `Property: ${propertyId}\n\n`;
-          }
-          
-          if (analyses.length === 0) {
-            resultText += `No analyses found.`;
-          } else {
-            resultText += `Found ${analyses.length} analyses:\n\n`;
-            analyses.forEach((analysis, index) => {
-              resultText += `${index + 1}. ${analysis.analysisType} (${analysis.status})\n` +
-                           `   ID: ${analysis.id}\n` +
-                           `   Property: ${analysis.propertyId}\n` +
-                           `   Created: ${new Date(analysis.dateCreated).toLocaleDateString()}\n`;
-              if (analysis.status === 'completed') {
-                resultText += `   Confidence: ${(analysis.confidence * 100).toFixed(1)}%\n`;
-                if (analysis.results.riskScore) {
-                  resultText += `   Risk Score: ${analysis.results.riskScore}/100\n`;
-                }
-              }
-              resultText += `\n`;
-            });
-          }
-          
-          return {
-            content: [
-              {
-                type: 'text',
-                text: resultText
-              }
-            ]
-          };
-        }
-      }
-    ]
-  };
+// Create and start the MCP server
+const server = new McpServer({
+  name: 'orpaynter-ai',
+  version: '1.0.0',
 });
 
+const client = new OrPaynterAIClient(
+  ORPAYNTER_API_BASE,
+  ORPAYNTER_TOKEN
+);
+
+// Register tools
+
+// Register each tool with the server
+server.tool(
+  'analyze_property_damage',
+  'Analyze property for damage using AI-powered assessment',
+  {
+    type: 'object',
+    properties: {
+      propertyId: {
+        type: 'string',
+        description: 'The ID of the property to analyze'
+      },
+      analysisType: {
+        type: 'string',
+        enum: ['damage_assessment', 'risk_evaluation', 'valuation', 'maintenance_prediction'],
+        description: 'Type of analysis to perform'
+      }
+    },
+    required: ['propertyId', 'analysisType']
+  },
+  async ({ propertyId, analysisType }) => {
+    const analysis = await client.analyzeProperty(propertyId, analysisType);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `🤖 AI Analysis Started\n\n` +
+                `Analysis ID: ${analysis.id}\n` +
+                `Property: ${analysis.propertyId}\n` +
+                `Type: ${analysis.analysisType}\n` +
+                `Status: ${analysis.status}\n\n` +
+                `Use 'get_analysis_results' with ID ${analysis.id} to check progress.`
+        }
+      ]
+    };
+  }
+);
+
+server.tool(
+  'get_analysis_results',
+  'Get results from a completed AI property analysis',
+  {
+    type: 'object',
+    properties: {
+      analysisId: {
+        type: 'string',
+        description: 'The ID of the analysis to retrieve'
+      }
+    },
+    required: ['analysisId']
+  },
+  async ({ analysisId }) => {
+    const analysis = await client.getPropertyAnalysis(analysisId);
+    
+    let resultText = `🤖 AI Analysis Results\n\n` +
+                    `Analysis ID: ${analysis.id}\n` +
+                    `Status: ${analysis.status}\n`;
+    
+    if (analysis.status === 'completed') {
+      resultText += `Confidence: ${(analysis.confidence * 100).toFixed(1)}%\n\n` +
+                   `📋 Summary:\n${analysis.results.summary}\n\n`;
+      
+      if (analysis.results.details.length > 0) {
+        resultText += `🔍 Detailed Findings:\n`;
+        analysis.results.details.forEach((detail, index) => {
+          resultText += `${index + 1}. ${detail.category} (${detail.severity})\n` +
+                       `   Finding: ${detail.finding}\n`;
+          if (detail.recommendation) {
+            resultText += `   Recommendation: ${detail.recommendation}\n`;
+          }
+          resultText += `\n`;
+        });
+      }
+      
+      if (analysis.results.estimatedCost) {
+        resultText += `💰 Estimated Cost: $${analysis.results.estimatedCost.toLocaleString()}\n`;
+      }
+      
+      if (analysis.results.riskScore) {
+        resultText += `⚠️ Risk Score: ${analysis.results.riskScore}/100\n`;
+      }
+    } else {
+      resultText += `\nAnalysis is still ${analysis.status}. Please check again later.`;
+    }
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: resultText
+        }
+      ]
+    };
+  }
+);
+
+server.tool(
+  'analyze_damage_photo',
+  'Analyze a photo for property damage using AI image recognition',
+  {
+    type: 'object',
+    properties: {
+      imageUrl: {
+        type: 'string',
+        description: 'URL of the image to analyze'
+      },
+      analysisType: {
+        type: 'string',
+        enum: ['damage_detection', 'property_features', 'safety_hazards', 'compliance_check'],
+        description: 'Type of image analysis to perform'
+      }
+    },
+    required: ['imageUrl', 'analysisType']
+  },
+  async ({ imageUrl, analysisType }) => {
+    const analysis = await client.analyzeImage(imageUrl, analysisType);
+    
+    let resultText = `📸 AI Image Analysis Results\n\n` +
+                    `Image: ${analysis.imageUrl}\n` +
+                    `Analysis Type: ${analysis.analysisType}\n` +
+                    `Date: ${new Date(analysis.dateAnalyzed).toLocaleString()}\n\n`;
+    
+    if (analysis.results.detectedObjects.length > 0) {
+      resultText += `🔍 Detected Objects:\n`;
+      analysis.results.detectedObjects.forEach((obj, index) => {
+        resultText += `${index + 1}. ${obj.object} (${(obj.confidence * 100).toFixed(1)}% confidence)\n`;
+      });
+      resultText += `\n`;
+    }
+    
+    if (analysis.results.damageAssessment) {
+      const damage = analysis.results.damageAssessment;
+      resultText += `🏠 Damage Assessment:\n` +
+                   `Has Damage: ${damage.hasDamage ? 'Yes' : 'No'}\n`;
+      if (damage.hasDamage) {
+        resultText += `Damage Type: ${damage.damageType}\n` +
+                     `Severity: ${damage.severity}\n`;
+        if (damage.affectedArea) {
+          resultText += `Affected Area: ${damage.affectedArea} sq ft\n`;
+        }
+      }
+      resultText += `\n`;
+    }
+    
+    if (analysis.results.recommendations.length > 0) {
+      resultText += `💡 Recommendations:\n`;
+      analysis.results.recommendations.forEach((rec, index) => {
+        resultText += `${index + 1}. ${rec}\n`;
+      });
+    }
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: resultText
+        }
+      ]
+    };
+  }
+);
+
+server.tool(
+  'generate_maintenance_schedule',
+  'Generate AI-powered predictive maintenance schedule for a property',
+  {
+    type: 'object',
+    properties: {
+      propertyId: {
+        type: 'string',
+        description: 'The ID of the property to generate schedule for'
+      }
+    },
+    required: ['propertyId']
+  },
+  async ({ propertyId }) => {
+    const schedule = await client.generateMaintenanceSchedule(propertyId);
+    
+    let resultText = `🔧 AI-Generated Maintenance Schedule\n\n` +
+                    `Property ID: ${schedule.propertyId}\n\n` +
+                    `📅 Scheduled Tasks:\n`;
+    
+    schedule.schedule.forEach((task: any, index: number) => {
+      resultText += `${index + 1}. ${task.task}\n` +
+                   `   Frequency: ${task.frequency}\n` +
+                   `   Next Due: ${task.nextDue}\n` +
+                   `   Priority: ${task.priority}\n` +
+                   `   Est. Cost: $${task.estimatedCost}\n\n`;
+    });
+    
+    resultText += `💰 Total Annual Cost: $${schedule.totalAnnualCost}\n` +
+                 `📉 Risk Reduction: ${schedule.riskReduction}%\n\n` +
+                 `Following this schedule can reduce property risks and extend asset life.`;
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: resultText
+        }
+      ]
+    };
+  }
+);
+
+server.tool(
+  'list_property_analyses',
+  'List all AI analyses for a property or all properties',
+  {
+    type: 'object',
+    properties: {
+      propertyId: {
+        type: 'string',
+        description: 'Optional: Filter analyses for specific property ID'
+      }
+    },
+    required: []
+  },
+  async ({ propertyId }) => {
+    const analyses = await client.getPropertyAnalyses(propertyId);
+    
+    let resultText = `🤖 AI Analysis History\n\n`;
+    
+    if (propertyId) {
+      resultText += `Property: ${propertyId}\n\n`;
+    }
+    
+    if (analyses.length === 0) {
+      resultText += `No analyses found.`;
+    } else {
+      resultText += `Found ${analyses.length} analyses:\n\n`;
+      analyses.forEach((analysis, index) => {
+        resultText += `${index + 1}. ${analysis.analysisType} (${analysis.status})\n` +
+                     `   ID: ${analysis.id}\n` +
+                     `   Property: ${analysis.propertyId}\n` +
+                     `   Created: ${new Date(analysis.dateCreated).toLocaleDateString()}\n`;
+        if (analysis.status === 'completed') {
+          resultText += `   Confidence: ${(analysis.confidence * 100).toFixed(1)}%\n`;
+          if (analysis.results.riskScore) {
+            resultText += `   Risk Score: ${analysis.results.riskScore}/100\n`;
+          }
+        }
+        resultText += `\n`;
+      });
+    }
+    
+    return {
+      content: [
+        {
+          type: 'text',
+          text: resultText
+        }
+      ]
+    };
+  }
+);
+
+// Start the server
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error('OrPaynter AI MCP server running on stdio');
+}
+
 // Simple CLI: `mcp-orpaynter-ai` starts the server
-if (import.meta.url === `file://${process.argv[1]}`) {
-  server.connect();
+if (require.main === module) {
+  main().catch(console.error);
 }

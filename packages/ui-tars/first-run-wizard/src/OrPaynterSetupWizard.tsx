@@ -1,11 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { CheckCircle, AlertCircle, Settings, Key, TestTube, Zap } from 'lucide-react';
 
 interface OrPaynterConfig {
@@ -156,322 +149,207 @@ const OrPaynterSetupWizard: React.FC = () => {
   };
 
   const renderWelcomeStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-          <Zap className="w-8 h-8 text-blue-600" />
+    <div style={{ padding: '24px', textAlign: 'center' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ 
+          width: '64px', 
+          height: '64px', 
+          backgroundColor: '#dbeafe', 
+          borderRadius: '50%', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          margin: '0 auto 16px' 
+        }}>
+          <Zap style={{ width: '32px', height: '32px', color: '#2563eb' }} />
         </div>
-        <h2 className="text-2xl font-bold mb-2">Welcome to OrPaynter Platform</h2>
-        <p className="text-gray-600 max-w-md mx-auto">
+        <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Welcome to OrPaynter Platform</h2>
+        <p style={{ color: '#6b7280', maxWidth: '400px', margin: '0 auto' }}>
           OrPaynter is an AI-powered SaaS platform for property management, insurance claims, 
           and automated workflow orchestration.
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              Claims Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600">
-              Streamline insurance claims processing with automated workflows and AI-powered analysis.
-            </p>
-          </CardContent>
-        </Card>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <Settings style={{ width: '20px', height: '20px' }} />
+            Claims Management
+          </h3>
+          <p style={{ fontSize: '14px', color: '#6b7280' }}>
+            Streamline insurance claims processing with automated workflows and AI-powered analysis.
+          </p>
+        </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TestTube className="w-5 h-5" />
-              AI Analysis
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600">
-              Leverage computer vision and machine learning for property damage assessment and risk evaluation.
-            </p>
-          </CardContent>
-        </Card>
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <TestTube style={{ width: '20px', height: '20px' }} />
+            AI Analysis
+          </h3>
+          <p style={{ fontSize: '14px', color: '#6b7280' }}>
+            Leverage computer vision and machine learning for property damage assessment and risk evaluation.
+          </p>
+        </div>
       </div>
-      
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          This wizard will help you configure OrPaynter integration with UI-TARS. 
-          You can start with demo mode and upgrade to production later.
-        </AlertDescription>
-      </Alert>
     </div>
   );
 
   const renderConfigurationStep = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold mb-2">API Configuration</h2>
-        <p className="text-gray-600 mb-6">
-          Configure your OrPaynter API connection. You can use demo mode for testing or provide your production credentials.
-        </p>
+    <div style={{ padding: '24px' }}>
+      <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>API Configuration</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div>
+          <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>API Base URL</label>
+          <input
+            type="text"
+            value={config.apiBase}
+            onChange={(e) => setConfig(prev => ({ ...prev, apiBase: e.target.value }))}
+            placeholder="https://api.orpaynter.com"
+            style={{ 
+              width: '100%', 
+              padding: '8px 12px', 
+              border: '1px solid #d1d5db', 
+              borderRadius: '6px',
+              fontSize: '14px'
+            }}
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>Authentication Token</label>
+          <input
+            type="password"
+            value={config.token}
+            onChange={(e) => setConfig(prev => ({ ...prev, token: e.target.value }))}
+            placeholder="Enter your API token"
+            style={{ 
+              width: '100%', 
+              padding: '8px 12px', 
+              border: '1px solid #d1d5db', 
+              borderRadius: '6px',
+              fontSize: '14px'
+            }}
+          />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="checkbox"
+            id="demoMode"
+            checked={config.demoMode}
+            onChange={(e) => setConfig(prev => ({ ...prev, demoMode: e.target.checked }))}
+          />
+          <label htmlFor="demoMode" style={{ fontSize: '14px' }}>Enable Demo Mode (uses mock data)</label>
+        </div>
       </div>
-      
-      <Tabs defaultValue="demo" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="demo" onClick={() => setConfig(prev => ({ ...prev, demoMode: true }))}>Demo Mode</TabsTrigger>
-          <TabsTrigger value="production" onClick={() => setConfig(prev => ({ ...prev, demoMode: false }))}>Production</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="demo" className="space-y-4">
-          <Alert>
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription>
-              Demo mode uses mock data and doesn't require real API credentials. Perfect for development and testing.
-            </AlertDescription>
-          </Alert>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="demo-api-base">Demo API Base URL</Label>
-              <Input
-                id="demo-api-base"
-                value="https://demo.orpaynter.com/api"
-                disabled
-                className="bg-gray-50"
-              />
-            </div>
-            <div>
-              <Label htmlFor="demo-token">Demo Token</Label>
-              <Input
-                id="demo-token"
-                value="demo-token-12345"
-                disabled
-                className="bg-gray-50"
-              />
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="production" className="space-y-4">
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Production mode requires valid OrPaynter API credentials. Contact your OrPaynter administrator for access.
-            </AlertDescription>
-          </Alert>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="api-base">API Base URL</Label>
-              <Input
-                id="api-base"
-                placeholder="https://api.orpaynter.com"
-                value={config.apiBase}
-                onChange={(e) => setConfig(prev => ({ ...prev, apiBase: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="token">Authentication Token</Label>
-              <Input
-                id="token"
-                type="password"
-                placeholder="Enter your OrPaynter API token"
-                value={config.token}
-                onChange={(e) => setConfig(prev => ({ ...prev, token: e.target.value }))}
-              />
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 
   const renderFeaturesStep = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold mb-2">Feature Selection</h2>
-        <p className="text-gray-600 mb-6">
-          Choose which OrPaynter features to enable in your UI-TARS integration.
-        </p>
+    <div style={{ padding: '24px' }}>
+      <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>Feature Selection</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="checkbox"
+            id="enableClaims"
+            checked={config.enableClaims}
+            onChange={(e) => setConfig(prev => ({ ...prev, enableClaims: e.target.checked }))}
+          />
+          <label htmlFor="enableClaims" style={{ fontSize: '14px' }}>Enable Claims Management</label>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="checkbox"
+            id="enableAI"
+            checked={config.enableAI}
+            onChange={(e) => setConfig(prev => ({ ...prev, enableAI: e.target.checked }))}
+          />
+          <label htmlFor="enableAI" style={{ fontSize: '14px' }}>Enable AI Analysis</label>
+        </div>
       </div>
-      
-      <div className="space-y-4">
-        <Card className={`cursor-pointer transition-all ${config.enableClaims ? 'ring-2 ring-blue-500' : ''}`}
-              onClick={() => setConfig(prev => ({ ...prev, enableClaims: !prev.enableClaims }))}>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Settings className="w-5 h-5" />
-                Claims Management
-              </div>
-              {config.enableClaims && <Badge variant="default">Enabled</Badge>}
-            </CardTitle>
-            <CardDescription>
-              Access to claims creation, management, and processing workflows.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Create and manage insurance claims</li>
-              <li>• Track claim status and updates</li>
-              <li>• Property and damage documentation</li>
-              <li>• Automated workflow processing</li>
-            </ul>
-          </CardContent>
-        </Card>
-        
-        <Card className={`cursor-pointer transition-all ${config.enableAI ? 'ring-2 ring-blue-500' : ''}`}
-              onClick={() => setConfig(prev => ({ ...prev, enableAI: !prev.enableAI }))}>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TestTube className="w-5 h-5" />
-                AI Analysis
-              </div>
-              {config.enableAI && <Badge variant="default">Enabled</Badge>}
-            </CardTitle>
-            <CardDescription>
-              AI-powered property analysis, damage assessment, and predictive maintenance.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Automated damage detection from photos</li>
-              <li>• Property risk assessment and scoring</li>
-              <li>• Predictive maintenance scheduling</li>
-              <li>• Cost estimation and recommendations</li>
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          You can enable or disable features later in the settings. Both features work in demo mode.
-        </AlertDescription>
-      </Alert>
     </div>
   );
 
   const renderValidationStep = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold mb-2">Connection Test</h2>
-        <p className="text-gray-600 mb-6">
-          Let's validate your OrPaynter configuration and test the API connection.
-        </p>
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Configuration Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Mode:</span>
-            <Badge variant={config.demoMode ? "secondary" : "default"}>
-              {config.demoMode ? 'Demo' : 'Production'}
-            </Badge>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">API Base:</span>
-            <span className="text-sm font-mono">
-              {config.demoMode ? 'https://demo.orpaynter.com/api' : config.apiBase || 'Not configured'}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Claims Management:</span>
-            <Badge variant={config.enableClaims ? "default" : "secondary"}>
-              {config.enableClaims ? 'Enabled' : 'Disabled'}
-            </Badge>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">AI Analysis:</span>
-            <Badge variant={config.enableAI ? "default" : "secondary"}>
-              {config.enableAI ? 'Enabled' : 'Disabled'}
-            </Badge>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="space-y-4">
-        <Button 
-          onClick={validateConnection} 
+    <div style={{ padding: '24px' }}>
+      <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>Connection Test</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <button
+          onClick={validateConnection}
           disabled={isValidating}
-          className="w-full"
+          style={{
+            padding: '12px 24px',
+            backgroundColor: isValidating ? '#9ca3af' : '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: isValidating ? 'not-allowed' : 'pointer',
+            fontSize: '14px'
+          }}
         >
           {isValidating ? 'Testing Connection...' : 'Test Connection'}
-        </Button>
+        </button>
         
         {validationResult && (
-          <Alert className={validationResult.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
-            {validationResult.success ? 
-              <CheckCircle className="h-4 w-4 text-green-600" /> : 
-              <AlertCircle className="h-4 w-4 text-red-600" />
-            }
-            <AlertDescription className={validationResult.success ? 'text-green-800' : 'text-red-800'}>
+          <div style={{
+            padding: '12px',
+            borderRadius: '6px',
+            backgroundColor: validationResult.success ? '#dcfce7' : '#fef2f2',
+            border: `1px solid ${validationResult.success ? '#bbf7d0' : '#fecaca'}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            {validationResult.success ? (
+              <CheckCircle style={{ width: '16px', height: '16px', color: '#16a34a' }} />
+            ) : (
+              <AlertCircle style={{ width: '16px', height: '16px', color: '#dc2626' }} />
+            )}
+            <span style={{ fontSize: '14px', color: validationResult.success ? '#16a34a' : '#dc2626' }}>
               {validationResult.message}
-            </AlertDescription>
-          </Alert>
+            </span>
+          </div>
         )}
       </div>
     </div>
   );
 
   const renderCompletionStep = () => (
-    <div className="space-y-6 text-center">
-      <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-        <CheckCircle className="w-8 h-8 text-green-600" />
+    <div style={{ padding: '24px', textAlign: 'center' }}>
+      <div style={{
+        width: '64px',
+        height: '64px',
+        backgroundColor: '#dcfce7',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: '0 auto 16px'
+      }}>
+        <CheckCircle style={{ width: '32px', height: '32px', color: '#16a34a' }} />
       </div>
-      
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Setup Complete!</h2>
-        <p className="text-gray-600 mb-6">
-          OrPaynter integration has been successfully configured for UI-TARS.
-        </p>
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>What's Next?</CardTitle>
-        </CardHeader>
-        <CardContent className="text-left space-y-3">
-          <div className="flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-            <div>
-              <p className="font-medium">Configuration Saved</p>
-              <p className="text-sm text-gray-600">Your OrPaynter settings have been saved to the environment configuration.</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-            <div>
-              <p className="font-medium">MCP Servers Ready</p>
-              <p className="text-sm text-gray-600">OrPaynter MCP servers are now available in UI-TARS for claims and AI analysis.</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-            <div>
-              <p className="font-medium">Demo Data Available</p>
-              <p className="text-sm text-gray-600">Start exploring with demo data or connect to your production OrPaynter instance.</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Button onClick={saveConfiguration} className="w-full">
-        Finish Setup
-      </Button>
+      <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Setup Complete!</h2>
+      <p style={{ color: '#6b7280', marginBottom: '24px' }}>
+        OrPaynter has been successfully configured and is ready to use.
+      </p>
+      <button
+        onClick={saveConfiguration}
+        style={{
+          padding: '12px 24px',
+          backgroundColor: '#16a34a',
+          color: 'white',
+          border: 'none',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          fontSize: '14px'
+        }}
+      >
+        Save Configuration
+      </button>
     </div>
   );
 
   const renderCurrentStep = () => {
-    switch (setupSteps[currentStep].id) {
+    switch (setupSteps[currentStep]?.id) {
       case 'welcome':
         return renderWelcomeStep();
       case 'configuration':
@@ -483,72 +361,72 @@ const OrPaynterSetupWizard: React.FC = () => {
       case 'completion':
         return renderCompletionStep();
       default:
-        return null;
+        return <div>Unknown step</div>;
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
+    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
           {setupSteps.map((step, index) => (
-            <div key={step.id} className="flex items-center">
-              <div className={`
-                w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-                ${index <= currentStep ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}
-                ${step.completed ? 'bg-green-600' : ''}
-              `}>
-                {step.completed ? <CheckCircle className="w-4 h-4" /> : index + 1}
-              </div>
-              {index < setupSteps.length - 1 && (
-                <div className={`
-                  w-16 h-0.5 mx-2
-                  ${index < currentStep ? 'bg-blue-600' : 'bg-gray-200'}
-                `} />
-              )}
-            </div>
+            <div
+              key={step.id}
+              style={{
+                flex: 1,
+                height: '4px',
+                backgroundColor: index <= currentStep ? '#3b82f6' : '#e5e7eb',
+                marginRight: index < setupSteps.length - 1 ? '4px' : '0'
+              }}
+            />
           ))}
         </div>
-        
-        <div className="mt-4">
-          <h1 className="text-lg font-semibold">{setupSteps[currentStep].title}</h1>
-          <p className="text-gray-600">{setupSteps[currentStep].description}</p>
+        <div style={{ textAlign: 'center' }}>
+          <h1 style={{ fontSize: '18px', fontWeight: '600' }}>
+            {setupSteps[currentStep]?.title}
+          </h1>
+          <p style={{ fontSize: '14px', color: '#6b7280' }}>
+            Step {currentStep + 1} of {setupSteps.length}
+          </p>
         </div>
       </div>
 
-      {/* Step Content */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          {renderCurrentStep()}
-        </CardContent>
-      </Card>
+      <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', marginBottom: '24px' }}>
+        {renderCurrentStep()}
+      </div>
 
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button 
-          variant="outline" 
-          onClick={prevStep} 
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <button
+          onClick={prevStep}
           disabled={currentStep === 0}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: currentStep === 0 ? '#f3f4f6' : '#6b7280',
+            color: currentStep === 0 ? '#9ca3af' : 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: currentStep === 0 ? 'not-allowed' : 'pointer',
+            fontSize: '14px'
+          }}
         >
           Previous
-        </Button>
+        </button>
         
-        {currentStep < setupSteps.length - 1 ? (
-          <Button 
-            onClick={nextStep}
-            disabled={currentStep === 3 && !validationResult?.success}
-          >
-            Next
-          </Button>
-        ) : (
-          <Button 
-            onClick={() => window.close()}
-            disabled={!setupSteps[currentStep].completed}
-          >
-            Close
-          </Button>
-        )}
+        <button
+          onClick={nextStep}
+          disabled={currentStep === setupSteps.length - 1}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: currentStep === setupSteps.length - 1 ? '#f3f4f6' : '#3b82f6',
+            color: currentStep === setupSteps.length - 1 ? '#9ca3af' : 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: currentStep === setupSteps.length - 1 ? 'not-allowed' : 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          {currentStep === setupSteps.length - 1 ? 'Complete' : 'Next'}
+        </button>
       </div>
     </div>
   );
