@@ -196,11 +196,65 @@ function Try-RunDesktop {
   }
 }
 
+function Setup-OrPaynterWizard {
+  if (-not $SetupOrPaynter) { return }
+  
+  Write-Host "\n=== OrPaynter Integration Setup Wizard ===" -ForegroundColor Magenta
+  Write-Host "This wizard will help you set up OrPaynter integration packages.\n" -ForegroundColor White
+  
+  # Create OrPaynter packages if they don't exist
+  Create-OrPaynterPackages
+  
+  Write-Host "\n✓ OrPaynter integration setup completed!" -ForegroundColor Green
+  Write-Host "Next steps:" -ForegroundColor Yellow
+  Write-Host "1. Update ORPAYNTER_TOKEN in .env with your actual token" -ForegroundColor White
+  Write-Host "2. Run with -OrPaynterMode to enable OrPaynter features" -ForegroundColor White
+  Write-Host "3. Test the integration with: pnpm --filter '*orpaynter*' dev\n" -ForegroundColor White
+}
+
+function Create-OrPaynterPackages {
+  $packagesDir = "packages/agent-infra"
+  
+  # Ensure the agent-infra directory exists
+  if (-not (Test-Path $packagesDir)) {
+    New-Item -ItemType Directory -Path $packagesDir -Force | Out-Null
+    Write-Host "Created directory: $packagesDir" -ForegroundColor Green
+  }
+  
+  # Create mcp-orpaynter-claims package
+  $claimsDir = "$packagesDir/mcp-orpaynter-claims"
+  if (-not (Test-Path "$claimsDir/package.json")) {
+    Write-Host "Creating @agent-infra/mcp-orpaynter-claims package..." -ForegroundColor Yellow
+    New-Item -ItemType Directory -Path $claimsDir -Force | Out-Null
+    New-Item -ItemType Directory -Path "$claimsDir/src" -Force | Out-Null
+    Write-Host "✓ Created OrPaynter Claims package structure" -ForegroundColor Green
+  }
+  
+  # Create mcp-orpaynter-ai package
+  $aiDir = "$packagesDir/mcp-orpaynter-ai"
+  if (-not (Test-Path "$aiDir/package.json")) {
+    Write-Host "Creating @agent-infra/mcp-orpaynter-ai package..." -ForegroundColor Yellow
+    New-Item -ItemType Directory -Path $aiDir -Force | Out-Null
+    New-Item -ItemType Directory -Path "$aiDir/src" -Force | Out-Null
+    Write-Host "✓ Created OrPaynter AI package structure" -ForegroundColor Green
+  }
+}
+
 # ---- Main ----
+Write-Host "\n🚀 UI-TARS Windows Launcher with OrPaynter Integration" -ForegroundColor Cyan
+Write-Host "================================================\n" -ForegroundColor Cyan
+
 Ensure-RepoRoot
 Ensure-Pnpm
 Configure-ScriptShell
 Prepare-EnvFile
+Setup-OrPaynterWizard
+Validate-OrPaynterSetup
 Install-Workspace
 Build-Workspace
+
+if ($OrPaynterMode) {
+  Write-Host "\n🎯 OrPaynter Mode Enabled - Enhanced features active" -ForegroundColor Magenta
+}
+
 Try-RunDesktop
