@@ -1,4 +1,4 @@
-# OrPaynter MCP Stubs + First‑Run Wizard + Playwright E2E (Drop‑In Pack)
+# OrPaynter MCP Stubs + First-Run Wizard + Playwright E2E (Drop-In Pack)
 
 **Drop these files into your monorepo and run the commands at the bottom.** Paths assume a pnpm workspace with `packages/agent-infra/*` and an Electron/React app under `apps/desktop` (adjust if needed).
 
