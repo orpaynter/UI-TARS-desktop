@@ -64,8 +64,6 @@ export const WorkspaceContent: React.FC = () => {
     },
   };
 
-
-
   // Plan view button for Pro users
   const renderPlanButton = () => {
     if (!currentPlan || !currentPlan.hasGeneratedPlan || currentPlan.steps.length === 0)
@@ -309,8 +307,8 @@ export const WorkspaceContent: React.FC = () => {
                 variants={itemVariants}
                 className="text-gray-600 dark:text-gray-400 leading-relaxed mb-8 max-w-md mx-auto"
               >
-                Your workspace is active. Start a conversation with {getAgentTitle()} and watch as tool
-                results, plans, and detailed information appear here in real-time.
+                Your workspace is active. Start a conversation with {getAgentTitle()} and watch as
+                tool results, plans, and detailed information appear here in real-time.
               </motion.p>
 
               <motion.div
