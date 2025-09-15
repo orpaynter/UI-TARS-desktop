@@ -11,7 +11,7 @@
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --pretty --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --pretty --composite false",
-    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "typecheck": "pnpm run typecheck:node && pnpm run typecheck:web",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "debug": "electron-vite dev --sourcemap --remote-debugging-port=9222",
@@ -23,17 +23,17 @@
     "test": "vitest",
     "test:bench": "vitest bench",
     "coverage": "vitest run --coverage",
-    "build:e2e": "npm run build:dist && cross-env CI=e2e npm run package",
+    "build:e2e": "pnpm run build:dist && cross-env CI=e2e pnpm run package",
     "test:e2e": "playwright test",
     "build:deps": "pnpm --filter \"!ui-tars-desktop,ui-tars-desktop...\" build && cd packages/visualizer && pnpm install --ignore-workspace",
     "build:dist": "cross-env NODE_ENV=production electron-vite build",
-    "build": "npm run clean && npm run typecheck && cross-env NODE_ENV=production electron-vite build && electron-forge make --enable-logging",
+    "build": "pnpm run clean && pnpm run typecheck && cross-env NODE_ENV=production electron-vite build && electron-forge make --enable-logging",
     "make": "electron-forge make",
-    "publish:mac-x64": "npm run build && electron-forge publish --arch=x64 --platform=darwin",
-    "publish:mac-arm64": "npm run build && electron-forge publish --arch=arm64 --platform=darwin",
-    "publish:win32": "npm run build && electron-forge publish --arch=x64 --platform=win32",
-    "publish:win32-arm64": "npm run build && electron-forge publish --arch=arm64 --platform=win32",
-    "publish": "npm run build && electron-forge publish"
+    "publish:mac-x64": "pnpm run build && electron-forge publish --arch=x64 --platform=darwin",
+    "publish:mac-arm64": "pnpm run build && electron-forge publish --arch=arm64 --platform=darwin",
+    "publish:win32": "pnpm run build && electron-forge publish --arch=x64 --platform=win32",
+    "publish:win32-arm64": "pnpm run build && electron-forge publish --arch=arm64 --platform=win32",
+    "publish": "pnpm run build && electron-forge publish"
   },
   "build": {
     "electronDownload": {
