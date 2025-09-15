@@ -30,7 +30,7 @@
     }
   },
   "scripts": {
-    "dev": "npm run mock && npx npm-watch mock",
+    "dev": "pnpm run mock && npx npm-watch mock",
     "mock": "modern build && tsx scripts/dev-html.ts",
     "prepare": "npm run build",
     "build": "modern build && npx tsx scripts/build-html.ts",
