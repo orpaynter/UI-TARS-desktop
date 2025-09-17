@@ -51,6 +51,14 @@ const electronHandler = {
       ipcRenderer.on('setting-updated', (_, state) => callback(state));
     },
   },
+  orpaynter: {
+    setConfig: (config: any) => ipcRenderer.invoke('orpaynter:setConfig', config),
+    getConfig: () => ipcRenderer.invoke('orpaynter:getConfig'),
+    startClaimsServer: () => ipcRenderer.invoke('orpaynter:startClaimsServer'),
+    startAiServer: () => ipcRenderer.invoke('orpaynter:startAiServer'),
+    stopServers: () => ipcRenderer.invoke('orpaynter:stopServers'),
+    getServerStatus: () => ipcRenderer.invoke('orpaynter:getServerStatus'),
+  },
 };
 
 // Initialize zustand bridge
