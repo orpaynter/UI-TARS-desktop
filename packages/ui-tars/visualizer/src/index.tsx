@@ -25,7 +25,7 @@ let globalRenderCount = 1;
 
 interface ExecutionDumpWithPlaywrightAttributes
   extends EnhancedGroupedActionDump {
-  attributes: Record<string, any>;
+  attributes: Record<string, string>;
 }
 
 export function Visualizer(props: {
@@ -114,9 +114,11 @@ export function Visualizer(props: {
           try {
             const data = JSON.parse(result);
             setGroupedDump(data[0]);
-          } catch (e: any) {
+          } catch (e: unknown) {
             console.error(e);
-            message.error('failed to parse dump data', e.message);
+            const errorMessage =
+              e instanceof Error ? e.message : 'Unknown error';
+            message.error('failed to parse dump data', errorMessage);
           }
         } else {
           message.error('Invalid dump file');
@@ -315,7 +317,7 @@ function mount(id: string) {
       return !!textContent;
     })
     .forEach((el) => {
-      const attributes: Record<string, any> = {};
+      const attributes: Record<string, string> = {};
       Array.from(el.attributes).forEach((attr) => {
         const { name, value } = attr;
         const valueDecoded = decodeURIComponent(value);

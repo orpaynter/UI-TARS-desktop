@@ -40,21 +40,17 @@ export const settingRoute = t.router({
       modelName: string;
     }>()
     .handle(async ({ input }) => {
-      try {
-        const openai = new OpenAI({
-          apiKey: input.apiKey,
-          baseURL: input.baseUrl,
-        });
-        const completion = await openai.chat.completions.create({
-          model: input.modelName,
-          messages: [{ role: 'user', content: 'return 1+1=?' }],
-          stream: false,
-        });
-        console.log('result', completion);
+      const openai = new OpenAI({
+        apiKey: input.apiKey,
+        baseURL: input.baseUrl,
+      });
+      const completion = await openai.chat.completions.create({
+        model: input.modelName,
+        messages: [{ role: 'user', content: 'return 1+1=?' }],
+        stream: false,
+      });
+      console.log('result', completion);
 
-        return Boolean(completion?.id || completion.choices[0].message.content);
-      } catch (e) {
-        throw e;
-      }
+      return Boolean(completion?.id || completion.choices[0].message.content);
     }),
 });

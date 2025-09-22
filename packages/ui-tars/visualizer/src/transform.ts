@@ -6,7 +6,29 @@ import { EnhancedGroupedActionDump } from './component/store';
 
 interface ExecutionDumpWithPlaywrightAttributes
   extends EnhancedGroupedActionDump {
-  attributes: Record<string, any>;
+  attributes: Record<string, string>;
+}
+
+interface ComputerUseConversation {
+  from: 'human' | 'gpt';
+  value: string;
+  timing: unknown;
+  screenshotBase64?: string[];
+  screenshotBase64WithElementMarker?: string;
+  predictionParsed?: Array<{
+    action_type: string;
+    action_inputs: unknown;
+  }>;
+}
+
+interface ComputerUseData {
+  instruction: string;
+  systemPrompt: string;
+  modelDetail: string;
+  version: string;
+  modelName: string;
+  logTime: string;
+  conversations: ComputerUseConversation[];
 }
 
 const addBase64ImagePrefix = (base64: string) => {
@@ -18,7 +40,7 @@ const addBase64ImagePrefix = (base64: string) => {
 };
 
 export function transformComputerUseDataToDump(
-  data: any,
+  data: ComputerUseData,
 ): ExecutionDumpWithPlaywrightAttributes {
   return {
     groupName: data.instruction,
@@ -32,7 +54,7 @@ export function transformComputerUseDataToDump(
         logTime: data.logTime,
         name: data.instruction,
         tasks: data.conversations
-          .map((conv: any, index: number) => {
+          .map((conv: ComputerUseConversation, index: number) => {
             if (conv.from === 'human') {
               return {
                 status: 'finished',
@@ -63,7 +85,7 @@ export function transformComputerUseDataToDump(
             }
 
             if (conv.from === 'gpt') {
-              const actions = conv.predictionParsed?.map((a: any) => {
+              const actions = conv.predictionParsed?.map((a) => {
                 return {
                   type: a.action_type,
                   input: JSON.stringify(a.action_inputs),
@@ -108,7 +130,7 @@ export function transformComputerUseDataToDump(
             return null;
           })
           .filter(
-            (task: any): task is NonNullable<typeof task> => task !== null,
+            (task: unknown): task is NonNullable<typeof task> => task !== null,
           ),
       },
     ],
