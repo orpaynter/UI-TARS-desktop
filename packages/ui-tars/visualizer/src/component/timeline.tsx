@@ -47,9 +47,9 @@ function cloneSprite(sprite: PIXI.Sprite) {
 
 const TimelineWidget = (props: {
   screenshots: TimelineItem[];
-  onHighlight?: (param: HighlightParam) => any;
-  onUnhighlight?: () => any;
-  onTap?: (param: TimelineItem) => any;
+  onHighlight?: (param: HighlightParam) => void;
+  onUnhighlight?: () => void;
+  onTap?: (param: TimelineItem) => void;
   highlightMask?: HighlightMask;
   hoverMask?: HighlightMask;
 }): JSX.Element => {
@@ -192,12 +192,12 @@ const TimelineWidget = (props: {
         titleBgSection.beginFill(titleBg);
         titleBgSection.drawRect(0, 0, canvasWidth, timeTitleBottom);
         titleBgSection.endFill();
-        gridsContainer.addChild(titleBgSection as any);
+        gridsContainer.addChild(titleBgSection);
         const titleBottomBorder = new PIXI.Graphics();
         titleBottomBorder.beginFill(gridLineColor);
         titleBottomBorder.drawRect(0, timeTitleBottom, canvasWidth, sizeRatio);
         titleBottomBorder.endFill();
-        gridsContainer.addChild(titleBottomBorder as any);
+        gridsContainer.addChild(titleBottomBorder);
 
         const gridHeight = canvasHeight;
         for (let i = 1; i <= gridCount; i++) {
@@ -206,7 +206,7 @@ const TimelineWidget = (props: {
           gridLine.beginFill(gridLineColor);
           gridLine.drawRect(gridLineLeft, 0, sizeRatio, gridHeight);
           gridLine.endFill();
-          gridsContainer.addChild(gridLine as any);
+          gridsContainer.addChild(gridLine);
 
           // mark text at the left of each line
           const text = pixiTextForNumber(i * timeStep); // `${i * timeStep}ms`;
@@ -216,9 +216,9 @@ const TimelineWidget = (props: {
           text.x = textLeft;
           text.y = timeTextTop;
 
-          gridsContainer.addChild(text as any);
+          gridsContainer.addChild(text);
         }
-        app.stage.addChild(gridsContainer as any);
+        app.stage.addChild(gridsContainer);
 
         if (!allScreenshots.length) {
           console.warn('No screenshots found');
