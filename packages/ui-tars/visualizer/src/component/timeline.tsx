@@ -354,7 +354,7 @@ const TimelineWidget = (props: {
             x,
             y,
           );
-          if (closestIndex < 0) {
+          if (closestIndex < 0 || !closestScreenshot) {
             props.onUnhighlight?.();
             return;
           }
@@ -368,9 +368,9 @@ const TimelineWidget = (props: {
               newSpirit.lineStyle(2, gridHighlightColor, 1);
               newSpirit.drawRect(
                 x, // follow mouse
-                closestScreenshot?.y!,
-                closestScreenshot?.width!,
-                closestScreenshot?.height!,
+                closestScreenshot.y,
+                closestScreenshot.width,
+                closestScreenshot.height,
               );
               newSpirit.endFill();
               indicatorContainer.addChild(newSpirit as any);

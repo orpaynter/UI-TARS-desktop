@@ -26,9 +26,11 @@ describe('execFileWithInput integration tests', () => {
     try {
       await execFileWithInput('bash', 'nonexistentcommand', {});
       expect.fail('Should have thrown an error');
-    } catch (error: any) {
-      expect(error.stderr).toContain('nonexistentcommand');
-      expect(error.message).toBeTruthy();
+    } catch (error: unknown) {
+      // execFileWithInput rejects with ExecResult type containing stderr and message
+      const execError = error as { stderr: string; message: string };
+      expect(execError.stderr).toContain('nonexistentcommand');
+      expect(execError.message).toBeTruthy();
     }
   });
 
@@ -47,9 +49,10 @@ describe('execFileWithInput integration tests', () => {
     try {
       await execFileWithInput('fish', 'totallynonexistentcommand', {});
       expect.fail('Should have thrown an error');
-    } catch (error: any) {
-      expect(error.stderr).toContain('totallynonexistentcommand');
-      expect(error.message).toBeTruthy();
+    } catch (error: unknown) {
+      const execError = error as { stderr: string; message: string };
+      expect(execError.stderr).toContain('totallynonexistentcommand');
+      expect(execError.message).toBeTruthy();
     }
   });
 
@@ -63,9 +66,10 @@ describe('execFileWithInput integration tests', () => {
     try {
       await execFileWithInput('zsh', 'completelynonexistentcommand', {});
       expect.fail('Should have thrown an error');
-    } catch (error: any) {
-      expect(error.stderr).toContain('completelynonexistentcommand');
-      expect(error.message).toBeTruthy();
+    } catch (error: unknown) {
+      const execError = error as { stderr: string; message: string };
+      expect(execError.stderr).toContain('completelynonexistentcommand');
+      expect(execError.message).toBeTruthy();
     }
   });
 
