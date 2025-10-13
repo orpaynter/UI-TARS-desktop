@@ -59,5 +59,6 @@
   "cSpell.words": [
     "DEEPSEEK",
     "rslib"
-  ]
+  ],
+  "nextflow.telemetry.enabled": true
 }
