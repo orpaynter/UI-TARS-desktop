@@ -9,7 +9,7 @@ interface ScrollToBottomButtonProps {
 
 /**
  * ScrollToBottomButton Component - Floating button to scroll to bottom of chat
- * 
+ *
  * Features:
  * - Smooth fade in/out animation
  * - Gradient background for visibility
@@ -29,7 +29,7 @@ export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({ show
         >
           {/* Gradient backdrop for better visibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-white/60 to-transparent dark:from-gray-900/80 dark:via-gray-900/60 dark:to-transparent rounded-full blur-sm scale-110" />
-          
+
           <motion.button
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
@@ -41,12 +41,12 @@ export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({ show
               animate={{ y: [0, 2, 0] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <FiChevronDown 
-                size={18} 
-                className="text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors" 
+              <FiChevronDown
+                size={18}
+                className="text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors"
               />
             </motion.div>
-            
+
             {/* Subtle pulse effect */}
             <motion.div
               animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}

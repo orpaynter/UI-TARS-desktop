@@ -32,7 +32,6 @@ import { DiffRenderer } from './renderers/DiffRenderer';
 import { FileRenderer } from './renderers/FileRenderer';
 import { EditFileRenderer } from './renderers/EditFileRenderer';
 
-
 /**
  * Registry of content renderers that handle StandardPanelContent directly
  */
