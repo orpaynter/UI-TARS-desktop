@@ -315,7 +315,7 @@ pnpm --filter ui-tars-desktop test path/to/test.spec.ts
 pnpm --filter ui-tars-desktop test:e2e --ui
 
 # View test traces (after failure)
-npx playwright show-trace test-results/.../trace.zip
+pnpm exec playwright show-trace test-results/.../trace.zip
 ```
 
 ## Pitfalls to avoid
