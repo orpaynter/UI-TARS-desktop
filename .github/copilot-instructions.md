@@ -509,7 +509,7 @@ pnpm up -r
 # In packages/ directory
 mkdir packages/my-package
 cd packages/my-package
-npm init -y  # or manually create package.json
+pnpm init -y  # or manually create package.json
 
 # Update pnpm-workspace.yaml if needed
 # Add to dependencies in consuming packages
