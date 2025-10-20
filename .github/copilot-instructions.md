@@ -70,7 +70,7 @@ pnpm --filter ui-tars-desktop build  # make installers
    - Packaging native modules: update `apps/ui-tars/scripts/getExternalPkgs.ts` and `forge.config.ts`.
 
 ## Testing tips
-- Playwright: tests in `apps/ui-tars/e2e`, serial worker, 60s timeout, trace on first retry. Run `build:e2e` before `test:e2e` if packaging is required.
+ - Playwright: tests in `apps/ui-tars/e2e`. Use serial worker, 60s timeout, trace on first retry. Run `build:e2e` before `test:e2e` when packaging is required.
 - Vitest: Node env with TS paths; coverage via `pnpm coverage`.
 
 ## Pitfalls to avoid
