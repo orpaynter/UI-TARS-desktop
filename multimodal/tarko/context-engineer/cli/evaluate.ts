@@ -71,8 +71,9 @@ function main() {
       }
       try {
         prompt = readFileSync(filePath, 'utf-8');
-      } catch (error: any) {
-        console.error(`Error reading file: ${error.message}`);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(`Error reading file: ${errorMessage}`);
         process.exit(1);
       }
     } else if (!arg.startsWith('--')) {

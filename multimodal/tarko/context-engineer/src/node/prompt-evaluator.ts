@@ -9,6 +9,13 @@
  */
 
 // ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const MIN_SCORE_THRESHOLD = 6; // Score below which recommendations are generated
+const MIN_TECHNIQUES_THRESHOLD = 2; // Minimum techniques for a well-rounded prompt
+
+// ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
 
@@ -601,8 +608,10 @@ export class UltimatePromptEvaluator {
 
   private calculateComplexity(prompt: string): number {
     // Simple complexity metric based on various factors
-    const words = prompt.split(/\s+/).length;
-    const sentences = prompt.split(/[.!?]+/).length;
+    const words = prompt.split(/\s+/).filter((w) => w.length > 0).length;
+    if (words === 0) return 0; // Handle empty prompts
+
+    const sentences = prompt.split(/[.!?]+/).filter((s) => s.trim().length > 0).length;
     const avgWordLength = prompt.replace(/\s/g, '').length / words;
     return (words / 100) * (avgWordLength / 5) * (sentences / 10);
   }
@@ -680,6 +689,9 @@ export class UltimatePromptEvaluator {
     let score = 5; // Base score
 
     // Criterion-specific evaluation logic
+    // NOTE: This uses simple keyword matching for efficiency. For production use,
+    // consider implementing more sophisticated pattern matching or semantic analysis
+    // using NLP techniques or LLM-powered evaluation for better accuracy.
     switch (criterion.name) {
       case 'Task Definition':
         score = lowerPrompt.includes('task') || lowerPrompt.includes('objective') ? 8 : 5;
@@ -739,13 +751,13 @@ export class UltimatePromptEvaluator {
 
     // Add score-based recommendations
     Object.entries(scores).forEach(([category, score]) => {
-      if (score < 6) {
+      if (score < MIN_SCORE_THRESHOLD) {
         recommendations.push(`Improve ${category}: Current score ${score.toFixed(1)}/10`);
       }
     });
 
     // Add technique suggestions
-    if (techniques.length < 2) {
+    if (techniques.length < MIN_TECHNIQUES_THRESHOLD) {
       recommendations.push(
         'Consider incorporating additional prompting techniques for better results',
       );
