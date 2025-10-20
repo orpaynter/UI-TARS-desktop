@@ -44,7 +44,9 @@
     "build": "rslib build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "pnpm build",
+    "upe:eval": "tsx cli/evaluate.ts eval",
+    "upe:optimize": "tsx cli/evaluate.ts optimize"
   },
   "dependencies": {
     "@tarko/shared-media-utils": "workspace:*"
