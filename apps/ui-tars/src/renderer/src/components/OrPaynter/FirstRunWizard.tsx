@@ -160,7 +160,7 @@ export const FirstRunWizard: React.FC<FirstRunWizardProps> = ({ onComplete, onSk
                   <Label className="text-white">Environment</Label>
                   <RadioGroup
                     value={config.environment}
-                    onValueChange={(value) => setConfig({ ...config, environment: value as any })}
+                    onValueChange={(value) => setConfig({ ...config, environment: value as 'development' | 'staging' | 'production' })}
                   >
                     <div className="flex space-x-6 mt-2">
                       <div className="flex items-center space-x-2">

@@ -10,6 +10,7 @@ import { agentRoute } from './agent';
 import { browserRoute } from './browser';
 import { remoteResourceRouter } from './remoteResource';
 import { settingRoute } from './setting';
+import { orpaynerRoute } from './orpaynter';
 
 const t = initIpc.create();
 
@@ -21,6 +22,7 @@ export const ipcRoutes = t.router({
   ...remoteResourceRouter,
   ...browserRoute,
   ...settingRoute,
+  ...orpaynerRoute,
 });
 export type Router = typeof ipcRoutes;
 

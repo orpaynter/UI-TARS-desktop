@@ -26,7 +26,7 @@
     "build": "shx rm -rf dist && rslib build && shx chmod +x dist/*.{js,cjs}",
     "dev": "tsx watch src/index.ts",
     "typecheck": "tsc --noEmit",
-    "prepare": "npm run build"
+    "prepare": "pnpm run build"
   },
   "dependencies": {
     "@agent-infra/logger": "workspace:*",
