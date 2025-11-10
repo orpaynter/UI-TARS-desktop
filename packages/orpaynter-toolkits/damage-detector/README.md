@@ -46,6 +46,8 @@ Track repairs over time:
 
 ```bash
 npm install @orpaynter/toolkit-damage-detector
+# or
+pnpm add @orpaynter/toolkit-damage-detector
 ```
 
 ## Quick Start

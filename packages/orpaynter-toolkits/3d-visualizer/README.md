@@ -10,6 +10,14 @@
 4. **AR Mode** - See new roof on actual home via phone
 5. **Before/After Slider** - Interactive comparison
 
+## Installation
+
+```bash
+npm install @orpaynter/toolkit-3d-visualizer
+# or
+pnpm add @orpaynter/toolkit-3d-visualizer
+```
+
 ## Quick Start
 
 ```typescript

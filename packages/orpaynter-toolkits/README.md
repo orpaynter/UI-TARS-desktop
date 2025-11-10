@@ -130,6 +130,13 @@ npm install @orpaynter/toolkit-ai-estimator \
             @orpaynter/toolkit-weather-intel \
             @orpaynter/toolkit-3d-visualizer \
             @orpaynter/toolkit-contractor-copilot
+
+# or with pnpm
+pnpm add @orpaynter/toolkit-ai-estimator \
+         @orpaynter/toolkit-damage-detector \
+         @orpaynter/toolkit-weather-intel \
+         @orpaynter/toolkit-3d-visualizer \
+         @orpaynter/toolkit-contractor-copilot
 ```
 
 ## 🚀 Quick Start

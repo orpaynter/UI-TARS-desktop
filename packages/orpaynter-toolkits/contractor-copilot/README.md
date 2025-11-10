@@ -10,6 +10,14 @@
 4. **Performance Analytics** - Real-time business insights
 5. **Churn Prevention** - Predict & prevent customer loss
 
+## Installation
+
+```bash
+npm install @orpaynter/toolkit-contractor-copilot
+# or
+pnpm add @orpaynter/toolkit-contractor-copilot
+```
+
 ## Quick Start
 
 ```typescript

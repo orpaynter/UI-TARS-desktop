@@ -10,6 +10,14 @@
 4. **Climate Risk Analysis** - Long-term risk assessment by location
 5. **Insurance Integration** - Weather-based premium adjustments
 
+## Installation
+
+```bash
+npm install @orpaynter/toolkit-weather-intel
+# or
+pnpm add @orpaynter/toolkit-weather-intel
+```
+
 ## Quick Start
 
 ```typescript

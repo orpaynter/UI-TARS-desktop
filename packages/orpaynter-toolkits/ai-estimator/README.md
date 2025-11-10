@@ -43,6 +43,8 @@ Generate stunning PDF proposals:
 
 ```bash
 npm install @orpaynter/toolkit-ai-estimator
+# or
+pnpm add @orpaynter/toolkit-ai-estimator
 ```
 
 ## Quick Start
