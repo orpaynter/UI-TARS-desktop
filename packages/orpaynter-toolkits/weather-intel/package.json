@@ -1,0 +1,20 @@
+{
+  "name": "@orpaynter/toolkit-weather-intel",
+  "version": "1.0.0",
+  "description": "Weather Intelligence Hub with predictive storm tracking, work window optimization, and climate risk analysis",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "keywords": ["weather", "storms", "prediction", "roofing", "orpaynter", "toolkit"],
+  "author": "OrPaynter",
+  "license": "MIT",
+  "dependencies": {
+    "ofetch": "^1.3.4"
+  },
+  "devDependencies": {
+    "@rslib/core": "0.5.3",
+    "typescript": "^5.7.3",
+    "@types/node": "^22"
+  }
+}
