@@ -115,8 +115,10 @@ export const toVlmModelFormat = ({
         if (hasInstructionMarker) {
           const slicedPrefix = systemPrompt.slice(0, insertIndex);
           const slicedSuffix = systemPrompt.slice(insertIndex);
-          // Optimize: Use template literals for better performance
-          newValue = `${slicedPrefix}${slicedPrefix.endsWith('\n') ? '' : '\n'}${history}\n${slicedSuffix}${slicedSuffix.endsWith('\n') ? '' : '\n'}${conv.value}`;
+          // Optimize: Use template literals with clearer logic
+          const prefixNewline = slicedPrefix.endsWith('\n') ? '' : '\n';
+          const suffixNewline = slicedSuffix.endsWith('\n') ? '' : '\n';
+          newValue = `${slicedPrefix}${prefixNewline}${history}\n${slicedSuffix}${suffixNewline}${conv.value}`;
         } else {
           newValue = `${systemPrompt}\n${history}\n${USER_INSTRUCTION_MARKER}\n${conv.value}`;
         }
@@ -228,8 +230,8 @@ export async function preprocessResizeImage(
 function formatHistoryMessages(messages: Message[]): string {
   const lastMessages = messages.slice(-30);
 
-  // Optimize: Avoid intermediate array creation by using join with callback
-  // This is more memory efficient for large message arrays
+  // Optimize: Chain map and join for cleaner code
+  // The intermediate array from map is necessary but join is efficient
   const lines = lastMessages
     .map((msg) => {
       const role = msg.from === 'human' ? 'human' : 'assistant';

@@ -39,7 +39,7 @@ export async function markClickPosition(data: {
     }, []);
 
     if (!imageOverlays?.length) {
-      return '';
+      return data.base64;
     }
 
     const result = await sharp(imageBuffer).composite(imageOverlays).toBuffer();
@@ -47,7 +47,7 @@ export async function markClickPosition(data: {
     return result.toString('base64');
   } catch (error) {
     logger.error('图片处理出错:', error);
-    // return origin base64
-    return '';
+    // return origin base64 on error
+    return data.base64;
   }
 }
