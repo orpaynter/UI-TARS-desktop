@@ -24,18 +24,19 @@ export async function markClickPosition(data: {
       predictions: data.parsed,
       screenshotContext: data.screenshotContext,
     });
-    const imageOverlays: sharp.OverlayOptions[] = overlays
-      .map((o) => {
-        if (o.yPos && o.xPos) {
-          return {
-            input: Buffer.from(o.svg),
-            top: o.yPos + o.offsetY,
-            left: o.xPos + o.offsetX,
-          };
-        }
-        return null;
-      })
-      .filter((overlay) => !!overlay);
+    // Optimize: Use reduce to avoid two iterations (map + filter)
+    const imageOverlays: sharp.OverlayOptions[] = overlays.reduce<
+      sharp.OverlayOptions[]
+    >((acc, o) => {
+      if (o.yPos && o.xPos) {
+        acc.push({
+          input: Buffer.from(o.svg),
+          top: o.yPos + o.offsetY,
+          left: o.xPos + o.offsetX,
+        });
+      }
+      return acc;
+    }, []);
 
     if (!imageOverlays?.length) {
       return '';

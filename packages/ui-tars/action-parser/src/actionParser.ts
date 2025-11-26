@@ -33,11 +33,14 @@ function smartResizeForV15(
   minPixels: number = MIN_PIXELS,
   maxPixels: number = MAX_PIXELS_V1_5,
 ): [number, number] | null {
-  if (Math.max(height, width) / Math.min(height, width) > maxRatio) {
+  // Optimize: Calculate max/min once instead of twice
+  const maxDim = Math.max(height, width);
+  const minDim = Math.min(height, width);
+  const aspectRatio = maxDim / minDim;
+  
+  if (aspectRatio > maxRatio) {
     console.error(
-      `absolute aspect ratio must be smaller than ${maxRatio}, got ${
-        Math.max(height, width) / Math.min(height, width)
-      }`,
+      `absolute aspect ratio must be smaller than ${maxRatio}, got ${aspectRatio}`,
     );
     return null;
   }
@@ -45,11 +48,14 @@ function smartResizeForV15(
   let wBar = Math.max(factor, roundByFactor(width, factor));
   let hBar = Math.max(factor, roundByFactor(height, factor));
 
-  if (hBar * wBar > maxPixels) {
+  // Optimize: Calculate product once
+  const currentPixels = hBar * wBar;
+  
+  if (currentPixels > maxPixels) {
     const beta = Math.sqrt((height * width) / maxPixels);
     hBar = floorByFactor(height / beta, factor);
     wBar = floorByFactor(width / beta, factor);
-  } else if (hBar * wBar < minPixels) {
+  } else if (currentPixels < minPixels) {
     const beta = Math.sqrt(minPixels / (height * width));
     hBar = ceilByFactor(height * beta, factor);
     wBar = ceilByFactor(width * beta, factor);
