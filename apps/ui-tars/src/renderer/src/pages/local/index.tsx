@@ -118,9 +118,11 @@ const LocalOperator = () => {
   ]);
 
   useEffect(() => {
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       containerRef.current?.scrollIntoView(false);
     }, 100);
+    
+    return () => clearTimeout(timeoutId);
   }, [messages, thinking, errorMsg]);
 
   const handleSelect = async (suggestion: string) => {
@@ -149,11 +151,11 @@ const LocalOperator = () => {
         from: 'new',
       },
     });
-  }, []);
+  }, [state.operator, createSession, navigate]);
 
   const onBack = useCallback(async () => {
     navigate('/');
-  }, []);
+  }, [navigate]);
 
   const handleNewChat = useCallback(() => {
     if (needsConfirm) {
@@ -162,7 +164,7 @@ const LocalOperator = () => {
     } else {
       onNewChat();
     }
-  }, [needsConfirm]);
+  }, [needsConfirm, onNewChat]);
 
   const handleBack = useCallback(() => {
     if (needsConfirm) {
@@ -171,7 +173,7 @@ const LocalOperator = () => {
     } else {
       onBack();
     }
-  }, [needsConfirm]);
+  }, [needsConfirm, onBack]);
 
   const onConfirm = useCallback(async () => {
     await api.stopRun();
