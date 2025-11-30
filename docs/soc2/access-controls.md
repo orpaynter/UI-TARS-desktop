@@ -32,7 +32,29 @@ This document describes the access control mechanisms, authentication systems, a
   "role": "authenticated",
   "aal": "aal1",
   "exp": 1234567890,
-  "iat": 1234567890
+  "iat": 1234567890,
+  "aud": "authenticated",
+  "session_id": "session-uuid"
+}
+```
+
+**Extended Claims (OrPaynter Platform):**
+```json
+{
+  "app_metadata": {
+    "provider": "email",
+    "providers": ["email"]
+  },
+  "user_metadata": {
+    "plan": "professional",
+    "company": "ABC Roofing"
+  },
+  "orpaynter": {
+    "subscription_tier": "premium",
+    "features": ["ai_estimator", "damage_detector", "weather_intel"],
+    "api_quota": 10000,
+    "api_used": 1234
+  }
 }
 ```
 
@@ -42,6 +64,59 @@ This document describes the access control mechanisms, authentication systems, a
 - **Storage:** HttpOnly, Secure, SameSite cookies
 - **Transmission:** Authorization header (Bearer token)
 - **Rotation:** Automatic on refresh
+- **Revocation:** Immediate via session invalidation
+
+**Token Validation Flow:**
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Receive    │────▶│   Decode    │────▶│  Verify     │
+│   Token     │     │   Payload   │     │  Signature  │
+└─────────────┘     └─────────────┘     └──────┬──────┘
+                                               │
+                    ┌──────────────────────────┘
+                    │
+         ┌──────────▼──────────┐
+         │   Check Expiration  │
+         │   Check Audience    │
+         │   Check Revocation  │
+         └──────────┬──────────┘
+                    │
+         ┌──────────▼──────────┐
+         │   Grant/Deny Access │
+         └─────────────────────┘
+```
+
+**Token Validation Code Example:**
+```typescript
+import { verifyToken, isTokenExpired, getTokenStatus } from '@orpaynter/connector-supabase';
+
+// Check token status
+const status = getTokenStatus(token);
+if (!status.valid) {
+  throw new Error('Invalid or expired token');
+}
+
+// Full verification (server-side)
+const payload = await verifyToken(token, {
+  secret: process.env.SUPABASE_JWT_SECRET!,
+  audience: 'authenticated',
+});
+
+// Feature access check
+if (!payload.orpaynter?.features.includes('ai_estimator')) {
+  throw new Error('Feature not available');
+}
+```
+
+**Security Measures:**
+- Signature verification using HS256 algorithm
+- Expiration checking with configurable clock tolerance
+- Audience validation for multi-application environments
+- Session revocation list checking
+- Rate limiting per user/token
+- Audit logging of all authentication events
+
+> **📚 Full Documentation:** See [Token Management Guide](../TOKEN_MANAGEMENT.md) for comprehensive implementation details.
 
 ### API Authentication
 

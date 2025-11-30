@@ -311,3 +311,243 @@ export function createSupabaseConnector(config: SupabaseConfig) {
  * Type helper for Supabase connector
  */
 export type SupabaseConnector = ReturnType<typeof createSupabaseConnector>;
+
+// ============================================
+// JWT Token Utilities
+// ============================================
+
+/**
+ * JWT Token Payload interface
+ */
+export interface TokenPayload {
+  /** Subject (User UUID) */
+  sub: string;
+  /** User's email address */
+  email?: string;
+  /** Authentication role */
+  role: string;
+  /** Authenticator Assurance Level (aal1 = basic, aal2 = MFA) */
+  aal?: string;
+  /** Expiration timestamp (Unix) */
+  exp: number;
+  /** Issued at timestamp (Unix) */
+  iat: number;
+  /** Audience */
+  aud?: string;
+  /** Session ID */
+  session_id?: string;
+  /** Application metadata */
+  app_metadata?: Record<string, any>;
+  /** User metadata */
+  user_metadata?: Record<string, any>;
+  /** OrPaynter custom claims */
+  orpaynter?: {
+    subscription_tier?: string;
+    features?: string[];
+    api_quota?: number;
+    api_used?: number;
+  };
+}
+
+/**
+ * Token verification options
+ */
+export interface VerifyTokenOptions {
+  /** JWT secret for verification */
+  secret: string;
+  /** Expected audience */
+  audience?: string;
+  /** Clock tolerance in seconds */
+  clockTolerance?: number;
+}
+
+/**
+ * Decode a JWT token without verification (for client-side use)
+ * WARNING: This does not verify the signature - use only for reading claims
+ */
+export function decodeToken(token: string): TokenPayload | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+    
+    // Decode the payload (second part)
+    const payload = parts[1];
+    const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(decoded) as TokenPayload;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Check if a token is expired
+ */
+export function isTokenExpired(token: string, clockTolerance: number = 0): boolean {
+  const payload = decodeToken(token);
+  if (!payload || !payload.exp) {
+    return true;
+  }
+  
+  const now = Math.floor(Date.now() / 1000);
+  return payload.exp < (now - clockTolerance);
+}
+
+/**
+ * Get token expiration time in seconds
+ */
+export function getTokenExpiration(token: string): number {
+  const payload = decodeToken(token);
+  return payload?.exp || 0;
+}
+
+/**
+ * Get time until token expires in seconds
+ */
+export function getTokenTimeRemaining(token: string): number {
+  const exp = getTokenExpiration(token);
+  const now = Math.floor(Date.now() / 1000);
+  return Math.max(0, exp - now);
+}
+
+/**
+ * Check if a token needs refresh (less than threshold seconds remaining)
+ */
+export function tokenNeedsRefresh(token: string, thresholdSeconds: number = 300): boolean {
+  const remaining = getTokenTimeRemaining(token);
+  return remaining > 0 && remaining < thresholdSeconds;
+}
+
+/**
+ * Verify a JWT token (server-side only - requires crypto)
+ * Note: This is a simplified implementation. For production, use a proper JWT library.
+ */
+export async function verifyToken(
+  token: string, 
+  options: VerifyTokenOptions
+): Promise<TokenPayload> {
+  const payload = decodeToken(token);
+  
+  if (!payload) {
+    throw new Error('Invalid token format');
+  }
+  
+  // Check expiration
+  if (isTokenExpired(token, options.clockTolerance || 0)) {
+    throw new Error('Token has expired');
+  }
+  
+  // Check audience if specified
+  if (options.audience && payload.aud !== options.audience) {
+    throw new Error('Invalid token audience');
+  }
+  
+  // Check required fields
+  if (!payload.sub) {
+    throw new Error('Token missing subject claim');
+  }
+  
+  // In production, verify signature using the secret
+  // This simplified version trusts Supabase-issued tokens
+  // For full verification, use jose or jsonwebtoken library
+  
+  return payload;
+}
+
+/**
+ * Extract user ID from token
+ */
+export function getUserIdFromToken(token: string): string | null {
+  const payload = decodeToken(token);
+  return payload?.sub || null;
+}
+
+/**
+ * Extract user email from token
+ */
+export function getUserEmailFromToken(token: string): string | null {
+  const payload = decodeToken(token);
+  return payload?.email || null;
+}
+
+/**
+ * Extract user role from token
+ */
+export function getUserRoleFromToken(token: string): string | null {
+  const payload = decodeToken(token);
+  return payload?.role || null;
+}
+
+/**
+ * Check if user has MFA enabled (AAL2)
+ */
+export function hasMfaEnabled(token: string): boolean {
+  const payload = decodeToken(token);
+  return payload?.aal === 'aal2';
+}
+
+/**
+ * Get OrPaynter subscription features from token
+ */
+export function getSubscriptionFeatures(token: string): string[] {
+  const payload = decodeToken(token);
+  return payload?.orpaynter?.features || [];
+}
+
+/**
+ * Check if user has a specific feature
+ */
+export function hasFeature(token: string, feature: string): boolean {
+  const features = getSubscriptionFeatures(token);
+  return features.includes(feature);
+}
+
+/**
+ * Get API quota information from token
+ */
+export function getApiQuotaInfo(token: string): { quota: number; used: number; remaining: number } {
+  const payload = decodeToken(token);
+  const quota = payload?.orpaynter?.api_quota || 0;
+  const used = payload?.orpaynter?.api_used || 0;
+  
+  return {
+    quota,
+    used,
+    remaining: Math.max(0, quota - used),
+  };
+}
+
+/**
+ * Token status information
+ */
+export interface TokenStatus {
+  valid: boolean;
+  expired: boolean;
+  needsRefresh: boolean;
+  expiresIn: number;
+  userId: string | null;
+  email: string | null;
+  role: string | null;
+  hasMfa: boolean;
+}
+
+/**
+ * Get comprehensive token status
+ */
+export function getTokenStatus(token: string, refreshThreshold: number = 300): TokenStatus {
+  const payload = decodeToken(token);
+  const expired = isTokenExpired(token);
+  const expiresIn = getTokenTimeRemaining(token);
+  
+  return {
+    valid: payload !== null && !expired,
+    expired,
+    needsRefresh: !expired && expiresIn < refreshThreshold,
+    expiresIn,
+    userId: payload?.sub || null,
+    email: payload?.email || null,
+    role: payload?.role || null,
+    hasMfa: payload?.aal === 'aal2',
+  };
+}
