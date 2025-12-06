@@ -6,7 +6,7 @@
  * real-time subscriptions, and storage.
  */
 
-import { createClient, SupabaseClient, User, Session, AuthError } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
 
 /**
  * Configuration options for Supabase connector
