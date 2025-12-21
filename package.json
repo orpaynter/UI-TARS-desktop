@@ -5,8 +5,7 @@
   "packageManager": "pnpm@9.10.0",
   "description": "A GUI Agent application based on UI-TARS(Vision-Lanuage Model) that allows you to control your computer using natural language.",
   "main": "./dist/main/main.js",
-  "author": "ByteDance",
-  "scripts": {
+  "author": "Oliver Paynter / OrPaynter, Inc.",  "scripts": {
     "commit": "oco",
     "bootstrap": "pnpm i",
     "dev:ui-tars": "turbo run ui-tars-desktop#dev",
