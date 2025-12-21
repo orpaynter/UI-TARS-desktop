@@ -2,7 +2,7 @@
 
 ## Overview
 
-**UI-TARS Desktop** offers granular control over application behavior through its settings system. This document provides comprehensive guidance on configuration options, preset management, and operational best practices.
+**Trinity-AI Desktop** offers granular control over application behavior through its settings system. This document provides comprehensive guidance on configuration options, preset management, and operational best practices.
 
 <p align="center">
   <img src="../apps/ui-tars/images/settings/setting.png" alt="Settings Interface Overview" width="650">
@@ -41,7 +41,7 @@ Select the backend VLM provider to ensure more accurate execution of GUI actions
 
 Specify the base url of the VLM that needs to be requested.
 
-For UI TARS deployment, please check out [Deployment](./deployment.md).
+For Trinity-AI deployment, please check out [Deployment](./deployment.md).
 
 | Property     | Details  |
 | ------------ | -------- |
@@ -244,7 +244,7 @@ The response should return a JSON object containing a publicly accessible URL wh
 
 #### UTIO Base URL
 
-**UTIO** (_UI-TARS Insights and Observation_) is a data collection mechanism for insights into **UI-TARS Desktop** (_Introduced at [#60](https://github.com/bytedance/UI-TARS-desktop/pull/60)_). The design of UTIO is also related to sharing. The overall process is as follows:
+**UTIO** (_UI-TARS Insights and Observation_) is a data collection mechanism for insights into **Trinity-AI Desktop** (_Introduced at [#60](https://github.com/bytedance/UI-TARS-desktop/pull/60)_). The design of UTIO is also related to sharing. The overall process is as follows:
 
 <p align="center">
   <img src="../apps/ui-tars/images/utio-flow.png" alt="UTIO Flow" width="800">
