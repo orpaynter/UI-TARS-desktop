@@ -1,0 +1,31 @@
+{
+  "name": "@orpaynter/connector-huggingface",
+  "version": "1.0.0",
+  "description": "Hugging Face connector for OrPaynter - AI model inference and embeddings",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "orpaynter",
+    "huggingface",
+    "ai",
+    "ml",
+    "connector",
+    "inference",
+    "embeddings"
+  ],
+  "author": "OrPaynter",
+  "license": "MIT",
+  "dependencies": {
+    "@huggingface/inference": "^2.6.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
