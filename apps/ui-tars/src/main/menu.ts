@@ -57,17 +57,17 @@ export default class MenuBuilder {
 
   buildDarwinTemplate(): MenuItemConstructorOptions[] {
     const subMenuAbout: DarwinMenuItemConstructorOptions = {
-      label: 'UI-TARS Desktop',
+      label: 'Trinity-AI Desktop',
       submenu: [
         {
-          label: 'About UI-TARS Desktop',
+          label: 'About Trinity-AI Desktop',
           selector: 'orderFrontStandardAboutPanel:',
         },
         { type: 'separator' },
         { label: 'Services', submenu: [] },
         { type: 'separator' },
         {
-          label: 'Hide UI-TARS Desktop',
+          label: 'Hide Trinity-AI Desktop',
           accelerator: 'Command+H',
           selector: 'hide:',
         },
