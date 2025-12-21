@@ -2,6 +2,9 @@ name: Fix pnpm lockfile
 
 on:
   workflow_dispatch:
+    push:
+        branches:
+              - rebrand-orpaynter-agent-desktop
 
 jobs:
   fix-lockfile:
