@@ -1,5 +1,7 @@
 # White Label Summary: UI-TARS → Trinity-AI
 
+Branch: `orpaynter/trinity_ai`
+
 This document summarizes the white labeling changes made to rebrand the desktop application from "UI-TARS" to "Trinity-AI".
 
 ## Overview
