@@ -443,8 +443,8 @@ SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_KEY=your_service_key
 
 # Stripe
-STRIPE_PUBLIC_KEY=pk_test_...
-STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLIC_KEY=pk_test_YOUR_PUBLIC_KEY_HERE
+STRIPE_SECRET_KEY=sk_test_YOUR_SECRET_KEY_HERE
 
 # Qdrant
 QDRANT_URL=https://your-qdrant-instance.com
