@@ -4,6 +4,8 @@
 
 <br/>
 
+> **Note:** This is a white-labeled fork of [UI-TARS-desktop](https://github.com/bytedance/UI-TARS-desktop). The desktop application has been rebranded as "Trinity-AI Desktop" while maintaining the core functionality and technology from the original UI-TARS project.
+
 ## Introduction
 
 English | [简体中文](./README.zh-CN.md)
@@ -234,13 +236,13 @@ Visit the comprehensive [Quick Start](https://agent-tars.com/guide/get-started/q
 <br/>
 <br/>
 
-## UI-TARS Desktop
+## Trinity-AI Desktop
 
 <p align="center">
-  <img alt="UI-TARS" width="260" src="./apps/ui-tars/resources/icon.png">
+  <img alt="Trinity-AI" width="260" src="./apps/ui-tars/resources/icon.png">
 </p>
 
-UI-TARS Desktop is a native GUI agent for your local computer, driven by [UI-TARS](https://github.com/bytedance/UI-TARS) and Seed-1.5-VL/1.6 series models.
+Trinity-AI Desktop is a white-labeled version of UI-TARS Desktop, a native GUI agent for your local computer, driven by [UI-TARS](https://github.com/bytedance/UI-TARS) and Seed-1.5-VL/1.6 series models.
 
 <div align="center">
 <p>

@@ -2,7 +2,7 @@
 
 We're excited to announce the support for UI-TARS-1.5! 🎉🎉🎉
 
-The previous version of UI-TARS Desktop version 0.0.8 will be upgraded to a new Desktop App 0.1.0 with support for both Computer and Browser operator.
+The previous version of Trinity-AI Desktop version 0.0.8 will be upgraded to a new Desktop App 0.1.0 with support for both Computer and Browser operator.
 
 <br />
 
@@ -16,9 +16,9 @@ UI-TARS-desktop is currently only available for single monitor setup. Multi-moni
 
 ## Download
 
-You can download the [latest release](https://github.com/bytedance/UI-TARS-desktop/releases/latest) version of UI-TARS Desktop from our releases page.
+You can download the [latest release](https://github.com/bytedance/UI-TARS-desktop/releases/latest) version of Trinity-AI Desktop from our releases page.
 
-> **Note**: If you have [Homebrew](https://brew.sh/) installed, you can install UI-TARS Desktop by running the following command:
+> **Note**: If you have [Homebrew](https://brew.sh/) installed, you can install Trinity-AI Desktop by running the following command:
 > ```bash
 > brew install --cask ui-tars
 > ```
@@ -29,15 +29,15 @@ You can download the [latest release](https://github.com/bytedance/UI-TARS-deskt
 
 ### MacOS
 
-1. Drag **UI TARS** application into the **Applications** folder
+1. Drag **Trinity-AI** application into the **Applications** folder
   <img src="../apps/ui-tars/images/mac_install.png" width="500px" />
 
-2. Enable the permission of **UI TARS** in MacOS:
+2. Enable the permission of **Trinity-AI** in MacOS:
   - System Settings -> Privacy & Security -> **Accessibility**
   - System Settings -> Privacy & Security -> **Screen Recording**
   <img src="../apps/ui-tars/images/mac_permission.png" width="500px" />
 
-3. Then open **UI TARS** application, you can see the following interface:
+3. Then open **Trinity-AI** application, you can see the following interface:
   <img src="../apps/ui-tars/images/mac_app.png" width="500px" />
 
 
@@ -72,7 +72,7 @@ Deployment Links (in Chinese): [Computer Use Agent](https://console.volcengine.c
 
 3. Refer to [README_deploy.md](https://github.com/bytedance/UI-TARS/blob/main/README_deploy.md) for detailed deployment instructions to obtain the **Base URL**, **API Key**, and **Model Name**.
 
-4. Open the UI-TARS Desktop App [Settings]((./setting.md)) and configure:
+4. Open the Trinity-AI Desktop App [Settings]((./setting.md)) and configure:
 
 ```yaml
 Language: en
@@ -122,7 +122,7 @@ VLM Model Name: xxx
 5. In STEP 2, authenticate your user info and switch to the OpenAI SDK tab to obtain **Base Url** and **Model name**：
   <img src="../apps/ui-tars/images/quick_start/volcengine_api_info.png" width="500px" />
 
-6. Open the UI-TARS Desktop App [Settings]((./setting.md)) and configure:
+6. Open the Trinity-AI Desktop App [Settings]((./setting.md)) and configure:
 
 ```yaml
 Language: cn

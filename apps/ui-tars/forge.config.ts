@@ -152,7 +152,7 @@ console.log('ignorePattern', ignorePattern);
 
 const config: ForgeConfig = {
   packagerConfig: {
-    name: 'UI TARS',
+    name: 'Trinity AI',
     icon: 'resources/icon',
     extraResource: ['./resources/app-update.yml'],
     asar: {
@@ -166,7 +166,7 @@ const config: ForgeConfig = {
         ? noopAfterCopy
         : setLanguages([...keepLanguages.values()]),
     ],
-    executableName: 'UI-TARS',
+    executableName: 'Trinity-AI',
     ...(enableOsxSign
       ? {
           osxSign: {
@@ -199,7 +199,7 @@ const config: ForgeConfig = {
     new MakerZIP({}, ['darwin']),
     new MakerSquirrel({
       // CamelCase version without spaces
-      name: 'UiTars',
+      name: 'TrinityAi',
       setupIcon: 'resources/icon.ico',
     }),
     // https://github.com/electron/forge/issues/3712
