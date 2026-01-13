@@ -4,7 +4,7 @@
  */
 import React, { useMemo, useState } from 'react';
 
-// OrPaynter Dark Theme Tokens
+// OrPaynter AI Dark Theme Tokens
 const colors = {
   bg: '#0D1117',
   bg2: '#161B22',
@@ -53,12 +53,12 @@ export default function FirstRunWizard({ onComplete, onCancel, defaultKeys }: Pr
 
   const steps = useMemo(() => [
     {
-      title: 'Welcome to OrPaynter',
+      title: 'Welcome to OrPaynter AI',
       desc: 'Let\'s configure your desktop command center with real API credentials.'
     },
     {
       title: 'Sign in / Link Account',
-      desc: 'Authenticate with your OrPaynter account.'
+      desc: 'Authenticate with your OrPaynter AI account.'
     },
     {
       title: 'Core API Keys',
@@ -110,7 +110,7 @@ export default function FirstRunWizard({ onComplete, onCancel, defaultKeys }: Pr
                 style={{ background: colors.live, color: '#fff' }}
                 onClick={() => alert('TODO: Wire OAuth/Token modal')}
               >
-                Sign in with OrPaynter
+                Sign in with OrPaynter AI
               </button>
               <button
                 className="px-4 py-2 rounded-2xl font-medium shadow border"

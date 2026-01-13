@@ -1,6 +1,6 @@
-# OrPaynter MCP Integration - Implementation Summary
+# OrPaynter AI MCP Integration - Implementation Summary
 
-This document summarizes the implementation of the OrPaynter MCP integration, First-Run Wizard, and Playwright E2E tests.
+This document summarizes the implementation of the OrPaynter AI MCP integration, First-Run Wizard, and Playwright E2E tests.
 
 ## What Was Implemented
 
@@ -27,7 +27,7 @@ Both MCP server packages were already present and fully functional:
 
 **Features:**
 - 4-step wizard flow: Welcome → Sign in → API Keys → Finish
-- OrPaynter dark theme with custom color tokens
+- OrPaynter AI dark theme with custom color tokens
 - Production-ready with required API key validation
 - API key input fields for 7 services:
   - OpenAI API Key (required)
@@ -78,7 +78,7 @@ pnpm --filter ui-tars-desktop test:e2e
 
 **Variables Added:**
 ```bash
-# OrPaynter services
+# OrPaynter AI services
 ORPAYNTER_API_BASE=
 ORPAYNTER_TOKEN=
 
@@ -170,7 +170,7 @@ In `FirstRunWizard.tsx`, replace these placeholder alerts:
 ```tsx
 // Line ~115
 <button onClick={() => alert('TODO: Wire OAuth/Token modal')}>
-  Sign in with OrPaynter
+  Sign in with OrPaynter AI
 </button>
 
 // Line ~122

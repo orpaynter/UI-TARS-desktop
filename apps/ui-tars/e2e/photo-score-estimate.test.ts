@@ -48,7 +48,7 @@ test.afterAll(async () => {
   await electronApp?.close();
 });
 
-test.describe('OrPaynter Workflow', () => {
+test.describe('OrPaynter AI Workflow', () => {
   test.skip('Photo → Score → Estimate (Production)', async () => {
     test.setTimeout(60_000);
     

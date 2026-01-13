@@ -1,11 +1,11 @@
 # FirstRunWizard Component
 
-A multi-step wizard component for OrPaynter desktop application first-run setup.
+A multi-step wizard component for OrPaynter AI desktop application first-run setup.
 
 ## Features
 
 - **4-step wizard flow**: Welcome → Sign in → API Keys → Finish
-- **Dark theme**: Uses OrPaynter color tokens
+- **Dark theme**: Uses OrPaynter AI color tokens
 - **Production-ready**: Requires real API keys for production use
 - **API Key Management**: Configurable keys for OpenAI, Stripe, SendGrid, Twilio, Qdrant, and OpenWeather
 
@@ -66,13 +66,13 @@ These need to be wired to your actual authentication implementation:
 ```tsx
 // In FirstRunWizard.tsx, replace the alert() calls:
 <button onClick={() => alert('TODO: Wire OAuth/Token modal')}>
-  Sign in with OrPaynter
+  Sign in with OrPaynter AI
 </button>
 ```
 
 ## Styling
 
-The component uses inline styles with OrPaynter dark theme tokens:
+The component uses inline styles with OrPaynter AI dark theme tokens:
 - Background: `#0D1117`
 - Secondary background: `#161B22`
 - Accent: `#58A6FF`
