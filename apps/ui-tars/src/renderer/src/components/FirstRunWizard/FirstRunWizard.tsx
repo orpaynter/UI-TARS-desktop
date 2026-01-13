@@ -26,7 +26,7 @@ type Keys = {
 };
 
 type Props = {
-  onComplete: (keys: Keys & { demoMode: boolean }) => void;
+  onComplete: (keys: Keys) => void;
   onCancel?: () => void;
   defaultKeys?: Partial<Keys>;
 };
@@ -41,7 +41,6 @@ const Step = ({ title, desc, children }: { title: string; desc?: string; childre
 
 export default function FirstRunWizard({ onComplete, onCancel, defaultKeys }: Props) {
   const [page, setPage] = useState(0);
-  const [demoMode, setDemoMode] = useState(true);
   const [keys, setKeys] = useState<Keys>({
     OPENAI_API_KEY: defaultKeys?.OPENAI_API_KEY || '',
     STRIPE_KEY: defaultKeys?.STRIPE_KEY || '',
@@ -55,7 +54,7 @@ export default function FirstRunWizard({ onComplete, onCancel, defaultKeys }: Pr
   const steps = useMemo(() => [
     {
       title: 'Welcome to OrPaynter',
-      desc: 'Let\'s wire your desktop command center. You can use Demo Mode to get going instantly.'
+      desc: 'Let\'s configure your desktop command center with real API credentials.'
     },
     {
       title: 'Sign in / Link Account',
@@ -63,11 +62,7 @@ export default function FirstRunWizard({ onComplete, onCancel, defaultKeys }: Pr
     },
     {
       title: 'Core API Keys',
-      desc: 'Add your keys now (or later). Demo Mode works without them.'
-    },
-    {
-      title: 'Demo Mode',
-      desc: 'Great for investor demos and offline flow testing.'
+      desc: 'Configure your API keys for production use.'
     },
     {
       title: 'Finish',
@@ -77,11 +72,12 @@ export default function FirstRunWizard({ onComplete, onCancel, defaultKeys }: Pr
 
   const canNext = useMemo(() => {
     if (page === 2) {
-      // No hard validation; allow empty for Demo Mode
-      return true;
+      // Require at least ORPAYNTER_API_BASE and one API key
+      const hasRequiredKeys = keys.OPENAI_API_KEY && keys.OPENAI_API_KEY.trim().length > 0;
+      return hasRequiredKeys;
     }
     return true;
-  }, [page]);
+  }, [page, keys]);
 
   const next = () => setPage((p) => Math.min(p + 1, steps.length - 1));
   const back = () => setPage((p) => Math.max(p - 1, 0));
@@ -99,7 +95,7 @@ export default function FirstRunWizard({ onComplete, onCancel, defaultKeys }: Pr
         {page === 0 && (
           <Step title={steps[0].title} desc={steps[0].desc}>
             <ul className="list-disc ml-6 text-sm" style={{ color: colors.textMuted }}>
-              <li>Run in Demo Mode now and plug in keys later.</li>
+              <li>Configure production API keys for real-world usage.</li>
               <li>Desktop logs are opt-in and privacy-respecting.</li>
               <li>Setup takes ~60 seconds.</li>
             </ul>
@@ -159,23 +155,6 @@ export default function FirstRunWizard({ onComplete, onCancel, defaultKeys }: Pr
 
         {page === 3 && (
           <Step title={steps[3].title} desc={steps[3].desc}>
-            <div className="flex items-center justify-between rounded-2xl p-4" style={{ background: colors.bg }}>
-              <div>
-                <p className="font-medium" style={{ color: colors.text }}>Enable Demo Mode</p>
-                <p className="text-sm" style={{ color: colors.textMuted }}>Uses mock analysis/estimates from MCP servers.</p>
-              </div>
-              <button
-                data-testid="demo-mode-toggle"
-                className="px-4 py-2 rounded-2xl font-medium shadow border"
-                style={{ borderColor: colors.accent, color: demoMode ? '#fff' : colors.accent, background: demoMode ? colors.accent : 'transparent' }}
-                onClick={() => setDemoMode((v) => !v)}
-              >{demoMode ? 'On' : 'Off'}</button>
-            </div>
-          </Step>
-        )}
-
-        {page === 4 && (
-          <Step title={steps[4].title} desc={steps[4].desc}>
             <ul className="list-disc ml-6 text-sm" style={{ color: colors.textMuted }}>
               <li>AI analysis reachable: <span className="font-mono">mcp-orpaynter-ai</span></li>
               <li>Claims service reachable: <span className="font-mono">mcp-orpaynter-claims</span></li>
@@ -206,7 +185,7 @@ export default function FirstRunWizard({ onComplete, onCancel, defaultKeys }: Pr
               <button
                 className="px-4 py-2 rounded-xl font-semibold shadow"
                 style={{ background: colors.live, color: '#fff' }}
-                onClick={() => onComplete({ ...keys, demoMode })}
+                onClick={() => onComplete(keys)}
               >Finish</button>
             )}
           </div>

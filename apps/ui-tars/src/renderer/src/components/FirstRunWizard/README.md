@@ -4,9 +4,9 @@ A multi-step wizard component for OrPaynter desktop application first-run setup.
 
 ## Features
 
-- **5-step wizard flow**: Welcome → Sign in → API Keys → Demo Mode → Finish
+- **4-step wizard flow**: Welcome → Sign in → API Keys → Finish
 - **Dark theme**: Uses OrPaynter color tokens
-- **Demo Mode**: Allows running without API keys for testing
+- **Production-ready**: Requires real API keys for production use
 - **API Key Management**: Configurable keys for OpenAI, Stripe, SendGrid, Twilio, Qdrant, and OpenWeather
 
 ## Usage
@@ -18,7 +18,6 @@ function App() {
   const handleComplete = (data) => {
     console.log('Setup complete:', data);
     // data includes:
-    // - demoMode: boolean
     // - OPENAI_API_KEY?: string
     // - STRIPE_KEY?: string
     // - SENDGRID_KEY?: string
@@ -43,9 +42,9 @@ function App() {
 ## Props
 
 ### `onComplete` (required)
-- Type: `(keys: Keys & { demoMode: boolean }) => void`
+- Type: `(keys: Keys) => void`
 - Called when user completes the wizard
-- Receives all configured keys and the demo mode state
+- Receives all configured keys
 
 ### `onCancel` (optional)
 - Type: `() => void`
@@ -54,6 +53,10 @@ function App() {
 ### `defaultKeys` (optional)
 - Type: `Partial<Keys>`
 - Pre-populate API key fields with existing values
+
+## Validation
+
+The wizard requires at least the OpenAI API key to be configured before proceeding from the API Keys step. This ensures production-ready configuration.
 
 ## Integration Notes
 
@@ -66,11 +69,6 @@ These need to be wired to your actual authentication implementation:
   Sign in with OrPaynter
 </button>
 ```
-
-## Test IDs
-
-The wizard uses the following test IDs for E2E testing:
-- `demo-mode-toggle`: The Demo Mode on/off button
 
 ## Styling
 

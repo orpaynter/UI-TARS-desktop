@@ -49,19 +49,13 @@ test.afterAll(async () => {
 });
 
 test.describe('OrPaynter Workflow', () => {
-  test.skip('Photo → Score → Estimate (Demo Mode)', async () => {
+  test.skip('Photo → Score → Estimate (Production)', async () => {
     test.setTimeout(60_000);
     
     await page.waitForLoadState('domcontentloaded', { timeout: 0 });
 
     // NOTE: This test uses placeholder selectors as the actual UI elements
     // need to be implemented. Replace these data-testid selectors with your real ones.
-
-    // Enable Demo Mode (if the toggle is available)
-    const demoToggle = page.getByTestId('demo-mode-toggle');
-    if (await demoToggle.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await demoToggle.click();
-    }
 
     // Upload a sample photo
     const uploadButton = page.getByTestId('upload-photo');

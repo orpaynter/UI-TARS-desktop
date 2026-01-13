@@ -1,6 +1,6 @@
 # OrPaynter MCP Integration - Implementation Summary
 
-This document summarizes the implementation of the OrPaynter MCP stubs, First-Run Wizard, and Playwright E2E tests as specified in the drop-in pack.
+This document summarizes the implementation of the OrPaynter MCP integration, First-Run Wizard, and Playwright E2E tests.
 
 ## What Was Implemented
 
@@ -12,7 +12,6 @@ Both MCP server packages were already present and fully functional:
 - **Tools:**
   - `analyzeRoofImage`: Analyzes roof images and returns severity scores and damage types
   - `materialEstimate`: Estimates material quantities based on severity and roof area
-- **Mock Mode:** Returns mock data when `ORPAYNTER_API_BASE` is empty
 - **Build Status:** ✓ Builds successfully
 
 #### `packages/agent-infra/mcp-servers/orpaynter-claims`
@@ -20,7 +19,6 @@ Both MCP server packages were already present and fully functional:
   - `createClaim`: Creates insurance claims for projects
   - `getClaimStatus`: Retrieves claim status information
   - `exportPacket`: Exports claim packets as PDF or ZIP
-- **Mock Mode:** Returns mock data when `ORPAYNTER_API_BASE` is empty
 - **Build Status:** ✓ Builds successfully
 
 ### 2. FirstRunWizard Component (New ✓)
@@ -28,11 +26,11 @@ Both MCP server packages were already present and fully functional:
 **Location:** `apps/ui-tars/src/renderer/src/components/FirstRunWizard/`
 
 **Features:**
-- 5-step wizard flow: Welcome → Sign in → API Keys → Demo Mode → Finish
+- 4-step wizard flow: Welcome → Sign in → API Keys → Finish
 - OrPaynter dark theme with custom color tokens
-- Demo Mode toggle for testing without API keys
+- Production-ready with required API key validation
 - API key input fields for 7 services:
-  - OpenAI API Key
+  - OpenAI API Key (required)
   - Stripe Secret Key
   - SendGrid API Key
   - Twilio Auth Token
@@ -51,7 +49,7 @@ import FirstRunWizard from '@/components/FirstRunWizard';
 <FirstRunWizard
   onComplete={(data) => {
     console.log('Setup complete:', data);
-    // Save keys and demoMode state
+    // Save keys securely
   }}
   onCancel={() => console.log('Cancelled')}
   defaultKeys={{ OPENAI_API_KEY: 'existing_key' }}
@@ -64,7 +62,6 @@ import FirstRunWizard from '@/components/FirstRunWizard';
 
 **Test Scenario:**
 - Photo upload → Severity score analysis → Material estimate → (Optional) Stripe link creation
-- Runs in Demo Mode
 - Uses placeholder selectors (needs UI implementation)
 
 **Status:** Test is currently marked as `.skip()` because the UI elements need to be implemented first.
@@ -85,7 +82,7 @@ pnpm --filter ui-tars-desktop test:e2e
 ORPAYNTER_API_BASE=
 ORPAYNTER_TOKEN=
 
-# Third-party keys (optional for Demo Mode)
+# Third-party keys (required for production use)
 OPENAI_API_KEY=
 STRIPE_KEY=
 SENDGRID_KEY=
@@ -136,14 +133,14 @@ The MCP servers can be run in development mode:
 ```bash
 # Terminal A - AI Server
 cd packages/agent-infra/mcp-servers/orpaynter-ai
-ORPAYNTER_API_BASE= pnpm dev
+ORPAYNTER_API_BASE=https://api.orpaynter.com pnpm dev
 
 # Terminal B - Claims Server
 cd packages/agent-infra/mcp-servers/orpaynter-claims
-ORPAYNTER_API_BASE= pnpm dev
+ORPAYNTER_API_BASE=https://api.orpaynter.com pnpm dev
 ```
 
-With empty `ORPAYNTER_API_BASE`, they run in mock mode automatically.
+Ensure `ORPAYNTER_API_BASE` is set to your production API endpoint.
 
 ### 3. Running E2E Tests
 
@@ -156,7 +153,6 @@ pnpm --filter ui-tars-desktop test:e2e
 ```
 
 **Note:** The photo-score-estimate test is currently skipped because it requires UI elements to be implemented. Once you add the UI with the following test IDs, remove the `.skip()`:
-- `demo-mode-toggle`
 - `upload-photo`
 - `analyze-button`
 - `severity-score`
@@ -225,8 +221,9 @@ All components have been verified:
 
 ## Notes
 
-- Demo Mode works out-of-the-box with mock responses from MCP servers
+- The wizard requires at least the OpenAI API key to proceed from the API Keys step
 - The wizard uses inline styles for the dark theme to avoid CSS conflicts
 - Tailwind v4 classes are used for layout
 - The E2E test is conservative and checks for element visibility before interacting
 - All MCP servers use the `@modelcontextprotocol/sdk` for consistency
+- Production API endpoints must be configured for the MCP servers to function
