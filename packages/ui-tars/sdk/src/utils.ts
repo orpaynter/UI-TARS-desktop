@@ -101,22 +101,24 @@ export const toVlmModelFormat = ({
 } => {
   const USER_INSTRUCTION_MARKER = '## User Instruction';
   const history = formatHistoryMessages(historyMessages);
+  
+  // Optimize: Cache systemPrompt.includes check result
+  const hasInstructionMarker = systemPrompt.includes(USER_INSTRUCTION_MARKER);
+  const insertIndex = hasInstructionMarker
+    ? systemPrompt.lastIndexOf(USER_INSTRUCTION_MARKER)
+    : -1;
+  
   return {
     conversations: conversations.map((conv, idx) => {
       if (idx === 0 && conv.from === 'human') {
         let newValue = '';
-        if (systemPrompt.includes(USER_INSTRUCTION_MARKER)) {
-          const insertIndex = systemPrompt.lastIndexOf(USER_INSTRUCTION_MARKER);
+        if (hasInstructionMarker) {
           const slicedPrefix = systemPrompt.slice(0, insertIndex);
           const slicedSuffix = systemPrompt.slice(insertIndex);
-          newValue =
-            slicedPrefix +
-            (slicedPrefix.endsWith('\n') ? '' : '\n') +
-            history +
-            '\n' +
-            slicedSuffix +
-            (slicedSuffix.endsWith('\n') ? '' : '\n') +
-            conv.value;
+          // Optimize: Use template literals with clearer logic
+          const prefixNewline = slicedPrefix.endsWith('\n') ? '' : '\n';
+          const suffixNewline = slicedSuffix.endsWith('\n') ? '' : '\n';
+          newValue = `${slicedPrefix}${prefixNewline}${history}\n${slicedSuffix}${suffixNewline}${conv.value}`;
         } else {
           newValue = `${systemPrompt}\n${history}\n${USER_INSTRUCTION_MARKER}\n${conv.value}`;
         }
@@ -156,10 +158,11 @@ export const convertToOpenAIMessages = ({
   conversations: Message[];
   images: string[];
 }): Array<ChatCompletionMessageParam> => {
-  const messages: Array<ChatCompletionMessageParam> = [];
+  // Optimize: Use reduce instead of forEach with push for better functional style
+  // and potential performance benefits
   let imageIndex = 0;
-
-  conversations.forEach((conv) => {
+  
+  return conversations.reduce<Array<ChatCompletionMessageParam>>((messages, conv) => {
     if (conv.value === IMAGE_PLACEHOLDER) {
       // handle image message
       if (imageIndex < images.length) {
@@ -181,9 +184,8 @@ export const convertToOpenAIMessages = ({
         content: conv.value,
       });
     }
-  });
-
-  return messages;
+    return messages;
+  }, []);
 };
 
 export function replaceBase64Prefix(base64: string) {
@@ -228,21 +230,16 @@ export async function preprocessResizeImage(
 function formatHistoryMessages(messages: Message[]): string {
   const lastMessages = messages.slice(-30);
 
-  const lines = lastMessages.map((msg) => {
-    const role = msg.from === 'human' ? 'human' : 'assistant';
-    return `${role}: ${msg.value}`;
-  });
+  // Optimize: Chain map and join for cleaner code
+  // The intermediate array from map is necessary but join is efficient
+  const lines = lastMessages
+    .map((msg) => {
+      const role = msg.from === 'human' ? 'human' : 'assistant';
+      return `${role}: ${msg.value}`;
+    })
+    .join('\n');
 
-  // human: xxx, assistant: xxx.
-  // const formattedLines = lines.map((line) => {
-  //   if (line.startsWith('human:')) {
-  //     return line + ',';
-  //   } else {
-  //     return line + '.';
-  //   }
-  // });
-
-  return '## History Messages\n' + lines.join('\n') + '\n';
+  return `## History Messages\n${lines}\n`;
 }
 
 /**

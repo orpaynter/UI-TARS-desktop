@@ -24,21 +24,22 @@ export async function markClickPosition(data: {
       predictions: data.parsed,
       screenshotContext: data.screenshotContext,
     });
-    const imageOverlays: sharp.OverlayOptions[] = overlays
-      .map((o) => {
-        if (o.yPos && o.xPos) {
-          return {
-            input: Buffer.from(o.svg),
-            top: o.yPos + o.offsetY,
-            left: o.xPos + o.offsetX,
-          };
-        }
-        return null;
-      })
-      .filter((overlay) => !!overlay);
+    // Optimize: Use reduce to avoid two iterations (map + filter)
+    const imageOverlays: sharp.OverlayOptions[] = overlays.reduce<
+      sharp.OverlayOptions[]
+    >((acc, o) => {
+      if (o.yPos && o.xPos) {
+        acc.push({
+          input: Buffer.from(o.svg),
+          top: o.yPos + o.offsetY,
+          left: o.xPos + o.offsetX,
+        });
+      }
+      return acc;
+    }, []);
 
     if (!imageOverlays?.length) {
-      return '';
+      return data.base64;
     }
 
     const result = await sharp(imageBuffer).composite(imageOverlays).toBuffer();
@@ -46,7 +47,7 @@ export async function markClickPosition(data: {
     return result.toString('base64');
   } catch (error) {
     logger.error('图片处理出错:', error);
-    // return origin base64
-    return '';
+    // return origin base64 on error
+    return data.base64;
   }
 }
